@@ -251,32 +251,24 @@ Carregue os dados iniciais das fontes permitidas:
 npm run prisma:seed
 ```
 
-### 7. Iniciar o backend
+### 7. Iniciar todo o projeto de uma vez
 
-Abra outro terminal e execute:
+Depois que o banco estiver pronto, voce pode subir backend e frontend com um unico comando na raiz do projeto:
+
+```bash
+npm run dev
+```
+
+Esse comando inicia:
+
+- backend em `http://localhost:3001`
+- frontend em `http://localhost:3000`
+
+Se voce preferir abrir cada parte separadamente para depuracao, use:
 
 ```bash
 npm run dev:backend
-```
-
-O backend sobe, por padrao, em:
-
-```txt
-http://localhost:3001
-```
-
-### 8. Iniciar o frontend
-
-Em outro terminal, execute:
-
-```bash
 npm run dev:frontend
-```
-
-O frontend sobe, por padrao, em:
-
-```txt
-http://localhost:3000
 ```
 
 ## Como validar se esta funcionando
@@ -328,6 +320,7 @@ Authorization: Bearer <ADMIN_TOKEN>
 ### Desenvolvimento
 
 ```bash
+npm run dev
 npm run dev:backend
 npm run dev:frontend
 ```
