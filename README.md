@@ -23,18 +23,140 @@ O sistema foi desenhado para aceitar somente:
 - A API publica tambem bloqueia consultas para outros municipios.
 - A area administrativa exige `ADMIN_TOKEN`.
 
-## Requisitos para rodar no PC
+## O que precisa instalar
 
-Antes de iniciar, instale:
+Para rodar o sistema em qualquer computador, voce precisa ter instalado:
 
-1. **Node.js** com `npm` compativel com workspaces.
-2. **Docker Desktop** ou **Docker Engine + Docker Compose**.
-3. Um editor de codigo, como VS Code.
+1. **Node.js 20 ou superior**
+2. **npm**
+3. **Docker**
+4. **Docker Compose**
+5. Um editor de codigo, como **VS Code**
 
-Recomendacao pratica:
+O Node.js instala o `npm` junto na maioria dos casos. O Docker e o Docker Compose sao usados para subir o banco de dados PostgreSQL e o Redis.
 
-- Node.js 20 ou superior.
-- Docker atualizado.
+## Guia de instalacao
+
+### Linux
+
+Se voce usa Linux, o caminho mais simples e instalar via terminal.
+
+#### Ubuntu e Debian
+
+Atualize o sistema:
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+Instale ferramentas basicas:
+
+```bash
+sudo apt install -y curl ca-certificates gnupg
+```
+
+Instale o Node.js 20:
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+```
+
+Confirme a instalacao:
+
+```bash
+node -v
+npm -v
+```
+
+Instale o Docker:
+
+```bash
+curl -fsSL https://get.docker.com | sudo sh
+```
+
+Adicione seu usuario ao grupo do Docker:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+Depois disso, faca logout e login novamente, ou reinicie o computador.
+
+Confirme o Docker e o Compose:
+
+```bash
+docker --version
+docker compose version
+```
+
+#### Outras distribuicoes Linux
+
+Se voce usa Fedora, Arch, Manjaro, openSUSE ou outra distribuicao, instale:
+
+- Node.js 20 ou superior pelo gerenciador de pacotes da distro ou pelo site oficial do Node.js.
+- Docker pelo repositório oficial da propria distribuicao ou pelo site do Docker.
+- Docker Compose como plugin do Docker ou pelo pacote oficial da distro.
+
+Depois confirme:
+
+```bash
+node -v
+npm -v
+docker --version
+docker compose version
+```
+
+### Windows
+
+No Windows, a forma mais simples e usar o **PowerShell como administrador**.
+
+#### Instalar com `winget`
+
+Se voce tiver o `winget`, rode:
+
+```powershell
+winget install OpenJS.NodeJS.LTS
+winget install Docker.DockerDesktop
+```
+
+Depois feche e abra o terminal de novo.
+
+Confirme a instalacao:
+
+```powershell
+node -v
+npm -v
+docker --version
+docker compose version
+```
+
+#### Instalar manualmente
+
+Se preferir, faca o download oficial:
+
+- Node.js: https://nodejs.org/
+- Docker Desktop: https://www.docker.com/products/docker-desktop/
+
+Depois da instalacao:
+
+1. Abra o Docker Desktop e espere ele iniciar.
+2. Verifique se o Docker esta ativo no tray do Windows.
+3. Abra o PowerShell ou o Prompt de Comando e confira:
+
+```powershell
+node -v
+npm -v
+docker --version
+docker compose version
+```
+
+### Observacoes importantes
+
+- O projeto usa o `docker compose` para subir PostgreSQL e Redis.
+- Sem Docker, voce teria que instalar e configurar esses dois servicos manualmente.
+- Se o comando `docker` nao funcionar no Linux, normalmente e necessario abrir uma nova sessao depois de adicionar o usuario ao grupo do Docker.
 
 ## Estrutura do projeto
 
