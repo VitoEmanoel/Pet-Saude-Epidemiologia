@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+Content-Type: text/html
+Date: Sat, 13 Jun 2026 16:02:08 GMT
+Connection: close
+Content-Length: 5617
+Set-Cookie: TS014879da=01e046ca4c4a41ea6e839455483ece505a7fdf8f27b5616711aab5b47fe7334b8cf426af936641627152ee1d3c8d80a2f74938c2b7; Path=/; Domain=.tabnet.datasus.gov.br
+

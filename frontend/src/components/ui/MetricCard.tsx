@@ -1,0 +1,34 @@
+import type { LucideIcon } from "lucide-react";
+
+type MetricCardProps = {
+  label: string;
+  value: string | number;
+  detail?: string;
+  icon: LucideIcon;
+  tone?: "green" | "blue" | "slate" | "amber";
+};
+
+const toneClasses = {
+  green: "bg-health-50 text-health-700",
+  blue: "bg-institutional-50 text-institutional-800",
+  slate: "bg-slate-100 text-slate-700",
+  amber: "bg-amber-50 text-amber-700"
+};
+
+export function MetricCard({ label, value, detail, icon: Icon, tone = "slate" }: MetricCardProps) {
+  return (
+    <div className="rounded border border-slate-200 bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
+          <strong className="mt-2 block text-2xl font-semibold text-slate-950">{value}</strong>
+        </div>
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded ${toneClasses[tone]}`}>
+          <Icon size={18} aria-hidden="true" />
+        </div>
+      </div>
+      {detail ? <p className="mt-2 truncate text-xs text-slate-500">{detail}</p> : null}
+    </div>
+  );
+}
+
