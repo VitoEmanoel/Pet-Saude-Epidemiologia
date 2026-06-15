@@ -1,4 +1,7 @@
 import type {
+  AdminSyncAllResponse,
+  AdminSyncHistoryResponse,
+  AdminSyncResult,
   CategoryPoint,
   ChartPoint,
   ChartResponse,
@@ -19,6 +22,28 @@ async function fetchJson<T>(path: string): Promise<T> {
 
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+async function fetchAdminJson<T>(path: string, token: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    cache: "no-store",
+    headers: {
+      ...options.headers,
+      authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const message =
+      typeof body?.error?.message === "string"
+        ? body.error.message
+        : `API request failed: ${response.status}`;
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;
@@ -62,6 +87,22 @@ export function getRecords(filters: RecordFilters) {
 
 export function getRecordsExportUrl(filters: RecordFilters) {
   return `${API_BASE_URL}/api/records/export.csv?${buildSearchParams(filters)}`;
+}
+
+export function getAdminSyncHistory(token: string) {
+  return fetchAdminJson<AdminSyncHistoryResponse>("/api/admin/sync-history", token);
+}
+
+export function runAdminSyncSource(slug: string, token: string) {
+  return fetchAdminJson<AdminSyncResult>(`/api/admin/sync/${slug}`, token, {
+    method: "POST"
+  });
+}
+
+export function runAdminSyncAll(token: string) {
+  return fetchAdminJson<AdminSyncAllResponse>("/api/admin/sync-all", token, {
+    method: "POST"
+  });
 }
 
 function buildSearchParams(filters: RecordFilters) {

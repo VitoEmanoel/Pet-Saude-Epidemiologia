@@ -4,6 +4,8 @@ Atualizado em: 2026-06-15
 
 Este arquivo serve como controle do que precisa ser feito para o sistema funcionar de ponta a ponta. Marcar com `[x]` apenas quando a etapa estiver implementada e validada.
 
+Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
+
 ## Fase 1 - Fundacao tecnica
 
 - [x] Criar estrutura do projeto em monorepo.
@@ -150,27 +152,28 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 
 ## Fase 6 - Area administrativa
 
-- [ ] Criar tela administrativa.
-- [ ] Criar login ou mecanismo seguro de acesso administrativo.
-- [ ] Listar todas as fontes ativas.
-- [ ] Mostrar status de disponibilidade municipal por fonte.
-- [ ] Mostrar ultima sincronizacao por fonte.
-- [ ] Mostrar historico de sincronizacoes.
-- [ ] Mostrar erros de coleta.
-- [ ] Permitir sincronizar uma fonte especifica.
+- [x] Criar tela administrativa.
+- [x] Criar acesso administrativo via `ADMIN_TOKEN`.
+- [x] Listar todas as fontes ativas.
+- [x] Mostrar status de disponibilidade municipal por fonte.
+- [x] Mostrar ultima sincronizacao por fonte.
+- [x] Mostrar historico de sincronizacoes.
+- [x] Mostrar erros de coleta.
+- [x] Permitir sincronizar uma fonte especifica.
 - [x] Permitir sincronizar todas as fontes pela API administrativa.
 - [ ] Permitir ativar ou desativar fonte.
 - [ ] Impedir sincronizacao de fonte fora da lista permitida.
 - [ ] Registrar usuario ou origem da solicitacao administrativa.
+- [ ] Criar login administrativo mais robusto para producao.
 
 ## Fase 7 - Atualizacao automatica
 
-- [ ] Criar job mensal de sincronizacao.
-- [ ] Agendar execucao no dia 5 de cada mes as 02:00.
-- [ ] Evitar execucoes simultaneas da mesma fonte.
-- [ ] Registrar inicio e fim de cada job.
-- [ ] Registrar falhas sem apagar dados antigos validos.
-- [ ] Manter ultima coleta bem-sucedida disponivel.
+- [x] Criar job automatico de sincronizacao.
+- [x] Definir frequencia mensal inicial.
+- [x] Evitar execucoes simultaneas da mesma fonte.
+- [x] Registrar inicio e fim de cada job.
+- [x] Registrar falhas sem apagar dados antigos validos.
+- [x] Manter ultima coleta bem-sucedida disponivel.
 - [ ] Criar politica de retry para falhas temporarias.
 - [ ] Criar logs estruturados.
 

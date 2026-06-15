@@ -224,9 +224,16 @@ DATABASE_URL=postgresql://painel:painel_dev@localhost:5433/painel_parnaiba?schem
 REDIS_URL=redis://localhost:6379
 
 NEXT_PUBLIC_API_URL=http://localhost:3001
+
+SYNC_SCHEDULE_ENABLED=true
+SYNC_SCHEDULE_INTERVAL_DAYS=30
+SYNC_SCHEDULE_CHECK_INTERVAL_MINUTES=1440
+SYNC_SCHEDULE_STARTUP_DELAY_SECONDS=30
 ```
 
 Troque `ADMIN_TOKEN` por um valor pessoal. Esse token e usado nas rotas administrativas.
+
+As variaveis `SYNC_SCHEDULE_*` controlam a atualizacao automatica. Com os valores acima, o backend checa uma vez por dia e sincroniza fontes que estejam ha 30 dias ou mais sem uma coleta bem-sucedida.
 
 ### 4. Preparar banco e baixar os dados
 
@@ -274,6 +281,7 @@ http://localhost:3000
 http://localhost:3000/tuberculose
 http://localhost:3000/hanseniase
 http://localhost:3000/sifilis
+http://localhost:3000/admin
 ```
 
 ## Validar Se Funcionou
@@ -334,6 +342,12 @@ npm run sync:sifilis
 
 Sincroniza uma fonte especifica.
 
+O backend tambem possui sincronizacao automatica mensal. Para desativar:
+
+```env
+SYNC_SCHEDULE_ENABLED=false
+```
+
 ### Prisma
 
 ```bash
@@ -370,6 +384,7 @@ Backend:      http://localhost:3001
 Health check: http://localhost:3001/health
 PostgreSQL:   localhost:5433
 Redis:        localhost:6379
+Admin:        http://localhost:3000/admin
 ```
 
 ## Rotas Principais Da API
@@ -397,6 +412,8 @@ Rotas administrativas exigem:
 ```txt
 Authorization: Bearer <ADMIN_TOKEN>
 ```
+
+A pagina `http://localhost:3000/admin` usa o mesmo `ADMIN_TOKEN` para carregar historico e disparar sincronizacoes.
 
 ## Regras Fixas
 

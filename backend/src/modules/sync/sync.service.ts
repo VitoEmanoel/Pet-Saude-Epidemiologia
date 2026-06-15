@@ -23,6 +23,15 @@ export class SourceNotAllowedError extends Error {
   }
 }
 
+export class SyncAlreadyRunningError extends Error {
+  constructor(sourceSlug: string) {
+    super(`Sincronizacao ja em andamento para a fonte ${sourceSlug}.`);
+    this.name = "SyncAlreadyRunningError";
+  }
+}
+
+const activeSourceSyncs = new Set<string>();
+
 export type SyncSourceResult = {
   city: typeof ALLOWED_CITY;
   source: {
@@ -45,6 +54,24 @@ export async function syncSource(
   sourceSlug: string,
   requestedBy = "admin",
   client: PrismaClient = prisma
+): Promise<SyncSourceResult> {
+  if (activeSourceSyncs.has(sourceSlug)) {
+    throw new SyncAlreadyRunningError(sourceSlug);
+  }
+
+  activeSourceSyncs.add(sourceSlug);
+
+  try {
+    return await syncSourceUnlocked(sourceSlug, requestedBy, client);
+  } finally {
+    activeSourceSyncs.delete(sourceSlug);
+  }
+}
+
+async function syncSourceUnlocked(
+  sourceSlug: string,
+  requestedBy: string,
+  client: PrismaClient
 ): Promise<SyncSourceResult> {
   const configuredSource = getSourceBySlug(sourceSlug);
 

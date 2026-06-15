@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Activity, BarChart3, Database, MapPinned } from "lucide-react";
+import { Activity, BarChart3, Database, MapPinned, Shield } from "lucide-react";
 
 type AppShellProps = {
-  active: "overview" | "tuberculose" | "hanseniase" | "sifilis";
+  active: "overview" | "tuberculose" | "hanseniase" | "sifilis" | "admin";
   children: React.ReactNode;
 };
 
@@ -30,6 +30,12 @@ const navItems = [
     label: "Sifilis",
     active: "sifilis",
     icon: Activity
+  },
+  {
+    href: "/admin",
+    label: "Admin",
+    active: "admin",
+    icon: Shield
   }
 ] as const;
 

@@ -5,6 +5,7 @@ import { requireAdminAuth } from "../middleware/admin-auth";
 import { prisma } from "../database/prisma";
 import {
   SourceNotAllowedError,
+  SyncAlreadyRunningError,
   UnsupportedCollectorError,
   syncSource
 } from "../modules/sync/sync.service";
@@ -39,6 +40,10 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
       return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
     }
 
+    if (error instanceof SyncAlreadyRunningError) {
+      return sendError(response, 409, "sync_already_running", error.message);
+    }
+
     console.error(error);
     return sendError(response, 500, "internal_error", "Erro ao executar sincronizacao.");
   }
@@ -51,6 +56,22 @@ adminRouter.post("/sync-all", async (_request, response) => {
     try {
       results.push(await syncSource(source.slug, "admin_api_sync_all"));
     } catch (error) {
+      if (error instanceof SyncAlreadyRunningError) {
+        results.push({
+          city: ALLOWED_CITY,
+          source: {
+            slug: source.slug,
+            name: source.name,
+            system: source.system
+          },
+          error: {
+            code: "sync_already_running",
+            message: error.message
+          }
+        });
+        continue;
+      }
+
       if (error instanceof UnsupportedCollectorError) {
         results.push({
           city: ALLOWED_CITY,

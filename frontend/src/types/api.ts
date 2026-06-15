@@ -130,3 +130,52 @@ export type RecordFilters = {
   page?: number;
   pageSize?: number;
 };
+
+export type AdminSyncJob = {
+  id: number;
+  sourceId: number | null;
+  status: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  recordsImported: number;
+  errorMessage: string | null;
+  requestedBy: string | null;
+  createdAt: string;
+  source: {
+    slug: string;
+    name: string;
+    system: string;
+  } | null;
+};
+
+export type AdminSyncHistoryResponse = {
+  city: City;
+  syncJobs: AdminSyncJob[];
+};
+
+export type AdminSyncResult = {
+  city: City;
+  source: {
+    slug: string;
+    name: string;
+    system: string;
+  };
+  syncJob?: {
+    id: number;
+    status: string;
+    startedAt: string | null;
+    finishedAt: string | null;
+    recordsImported: number;
+    errorMessage: string | null;
+  };
+  rawImportsCreated?: number;
+  error?: {
+    code: string;
+    message: string;
+  };
+};
+
+export type AdminSyncAllResponse = {
+  city: City;
+  results: AdminSyncResult[];
+};
