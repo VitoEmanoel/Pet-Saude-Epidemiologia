@@ -30,7 +30,7 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
         response,
         501,
         "not_implemented",
-        "A Fase 3 permite reprocessar somente a fonte piloto tuberculose_sinan.",
+        "Nao ha coletor implementado para esta fonte.",
         { city: ALLOWED_CITY, source }
       );
     }
@@ -44,14 +44,38 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
   }
 });
 
-adminRouter.post("/sync-all", (_request, response) => {
-  return sendError(
-    response,
-    501,
-    "not_implemented",
-    "A sincronizacao de todas as fontes sera implementada apos a validacao tecnica de cada fonte.",
-    { city: ALLOWED_CITY, sources: allowedSources.map((source) => source.slug) }
-  );
+adminRouter.post("/sync-all", async (_request, response) => {
+  const results = [];
+
+  for (const source of allowedSources) {
+    try {
+      results.push(await syncSource(source.slug, "admin_api_sync_all"));
+    } catch (error) {
+      if (error instanceof UnsupportedCollectorError) {
+        results.push({
+          city: ALLOWED_CITY,
+          source: {
+            slug: source.slug,
+            name: source.name,
+            system: source.system
+          },
+          error: {
+            code: "not_implemented",
+            message: error.message
+          }
+        });
+        continue;
+      }
+
+      console.error(error);
+      return sendError(response, 500, "internal_error", "Erro ao executar sincronizacao geral.");
+    }
+  }
+
+  return response.json({
+    city: ALLOWED_CITY,
+    results
+  });
 });
 
 adminRouter.get("/sync-history", async (_request, response) => {

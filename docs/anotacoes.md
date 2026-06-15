@@ -1,6 +1,6 @@
 # Anotacoes do projeto
 
-Atualizado em: 2026-06-13
+Atualizado em: 2026-06-15
 
 Este arquivo serve como controle do que precisa ser feito para o sistema funcionar de ponta a ponta. Marcar com `[x]` apenas quando a etapa estiver implementada e validada.
 
@@ -17,7 +17,7 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 - [x] Definir cidade fixa do sistema: Parnaiba - PI.
 - [x] Definir codigo IBGE fixo: `2207702`.
 - [x] Definir categoria DATASUS fixa: `epidemiologicas_morbidade`.
-- [x] Criar lista fixa das 13 fontes permitidas.
+- [x] Criar lista fixa das fontes permitidas.
 - [x] Criar rota `GET /health`.
 - [x] Criar rota `GET /api/sources`.
 - [x] Criar rota `GET /api/sources/:slug`.
@@ -34,7 +34,7 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 - [x] Criar Docker Compose com PostgreSQL e Redis.
 - [x] Ajustar PostgreSQL local para porta `5433`.
 - [x] Criar migration inicial do banco.
-- [x] Rodar seed e confirmar 13 fontes no banco.
+- [x] Rodar seed e confirmar fontes ativas no banco.
 - [x] Criar tela inicial do frontend.
 - [x] Exibir fontes permitidas no frontend.
 - [x] Exibir status municipal pendente no frontend.
@@ -55,11 +55,14 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 - [x] Confirmar que PostgreSQL e Redis sobem com `docker compose up -d`.
 - [x] Confirmar que backend sobe com `npm run dev:backend`.
 - [x] Confirmar que frontend sobe com `npm run dev:frontend`.
+- [x] Criar `npm run setup` para subir Docker, aplicar migrations, rodar seed e sincronizar dados.
+- [x] Confirmar que `npm run dev` fica separado para apenas subir backend e frontend.
 
 ## Fase 2 - Validacao tecnica do DATASUS/TABNET
 
 - [x] Escolher fonte piloto.
 - [x] Usar `tuberculose_sinan` como fonte piloto.
+- [x] Reduzir escopo atual do painel para tuberculose, hanseniase e sifilis congenita.
 - [x] Localizar a URL real da fonte de Tuberculose no DATASUS/TABNET.
 - [x] Identificar se a fonte pertence realmente a Epidemiologicas e Morbidade.
 - [x] Mapear parametros de consulta do TABNET para Tuberculose.
@@ -82,6 +85,9 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 - [x] Criar modulo `datasus` no backend.
 - [x] Criar contrato comum para coletores.
 - [x] Criar coletor especifico para `tuberculose_sinan`.
+- [x] Generalizar coletor SINAN/TABNET para fontes com consulta municipal por residencia.
+- [x] Criar coletor para `hanseniase_sinan`.
+- [x] Criar coletor para `sifilis_congenita_sinan`.
 - [x] Enviar parametros corretos ao TABNET pelo backend.
 - [x] Baixar resposta bruta da fonte.
 - [x] Calcular hash da resposta bruta.
@@ -100,7 +106,9 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 - [x] Tratar erro de coleta.
 - [x] Tratar fonte sem dados.
 - [x] Tratar fonte sem filtro municipal.
-- [x] Permitir reprocessar somente a fonte piloto.
+- [x] Permitir reprocessar as fontes ativas do painel.
+- [x] Criar `npm run sync:data` para sincronizar todas as fontes ativas.
+- [x] Criar comandos individuais de sincronizacao por fonte.
 
 ## Fase 4 - API com dados reais
 
@@ -123,6 +131,7 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 - [x] Criar layout final com header e menu lateral.
 - [x] Criar pagina de visao geral.
 - [x] Criar pagina da fonte piloto.
+- [x] Criar paginas para hanseniase e sifilis.
 - [x] Criar cards de indicadores reais.
 - [x] Criar grafico de evolucao anual.
 - [x] Criar grafico por sexo.
@@ -143,13 +152,13 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 
 - [ ] Criar tela administrativa.
 - [ ] Criar login ou mecanismo seguro de acesso administrativo.
-- [ ] Listar todas as fontes permitidas.
+- [ ] Listar todas as fontes ativas.
 - [ ] Mostrar status de disponibilidade municipal por fonte.
 - [ ] Mostrar ultima sincronizacao por fonte.
 - [ ] Mostrar historico de sincronizacoes.
 - [ ] Mostrar erros de coleta.
 - [ ] Permitir sincronizar uma fonte especifica.
-- [ ] Permitir sincronizar todas as fontes.
+- [x] Permitir sincronizar todas as fontes pela API administrativa.
 - [ ] Permitir ativar ou desativar fonte.
 - [ ] Impedir sincronizacao de fonte fora da lista permitida.
 - [ ] Registrar usuario ou origem da solicitacao administrativa.
@@ -165,21 +174,16 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 - [ ] Criar politica de retry para falhas temporarias.
 - [ ] Criar logs estruturados.
 
-## Fase 8 - Expansao para as demais fontes
+## Fase 8 - Expansao futura de fontes
 
-- [ ] Validar `morbidade_hospitalar_sih_sus`.
-- [ ] Validar `aids_sinan`.
-- [ ] Validar `hanseniase_sinan`.
-- [ ] Validar `agravos_notificacao_2007`.
-- [ ] Validar `agravos_notificacao_2001_2006`.
-- [ ] Validar `scz_2015`.
-- [ ] Validar `pce_esquistossomose`.
-- [ ] Validar `sisvan_estado_nutricional`.
-- [ ] Validar `hiperdia`.
-- [ ] Validar `siscolo_sismama`.
-- [ ] Validar `siscan`.
-- [ ] Validar `painel_oncologia`.
-- [ ] Criar coletor para cada fonte validada.
+- [x] Validar `hanseniase_sinan`.
+- [x] Validar `sifilis_congenita_sinan`.
+- [x] Remover do painel as fontes sem coletor implementado no escopo atual.
+- [ ] Avaliar futuramente se sifilis adquirida e sifilis em gestante devem virar fontes separadas.
+- [ ] Adicionar futuramente casos de dengue.
+- [ ] Adicionar futuramente arboviroses em geral.
+- [ ] Adicionar futuramente sifilis gestacional.
+- [ ] Criar coletor para cada nova fonte validada.
 - [ ] Marcar fonte como indisponivel quando nao houver filtro municipal.
 - [ ] Documentar parametros e limitacoes de cada fonte.
 

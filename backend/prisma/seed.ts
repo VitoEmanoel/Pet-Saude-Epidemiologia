@@ -1,3 +1,4 @@
+import "../src/config/env";
 import { PrismaClient, SourceAvailabilityStatus } from "@prisma/client";
 import { allowedSources } from "../src/config/sources";
 
@@ -10,6 +11,19 @@ const availabilityStatusBySourceStatus = {
 } as const;
 
 async function main() {
+  const allowedSlugs = allowedSources.map((source) => source.slug);
+
+  await prisma.dataSource.updateMany({
+    where: {
+      slug: {
+        notIn: allowedSlugs
+      }
+    },
+    data: {
+      active: false
+    }
+  });
+
   for (const source of allowedSources) {
     const dataSource = await prisma.dataSource.upsert({
       where: {
@@ -72,4 +86,3 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
-

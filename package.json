@@ -7,6 +7,7 @@
     "frontend"
   ],
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:backend": "npm --workspace backend run dev",
     "dev:frontend": "npm --workspace frontend run dev",
@@ -15,6 +16,11 @@
     "test:backend": "npm --workspace backend run test",
     "prisma:generate": "npm --workspace backend run prisma:generate",
     "prisma:migrate": "npm --workspace backend run prisma:migrate",
-    "prisma:seed": "npm --workspace backend run prisma:seed"
+    "prisma:deploy": "npm --workspace backend run prisma:deploy",
+    "prisma:seed": "npm --workspace backend run prisma:seed",
+    "sync:data": "npm --workspace backend run sync:data",
+    "sync:tuberculose": "npm --workspace backend run sync:tuberculose",
+    "sync:hanseniase": "npm --workspace backend run sync:hanseniase",
+    "sync:sifilis": "npm --workspace backend run sync:sifilis"
   }
 }

@@ -14,33 +14,6 @@ export type AllowedSource = {
 
 export const allowedSources: readonly AllowedSource[] = [
   {
-    slug: "morbidade_hospitalar_sih_sus",
-    name: "Morbidade Hospitalar do SUS",
-    system: "SIH/SUS",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "aids_sinan",
-    name: "Casos de Aids",
-    system: "SINAN",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "hanseniase_sinan",
-    name: "Casos de Hanseníase",
-    system: "SINAN",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
     slug: "tuberculose_sinan",
     name: "Casos de Tuberculose",
     system: "SINAN",
@@ -50,84 +23,21 @@ export const allowedSources: readonly AllowedSource[] = [
     active: true
   },
   {
-    slug: "agravos_notificacao_2007",
-    name: "Doenças e Agravos de Notificação - 2007 em diante",
+    slug: "hanseniase_sinan",
+    name: "Casos de Hanseníase",
     system: "SINAN",
     category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
+    municipalityFilterStatus: "available",
+    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/hanswbr.def",
     active: true
   },
   {
-    slug: "agravos_notificacao_2001_2006",
-    name: "Doenças e Agravos de Notificação - 2001 a 2006",
+    slug: "sifilis_congenita_sinan",
+    name: "Casos de Sífilis Congênita",
     system: "SINAN",
     category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "scz_2015",
-    name: "Notificações de casos suspeitos de SCZ",
-    system: "SCZ",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "pce_esquistossomose",
-    name: "Programa de Controle da Esquistossomose",
-    system: "PCE",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "sisvan_estado_nutricional",
-    name: "Estado Nutricional",
-    system: "SISVAN",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "hiperdia",
-    name: "Hipertensão e Diabetes",
-    system: "HIPERDIA",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "siscolo_sismama",
-    name: "Câncer de colo de útero e mama",
-    system: "SISCOLO/SISMAMA",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "siscan",
-    name: "Sistema de Informação do Câncer",
-    system: "SISCAN",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: true
-  },
-  {
-    slug: "painel_oncologia",
-    name: "Tempo até o início do tratamento oncológico",
-    system: "Painel Oncologia",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
+    municipalityFilterStatus: "available",
+    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/sifilisbr.def",
     active: true
   }
 ] as const;

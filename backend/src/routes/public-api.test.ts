@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import type { Server } from "node:http";
 import { after, before, test } from "node:test";
+import { prisma } from "../database/prisma";
 import { createServer } from "../server";
 
 let server: Server;
@@ -33,6 +34,7 @@ after(async () => {
       resolve();
     });
   });
+  await prisma.$disconnect();
 });
 
 test("GET /health retorna cidade fixa de Parnaiba", async () => {
@@ -77,4 +79,3 @@ test("GET /api/sources/:slug rejeita fonte fora da lista permitida", async () =>
   assert.equal(response.status, 404);
   assert.equal(body.error.code, "not_found");
 });
-

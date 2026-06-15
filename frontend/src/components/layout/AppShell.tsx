@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Activity, BarChart3, Database, MapPinned } from "lucide-react";
 
 type AppShellProps = {
-  active: "overview" | "tuberculose";
+  active: "overview" | "tuberculose" | "hanseniase" | "sifilis";
   children: React.ReactNode;
 };
 
@@ -17,6 +17,18 @@ const navItems = [
     href: "/tuberculose",
     label: "Tuberculose",
     active: "tuberculose",
+    icon: Activity
+  },
+  {
+    href: "/hanseniase",
+    label: "Hanseniase",
+    active: "hanseniase",
+    icon: Activity
+  },
+  {
+    href: "/sifilis",
+    label: "Sifilis",
+    active: "sifilis",
     icon: Activity
   }
 ] as const;

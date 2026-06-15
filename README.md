@@ -1,103 +1,167 @@
 # Painel Epidemiologico de Parnaiba - PI
 
-Sistema para visualizacao de dados publicos do DATASUS/TABNET restritos ao municipio de Parnaiba - PI, na categoria de dados epidemiologicos e morbidade.
+Sistema web para consultar, visualizar e exportar dados publicos do DATASUS/TABNET filtrados para o municipio de Parnaiba - PI.
 
-## Visao geral
+O sistema usa um banco local para guardar os dados coletados. Isso evita depender do DATASUS/TABNET toda vez que alguem abre a pagina. O fluxo correto e: sincronizar os dados para o banco local e depois navegar pelo painel.
 
-O projeto esta organizado como um monorepo com:
+## O Que O Sistema Faz
 
-- `backend/`: API em Express com TypeScript, Prisma e PostgreSQL.
-- `frontend/`: interface em Next.js.
-- `docker-compose.yml`: servicos locais de apoio com PostgreSQL e Redis.
+- Coleta dados publicos do DATASUS/TABNET.
+- Filtra os dados para Parnaiba - PI.
+- Salva importacoes brutas para auditoria.
+- Normaliza registros em PostgreSQL.
+- Exibe graficos, indicadores, filtros e tabela paginada.
+- Permite exportar registros em CSV.
 
-O sistema foi desenhado para aceitar somente:
+Fontes ativas atualmente:
 
-- Municipio: Parnaiba
-- UF: PI
-- Codigo IBGE: 2207702
-- Categoria DATASUS: `epidemiologicas_morbidade`
+```txt
+tuberculose_sinan
+hanseniase_sinan
+sifilis_congenita_sinan
+```
 
-### Regras fixas do projeto
+Fontes planejadas para expansao futura:
 
-- O frontend nao deve permitir selecionar outro municipio.
-- A API publica tambem bloqueia consultas para outros municipios.
-- A area administrativa exige `ADMIN_TOKEN`.
+```txt
+dengue
+arboviroses em geral
+sifilis gestacional
+```
 
-## O que precisa instalar
+## Tecnologias
 
-Para rodar o sistema em qualquer computador, voce precisa ter instalado:
+- Node.js 20 ou superior
+- npm
+- TypeScript
+- Express
+- Prisma
+- PostgreSQL
+- Redis
+- Next.js
+- React
+- Tailwind CSS
+- Docker e Docker Compose
 
-1. **Node.js 20 ou superior**
-2. **npm**
-3. **Docker**
-4. **Docker Compose**
-5. Um editor de codigo, como **VS Code**
+As bibliotecas do backend e do frontend sao instaladas automaticamente com `npm install`.
 
-O Node.js instala o `npm` junto na maioria dos casos. O Docker e o Docker Compose sao usados para subir o banco de dados PostgreSQL e o Redis.
+## Estrutura Do Projeto
 
-## Guia de instalacao
+```txt
+backend/              API Express, Prisma e coletores DATASUS/TABNET
+frontend/             Interface Next.js
+docs/                 Documentacao e anotacoes do projeto
+scripts/              Scripts locais de desenvolvimento e setup
+docker-compose.yml    PostgreSQL e Redis locais
+.env.example          Modelo de configuracao local
+```
 
-### Linux
+## Instalar Em Um Computador Novo
 
-Se voce usa Linux, o caminho mais simples e instalar via terminal.
+Siga a ordem abaixo. Em caso de computador novo, instale primeiro Node.js, npm, Docker e Docker Compose.
 
-#### Ubuntu e Debian
+## Linux Ubuntu/Debian
 
-Atualize o sistema:
+### 1. Atualizar o sistema
 
 ```bash
 sudo apt update
 sudo apt upgrade -y
 ```
 
-Instale ferramentas basicas:
+### 2. Instalar ferramentas basicas
 
 ```bash
-sudo apt install -y curl ca-certificates gnupg
+sudo apt install -y curl ca-certificates gnupg git
 ```
 
-Instale o Node.js 20:
+### 3. Instalar Node.js e npm
+
+Instale Node.js 20 LTS:
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 
-Confirme a instalacao:
+Confirme:
 
 ```bash
 node -v
 npm -v
 ```
 
-Instale o Docker:
+O Node precisa ser versao 20 ou superior.
+
+### 4. Instalar Docker e Docker Compose
 
 ```bash
 curl -fsSL https://get.docker.com | sudo sh
 ```
 
-Adicione seu usuario ao grupo do Docker:
+Adicione seu usuario ao grupo Docker:
 
 ```bash
 sudo usermod -aG docker $USER
 ```
 
-Depois disso, faca logout e login novamente, ou reinicie o computador.
+Depois faca logout/login ou reinicie o computador.
 
-Confirme o Docker e o Compose:
+Confirme:
 
 ```bash
 docker --version
 docker compose version
 ```
 
-#### Outras distribuicoes Linux
+Se `docker compose up -d` retornar `permission denied`, o usuario ainda nao esta com permissao no Docker. Reinicie a sessao ou rode temporariamente:
 
-Se voce usa Fedora, Arch, Manjaro, openSUSE ou outra distribuicao, instale:
+```bash
+sudo docker compose up -d
+```
 
-- Node.js 20 ou superior pelo gerenciador de pacotes da distro ou pelo site oficial do Node.js.
-- Docker pelo repositório oficial da propria distribuicao ou pelo site do Docker.
-- Docker Compose como plugin do Docker ou pelo pacote oficial da distro.
+## Windows
+
+### 1. Instalar Git, Node.js, npm e Docker Desktop
+
+Abra o PowerShell como administrador e rode:
+
+```powershell
+winget install Git.Git
+winget install OpenJS.NodeJS.LTS
+winget install Docker.DockerDesktop
+```
+
+Depois:
+
+1. Abra o Docker Desktop.
+2. Aguarde o Docker ficar ativo.
+3. Feche e abra o terminal novamente.
+
+Confirme:
+
+```powershell
+node -v
+npm -v
+docker --version
+docker compose version
+```
+
+Se preferir instalar manualmente:
+
+- Node.js: https://nodejs.org/
+- Docker Desktop: https://www.docker.com/products/docker-desktop/
+- Git: https://git-scm.com/
+
+## Outras Distribuicoes Linux
+
+Instale pelos pacotes oficiais da sua distribuicao:
+
+- Node.js 20 ou superior
+- npm
+- Docker
+- Docker Compose
+- git
 
 Depois confirme:
 
@@ -108,94 +172,48 @@ docker --version
 docker compose version
 ```
 
-### Windows
+## Rodar O Projeto
 
-No Windows, a forma mais simples e usar o **PowerShell como administrador**.
-
-#### Instalar com `winget`
-
-Se voce tiver o `winget`, rode:
-
-```powershell
-winget install OpenJS.NodeJS.LTS
-winget install Docker.DockerDesktop
-```
-
-Depois feche e abra o terminal de novo.
-
-Confirme a instalacao:
-
-```powershell
-node -v
-npm -v
-docker --version
-docker compose version
-```
-
-#### Instalar manualmente
-
-Se preferir, faca o download oficial:
-
-- Node.js: https://nodejs.org/
-- Docker Desktop: https://www.docker.com/products/docker-desktop/
-
-Depois da instalacao:
-
-1. Abra o Docker Desktop e espere ele iniciar.
-2. Verifique se o Docker esta ativo no tray do Windows.
-3. Abra o PowerShell ou o Prompt de Comando e confira:
-
-```powershell
-node -v
-npm -v
-docker --version
-docker compose version
-```
-
-### Observacoes importantes
-
-- O projeto usa o `docker compose` para subir PostgreSQL e Redis.
-- Sem Docker, voce teria que instalar e configurar esses dois servicos manualmente.
-- Se o comando `docker` nao funcionar no Linux, normalmente e necessario abrir uma nova sessao depois de adicionar o usuario ao grupo do Docker.
-
-## Estrutura do projeto
+Resumo dos dois comandos principais:
 
 ```txt
-backend/
-  prisma/
-  src/
-frontend/
-  src/
-docker-compose.yml
-.env.example
-README.md
+npm run setup = prepara o banco e baixa os dados reais
+npm run dev   = abre o backend e o frontend para usar o sistema
 ```
 
-## Configuracao passo a passo
+Na primeira instalacao, rode primeiro `npm run setup` e depois `npm run dev`.
 
-### 1. Obter o codigo
+### 1. Abrir a pasta do projeto
 
-Abra a pasta do projeto no seu computador.
+Entre na pasta raiz do repositorio:
 
-### 2. Instalar as dependencias
+```bash
+cd Pet-Saude-Epidemiologia
+```
 
-Na raiz do projeto, execute:
+### 2. Instalar dependencias do projeto
 
 ```bash
 npm install
 ```
 
-Esse comando instala as dependencias do backend e do frontend usando os workspaces do monorepo.
+Esse comando instala as dependencias do backend e do frontend.
 
-### 3. Criar o arquivo de ambiente
+### 3. Criar o arquivo `.env`
 
-Crie o arquivo `.env` na raiz do projeto a partir do modelo:
+Na raiz do projeto:
 
 ```bash
 cp .env.example .env
 ```
 
-Depois revise os valores principais:
+No Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Abra o arquivo `.env` e confira:
 
 ```env
 PORT=3001
@@ -208,93 +226,158 @@ REDIS_URL=redis://localhost:6379
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-### 4. Ajustar o token administrativo
+Troque `ADMIN_TOKEN` por um valor pessoal. Esse token e usado nas rotas administrativas.
 
-Troque `ADMIN_TOKEN` por um valor forte e pessoal.
+### 4. Preparar banco e baixar os dados
 
-Esse token sera usado nas rotas administrativas com o header:
+Rode:
+
+```bash
+npm run setup
+```
+
+Esse comando executa, em sequencia:
 
 ```txt
-Authorization: Bearer <ADMIN_TOKEN>
-```
-
-### 5. Subir PostgreSQL e Redis
-
-Inicie os servicos de apoio:
-
-```bash
 docker compose up -d
+prisma generate
+prisma migrate deploy
+prisma db seed
+sync das fontes DATASUS/TABNET
 ```
 
-Isso sobe:
+Ao final, o banco local fica com os dados das fontes ativas.
 
-- PostgreSQL em `localhost:5433`
-- Redis em `localhost:6379`
+Resultado esperado:
 
-### 6. Preparar o banco de dados
-
-Gere o Prisma Client:
-
-```bash
-npm run prisma:generate
+```txt
+Setup concluido. Rode npm run dev para abrir o sistema.
 ```
 
-Aplique a migracao inicial:
-
-```bash
-npm run prisma:migrate
-```
-
-Carregue os dados iniciais das fontes permitidas:
-
-```bash
-npm run prisma:seed
-```
-
-### 7. Iniciar todo o projeto de uma vez
-
-Depois que o banco estiver pronto, voce pode subir backend e frontend com um unico comando na raiz do projeto:
+### 5. Abrir backend e frontend
 
 ```bash
 npm run dev
 ```
 
-Esse comando inicia:
+Esse comando sobe:
 
-- backend em `http://localhost:3001`
-- frontend em `http://localhost:3000`
+```txt
+Backend:  http://localhost:3001
+Frontend: http://localhost:3000
+```
 
-Se voce preferir abrir cada parte separadamente para depuracao, use:
+Abra no navegador:
+
+```txt
+http://localhost:3000
+http://localhost:3000/tuberculose
+http://localhost:3000/hanseniase
+http://localhost:3000/sifilis
+```
+
+## Validar Se Funcionou
+
+Com o `npm run dev` rodando, teste:
+
+```bash
+curl http://localhost:3001/health
+curl http://localhost:3001/api/sources
+```
+
+No navegador:
+
+```txt
+http://localhost:3000
+```
+
+A API de fontes deve retornar `total: 3`.
+
+## Comandos Uteis
+
+### Setup completo
+
+```bash
+npm run setup
+```
+
+Use na primeira instalacao ou quando quiser preparar banco e sincronizar dados.
+
+### Desenvolvimento
+
+```bash
+npm run dev
+```
+
+Subir backend e frontend juntos.
 
 ```bash
 npm run dev:backend
 npm run dev:frontend
 ```
 
-## Como validar se esta funcionando
+Subir cada parte separadamente.
 
-Depois de subir tudo, confirme estes pontos:
+### Sincronizar dados
 
-1. O PostgreSQL esta no ar no `localhost:5433`.
-2. O backend responde em `http://localhost:3001/health`.
-3. O frontend abre em `http://localhost:3000`.
-4. A pagina da fonte piloto abre em `http://localhost:3000/tuberculose`.
+```bash
+npm run sync:data
+```
 
-## URLs locais
+Sincroniza todas as fontes ativas.
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:3001`
-- Health check: `http://localhost:3001/health`
-- PostgreSQL: `localhost:5433`
-- Redis: `localhost:6379`
+```bash
+npm run sync:tuberculose
+npm run sync:hanseniase
+npm run sync:sifilis
+```
 
-## Rotas iniciais da API
+Sincroniza uma fonte especifica.
+
+### Prisma
+
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:deploy
+npm run prisma:seed
+```
+
+### Build
+
+```bash
+npm run build:backend
+npm run build:frontend
+```
+
+### Testes
+
+```bash
+npm run test:backend
+```
+
+### Prisma Studio
+
+```bash
+npm --workspace backend run prisma:studio
+```
+
+## URLs Locais
+
+```txt
+Frontend:     http://localhost:3000
+Backend:      http://localhost:3001
+Health check: http://localhost:3001/health
+PostgreSQL:   localhost:5433
+Redis:        localhost:6379
+```
+
+## Rotas Principais Da API
 
 ```txt
 GET  /health
 GET  /api/sources
 GET  /api/sources/:slug
-GET  /api/sources/:slug/availability
 GET  /api/sources/:slug/summary
 GET  /api/sources/:slug/filters
 GET  /api/dashboard/overview
@@ -309,101 +392,118 @@ POST /api/admin/sync-all
 GET  /api/admin/sync-history
 ```
 
-As rotas administrativas exigem:
+Rotas administrativas exigem:
 
 ```txt
 Authorization: Bearer <ADMIN_TOKEN>
 ```
 
-## Comandos uteis
+## Regras Fixas
 
-### Desenvolvimento
+- O municipio e fixo: Parnaiba - PI.
+- O codigo IBGE e fixo: `2207702`.
+- A API publica bloqueia filtros para outro municipio.
+- O frontend nao permite trocar municipio.
+- O painel le dados do banco local, nao consulta DATASUS/TABNET a cada acesso.
 
-```bash
-npm run dev
-npm run dev:backend
-npm run dev:frontend
-```
+## Solucao De Problemas
 
-### Prisma
+### Docker retorna `permission denied`
 
-```bash
-npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:seed
-```
-
-### Build
+No Linux, adicione o usuario ao grupo Docker:
 
 ```bash
-npm run build:backend
-npm run build:frontend
+sudo usermod -aG docker $USER
 ```
 
-### Testes do backend
+Depois faca logout/login ou reinicie o computador.
+
+Para testar imediatamente:
 
 ```bash
-npm run test:backend
+sudo docker compose up -d
 ```
 
-### Banco no modo visual
+Depois rode:
 
 ```bash
-npm run prisma:studio
+npm run setup
 ```
-
-## Fase atual do projeto
-
-O projeto esta na fase de fundacao tecnica. Nesta etapa ja existem:
-
-- backend Express com TypeScript;
-- lista fixa de fontes permitidas;
-- rotas iniciais de fontes, dashboard, registros, graficos e administracao;
-- bloqueio de parametros de municipio em `GET /api/records`;
-- area administrativa protegida por `ADMIN_TOKEN`;
-- schema Prisma para PostgreSQL;
-- seed Prisma das fontes permitidas;
-- Docker Compose com PostgreSQL e Redis;
-- frontend Next.js inicial.
-
-A coleta real do DATASUS/TABNET ainda nao foi implementada. Ela comeca na fase seguinte, com validacao tecnica fonte por fonte.
-
-## Fonte piloto
-
-A fonte piloto definida no projeto e:
-
-```txt
-tuberculose_sinan
-```
-
-Ela serve como base para a evolucao do frontend com dados reais, graficos, tabela paginada, filtros e exportacao CSV.
-
-## Solucao de problemas
 
 ### Banco nao conecta
 
-Confirme se o Docker esta ativo e rode novamente:
+Confirme se os containers estao ativos:
+
+```bash
+docker compose ps
+```
+
+Se nao estiverem:
 
 ```bash
 docker compose up -d
 ```
 
-### Prisma reclama de `DATABASE_URL`
-
-Verifique se o arquivo `.env` existe na raiz do projeto e se a URL aponta para:
+Confira se a URL do banco no `.env` esta assim:
 
 ```txt
 postgresql://painel:painel_dev@localhost:5433/painel_parnaiba?schema=public
 ```
 
+### Prisma reclama de `DATABASE_URL`
+
+Confirme se o arquivo `.env` existe na raiz do projeto:
+
+```bash
+ls -la .env
+```
+
+Se nao existir:
+
+```bash
+cp .env.example .env
+```
+
 ### Frontend nao encontra a API
 
-Confirme se o backend esta rodando em `http://localhost:3001` e se `NEXT_PUBLIC_API_URL` esta apontando para essa URL no `.env`.
+Confirme se o backend responde:
+
+```bash
+curl http://localhost:3001/health
+```
+
+Confirme no `.env`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+Depois reinicie:
+
+```bash
+npm run dev
+```
+
+### Dados nao aparecem
+
+Rode a sincronizacao:
+
+```bash
+npm run sync:data
+```
+
+Depois atualize a pagina no navegador.
 
 ### Rotas administrativas retornam `401`
 
-Confira se o valor enviado no header `Authorization` e igual ao `ADMIN_TOKEN` definido no `.env`.
+Confira se o header enviado e igual ao `ADMIN_TOKEN` do `.env`:
 
-## Observacao tecnica
+```txt
+Authorization: Bearer <ADMIN_TOKEN>
+```
 
-O backend carrega variaveis de ambiente primeiro de `../.env` e depois de `.env` dentro do proprio pacote. Na pratica, o arquivo correto para esse projeto e o `.env` na raiz do repositorio.
+## Observacao Sobre DATASUS/TABNET
+
+O DATASUS/TABNET e usado como fonte de atualizacao. O painel nao depende dele durante a navegacao normal.
+
+Se o DATASUS estiver fora do ar, o sistema continua exibindo a ultima coleta salva no banco local. A sincronizacao pode ser tentada novamente depois.

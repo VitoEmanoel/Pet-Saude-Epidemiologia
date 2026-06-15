@@ -58,9 +58,12 @@ type SelectedFilters = {
   raceColor: string;
 };
 
-const SOURCE = "tuberculose_sinan";
+type DiseaseDashboardProps = {
+  source: string;
+  title: string;
+};
 
-export function TuberculosisDashboard() {
+export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   const [state, setState] = useState<PageState>({ status: "loading" });
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     year: "",
@@ -79,12 +82,12 @@ export function TuberculosisDashboard() {
     let active = true;
 
     Promise.all([
-      getSourceSummary(SOURCE),
-      getSourceFilters(SOURCE),
-      getYearlyEvolution(SOURCE),
-      getChartBySex(SOURCE),
-      getChartByAgeGroup(SOURCE),
-      getChartByRaceColor(SOURCE)
+      getSourceSummary(source),
+      getSourceFilters(source),
+      getYearlyEvolution(source),
+      getChartBySex(source),
+      getChartByAgeGroup(source),
+      getChartByRaceColor(source)
     ])
       .then(([summary, filters, yearly, bySex, byAgeGroup, byRaceColor]) => {
         if (active) {
@@ -111,11 +114,11 @@ export function TuberculosisDashboard() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [source]);
 
   const recordFilters = useMemo(
     () => ({
-      source: SOURCE,
+      source,
       year: selectedFilters.year ? Number(selectedFilters.year) : undefined,
       sex: selectedFilters.sex || undefined,
       ageGroup: selectedFilters.ageGroup || undefined,
@@ -123,7 +126,7 @@ export function TuberculosisDashboard() {
       page,
       pageSize: 12
     }),
-    [page, selectedFilters]
+    [page, selectedFilters, source]
   );
 
   useEffect(() => {
@@ -171,7 +174,7 @@ export function TuberculosisDashboard() {
   }
 
   const exportUrl = getRecordsExportUrl({
-    source: SOURCE,
+    source,
     year: selectedFilters.year ? Number(selectedFilters.year) : undefined,
     sex: selectedFilters.sex || undefined,
     ageGroup: selectedFilters.ageGroup || undefined,
@@ -184,7 +187,7 @@ export function TuberculosisDashboard() {
         <MetricCard
           label="Casos"
           value={formatNumber(state.summary.summary.totalCases)}
-          detail="2001-2025"
+          detail={title}
           icon={Activity}
           tone="green"
         />
@@ -288,6 +291,10 @@ export function TuberculosisDashboard() {
       </section>
     </div>
   );
+}
+
+export function TuberculosisDashboard() {
+  return <DiseaseDashboard source="tuberculose_sinan" title="Tuberculose" />;
 }
 
 function FilterSelect({

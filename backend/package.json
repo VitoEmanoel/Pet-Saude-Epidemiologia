@@ -9,8 +9,13 @@
     "start": "node dist/main.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "prisma db seed",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "sync:data": "tsx src/scripts/sync-data.ts",
+    "sync:tuberculose": "tsx src/scripts/sync-data.ts tuberculose_sinan",
+    "sync:hanseniase": "tsx src/scripts/sync-data.ts hanseniase_sinan",
+    "sync:sifilis": "tsx src/scripts/sync-data.ts sifilis_congenita_sinan"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

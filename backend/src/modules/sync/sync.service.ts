@@ -7,7 +7,7 @@ import {
 import { ALLOWED_CITY } from "../../config/city";
 import { getSourceBySlug } from "../../config/sources";
 import { prisma } from "../../database/prisma";
-import { collectTuberculosisSinan } from "../datasus/tuberculosis-sinan.collector";
+import { collectSinanTabnetSource, hasSinanCollector } from "../datasus/sinan-tabnet.collector";
 
 export class UnsupportedCollectorError extends Error {
   constructor(sourceSlug: string) {
@@ -85,7 +85,7 @@ export async function syncSource(
     return buildResult(dataSource, unavailableJob, 0);
   }
 
-  if (sourceSlug !== "tuberculose_sinan") {
+  if (!hasSinanCollector(sourceSlug)) {
     throw new UnsupportedCollectorError(sourceSlug);
   }
 
@@ -103,7 +103,12 @@ export async function syncSource(
   });
 
   try {
-    const collectorResult = await collectTuberculosisSinan(client, dataSource.id, syncJob.id);
+    const collectorResult = await collectSinanTabnetSource(
+      sourceSlug,
+      client,
+      dataSource.id,
+      syncJob.id
+    );
     const status =
       collectorResult.recordsImported > 0 ? SyncJobStatus.SUCCESS : SyncJobStatus.UNAVAILABLE;
 

@@ -57,6 +57,7 @@ const AGE_GROUP_ORDER = [
   "80 anos e mais",
   "Ignorado"
 ];
+const allowedSourceSlugs = allowedSources.map((source) => source.slug);
 
 export async function getDashboardOverview() {
   const sourcesWithoutMunicipalData = allowedSources.filter(
@@ -69,16 +70,16 @@ export async function getDashboardOverview() {
   const [totalNormalizedRecords, totalCases, lastImportedRecord, sourcesWithData] =
     await Promise.all([
       prisma.epidemiologicalRecord.count({
-        where: cityWhere()
+        where: allowedCityRecordWhere()
       }),
       sumValues({
-        ...cityWhere(),
+        ...allowedCityRecordWhere(),
         sourceTable: {
           contains: YEARLY_SOURCE_TABLE_FRAGMENT
         }
       }),
       prisma.epidemiologicalRecord.findFirst({
-        where: cityWhere(),
+        where: allowedCityRecordWhere(),
         orderBy: {
           importedAt: "desc"
         },
@@ -88,6 +89,9 @@ export async function getDashboardOverview() {
       }),
       prisma.dataSource.count({
         where: {
+          slug: {
+            in: allowedSourceSlugs
+          },
           records: {
             some: cityWhere()
           }
@@ -487,7 +491,7 @@ export function toRecordsCsv(records: SerializedRecord[]): string {
 }
 
 async function buildRecordWhere(filters: PublicFilters): Promise<Prisma.EpidemiologicalRecordWhereInput> {
-  const where: Prisma.EpidemiologicalRecordWhereInput = cityWhere();
+  const where: Prisma.EpidemiologicalRecordWhereInput = allowedCityRecordWhere();
 
   if (filters.source) {
     const dataSource = await prisma.dataSource.findUnique({
@@ -534,7 +538,7 @@ async function buildChartWhere(
   sourceTableFragment: string
 ): Promise<Prisma.EpidemiologicalRecordWhereInput> {
   const where: Prisma.EpidemiologicalRecordWhereInput = {
-    ...cityWhere(),
+    ...allowedCityRecordWhere(),
     year: {
       not: null
     },
@@ -564,6 +568,17 @@ function cityWhere(): Prisma.EpidemiologicalRecordWhereInput {
     cityIbgeCode: ALLOWED_CITY.ibgeCode,
     city: ALLOWED_CITY.name,
     stateCode: ALLOWED_CITY.uf
+  };
+}
+
+function allowedCityRecordWhere(): Prisma.EpidemiologicalRecordWhereInput {
+  return {
+    ...cityWhere(),
+    source: {
+      slug: {
+        in: allowedSourceSlugs
+      }
+    }
   };
 }
 

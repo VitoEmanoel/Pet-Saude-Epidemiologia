@@ -15,6 +15,12 @@ type LoadState =
   | { status: "loaded"; sources: SourcesResponse; overview: DashboardOverviewResponse }
   | { status: "error"; message: string };
 
+const sourcePages: Record<string, string> = {
+  tuberculose_sinan: "/tuberculose",
+  hanseniase_sinan: "/hanseniase",
+  sifilis_congenita_sinan: "/sifilis"
+};
+
 export function OverviewDashboard() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
@@ -61,7 +67,7 @@ export function OverviewDashboard() {
         <MetricCard
           label="Casos"
           value={formatNumber(overview.summary.totalCases)}
-          detail="Tuberculose SINAN"
+          detail="Fontes SINAN"
           icon={Activity}
           tone="green"
         />
@@ -138,24 +144,31 @@ export function OverviewDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {sources.sources.map((source) => (
-                <tr key={source.slug}>
-                  <td className="px-4 py-3 font-medium text-slate-950">{source.name}</td>
-                  <td className="px-4 py-3 text-slate-700">{source.system}</td>
-                  <td className="px-4 py-3">
-                    <StatusPill status={source.municipalityFilterStatus} />
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    {source.slug === "tuberculose_sinan" ? (
-                      <Link href="/tuberculose" className="font-medium text-institutional-600 hover:text-institutional-800">
-                        Abrir
-                      </Link>
-                    ) : (
-                      <span className="text-slate-400">Indisponivel</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {sources.sources.map((source) => {
+                const pageHref = sourcePages[source.slug];
+
+                return (
+                  <tr key={source.slug}>
+                    <td className="px-4 py-3 font-medium text-slate-950">{source.name}</td>
+                    <td className="px-4 py-3 text-slate-700">{source.system}</td>
+                    <td className="px-4 py-3">
+                      <StatusPill status={source.municipalityFilterStatus} />
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {pageHref ? (
+                        <Link
+                          href={pageHref}
+                          className="font-medium text-institutional-600 hover:text-institutional-800"
+                        >
+                          Abrir
+                        </Link>
+                      ) : (
+                        <span className="text-slate-400">Indisponivel</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -173,4 +186,3 @@ function LoadingPanel() {
     </div>
   );
 }
-
