@@ -115,6 +115,7 @@ docker compose version
 ```
 
 Se `docker compose up -d` retornar `permission denied`, o usuario ainda nao esta com permissao no Docker. Reinicie a sessao antes de continuar.
+Se sua instalacao do Docker for via Snap, `npm run docker:recover` reinicia o servico com `sudo snap restart docker`.
 
 ## Windows
 
@@ -262,7 +263,7 @@ npm run restart
 
 ### Recuperar Docker Travado
 
-Se aparecer `cannot stop container`, `permission denied` ou o container se recusar a fechar:
+Se aparecer `cannot stop container`, `permission denied` ao parar containers ou o container se recusar a fechar:
 
 ```bash
 npm run docker:recover
@@ -277,7 +278,7 @@ npm run docker:recover -- --reset-db
 npm run start
 ```
 
-Use `--reset-db` apenas quando puder apagar e recriar os dados locais do PostgreSQL e Redis deste projeto.
+Use `--reset-db` apenas quando puder apagar e recriar os dados locais do PostgreSQL e Redis deste projeto. Em instalacoes Docker via Snap, a recuperacao reinicia o servico com `sudo snap restart docker`.
 
 ### Resetar Banco Local
 
