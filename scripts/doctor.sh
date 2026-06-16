@@ -6,6 +6,8 @@ ENV_FILE="${ENV_FILE:-.env}"
 
 cd "$ROOT_DIR"
 
+source "$ROOT_DIR/scripts/docker-utils.sh"
+
 status=0
 
 ok() {
@@ -15,6 +17,10 @@ ok() {
 warn() {
   echo "[warn] $1"
   status=1
+}
+
+info() {
+  echo "[info] $1"
 }
 
 fail() {
@@ -132,6 +138,10 @@ if grep -Eq "SEU_IP|SEU_IP_OU_DOMINIO" .env; then
 fi
 
 ok "Docker e Docker Compose acessiveis pelo usuario atual."
+
+if docker_is_snap_install; then
+  info "Docker via Snap detectado. Se containers presos retornarem permission denied, use npm run docker:recover para reiniciar com snap restart docker."
+fi
 
 check_port "frontend" "$(compose_service_id frontend)" "$APP_BIND_HOST" "$FRONTEND_PORT"
 check_port "backend" "$(compose_service_id backend)" "$APP_BIND_HOST" "$BACKEND_PORT"

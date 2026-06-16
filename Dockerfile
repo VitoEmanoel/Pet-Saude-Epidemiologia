@@ -19,7 +19,9 @@ RUN npm --workspace backend run build
 
 EXPOSE 3333
 
-CMD ["sh", "-c", "npm --workspace backend run start"]
+WORKDIR /app
+
+CMD ["node", "backend/dist/main.js"]
 
 FROM base AS frontend
 
@@ -30,4 +32,6 @@ RUN npm --workspace frontend run build
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npm --workspace frontend run start"]
+WORKDIR /app/frontend
+
+CMD ["node", "../node_modules/next/dist/bin/next", "start", "-H", "0.0.0.0", "-p", "3000"]
