@@ -169,6 +169,80 @@ docker --version
 docker compose version
 ```
 
+## Oracle Cloud
+
+Use uma VM Ubuntu 22.04 ou 24.04 na Oracle Cloud.
+
+### 1. Criar a VM
+
+- Escolha uma imagem Ubuntu.
+- Gere uma chave SSH para acesso remoto.
+- Anote o IP publico da instancia.
+
+### 2. Liberar Rede
+
+- Na Security List ou no Network Security Group, libere `TCP 3000` e `TCP 3333`.
+- No `firewalld` ou `ufw` da VM, libere as mesmas portas.
+- Nao exponha `5432` ou `6379` para a internet.
+
+### 3. Preparar a VM
+
+Conecte por SSH e instale os requisitos:
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y git curl ca-certificates gnupg
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+```
+
+Depois faça logout/login ou reinicie a VM.
+
+### 4. Baixar o projeto
+
+```bash
+git clone https://github.com/VitoEmanoel/Pet-Saude-Epidemiologia.git
+cd Pet-Saude-Epidemiologia
+cp .env.example .env
+```
+
+### 5. Ajustar o `.env`
+
+Substitua `SEU_IP_OU_DOMINIO` pelo IP publico ou pelo dominio apontado para a VM:
+
+```env
+APP_BIND_HOST=0.0.0.0
+SERVICE_BIND_HOST=127.0.0.1
+FRONTEND_URL=http://SEU_IP_OU_DOMINIO:3000
+BACKEND_URL=http://SEU_IP_OU_DOMINIO:3333
+NEXT_PUBLIC_API_URL=http://SEU_IP_OU_DOMINIO:3333
+CORS_ORIGIN=http://SEU_IP_OU_DOMINIO:3000
+ADMIN_PASSWORD=sua-senha
+ADMIN_SESSION_SECRET=seu-segredo-longo
+POSTGRES_PORT=5433
+```
+
+### 6. Subir o sistema
+
+```bash
+npm run doctor
+npm run start
+```
+
+### 7. Validar
+
+Abra no navegador:
+
+```txt
+http://SEU_IP_OU_DOMINIO:3000
+http://SEU_IP_OU_DOMINIO:3333/health
+```
+
+Se a VM ficar exposta publicamente, use um dominio com HTTPS na frente em vez de acessar direto pela porta, se isso for uma exigencia do ambiente.
+
 ## Rodar O Sistema
 
 Use um unico fluxo para localhost, servidor Linux ou Oracle Cloud. O que muda entre os ambientes e somente o `.env`.
