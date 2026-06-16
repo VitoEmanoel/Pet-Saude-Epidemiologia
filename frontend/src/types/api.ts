@@ -6,6 +6,7 @@ export type City = {
 };
 
 export type MunicipalityFilterStatus = "unknown" | "available" | "unavailable";
+export type SourceKind = "primary" | "derived" | "internal";
 
 export type DataSource = {
   slug: string;
@@ -15,6 +16,8 @@ export type DataSource = {
   municipalityFilterStatus: MunicipalityFilterStatus;
   sourceUrl: string | null;
   active: boolean;
+  syncEnabled: boolean;
+  kind: SourceKind;
 };
 
 export type ChartPoint = {

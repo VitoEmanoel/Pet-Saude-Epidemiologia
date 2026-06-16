@@ -172,6 +172,8 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   }
 
   const sourceIsActive = state.summary.source.active;
+  const isArboviroses = state.summary.source.slug === "arboviroses_sinan";
+  const isSifilisGestacional = state.summary.source.slug === "sifilis_gestacional_sinan";
 
   return (
     <div className="space-y-5">
@@ -216,12 +218,20 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
 
       {!sourceIsActive ? (
         <div className="rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-          Este caso ainda esta em validacao tecnica. A pagina foi criada para acompanhar a
-          expansao do painel, mas a coleta automatica ainda nao esta ativa.
+          {isSifilisGestacional
+            ? "Este caso ainda esta em validacao tecnica. A fonte oficial municipal de sifilis gestacional ainda nao foi localizada em um formato compativel com a coleta automatica."
+            : "Este caso ainda esta em validacao tecnica. A pagina foi criada para acompanhar a expansao do painel, mas a coleta automatica ainda nao esta ativa."}
         </div>
       ) : !state.summary.summary.municipalityDataAvailable ? (
         <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Esta fonte nao disponibiliza consulta municipal para Parnaiba - PI no formato acessado pelo sistema.
+        </div>
+      ) : null}
+
+      {isArboviroses ? (
+        <div className="rounded border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+          Esta visao agrega as fontes oficiais atualmente integradas para arboviroses no painel:
+          dengue e zika. Chikungunya continua pendente de validacao tecnica da rota oficial.
         </div>
       ) : null}
 

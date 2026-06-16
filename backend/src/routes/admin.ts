@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ALLOWED_CITY } from "../config/city";
-import { activeSources, getSourceBySlug } from "../config/sources";
+import { activeSources, getSourceBySlug, syncableSources } from "../config/sources";
 import { getAdminAuditLogs, recordAdminAudit } from "../modules/admin/admin-audit.service";
 import {
   assertAdminCredentialConfigured,
@@ -171,7 +171,7 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
 adminRouter.post("/sync-all", async (request, response) => {
   const results = [];
 
-  for (const source of activeSources) {
+  for (const source of syncableSources) {
     try {
       results.push(await syncSource(source.slug, "admin_api_sync_all"));
     } catch (error) {

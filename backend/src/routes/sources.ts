@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ALLOWED_CITY, ALLOWED_DATASUS_CATEGORY } from "../config/city";
-import { allowedSources, getSourceBySlug } from "../config/sources";
+import { getPublicSourceBySlug, publicSources } from "../config/sources";
 import { getSourceFilters, getSourceSummary } from "../modules/public/public-data.service";
 import { sendError } from "../utils/api-response";
 
@@ -10,13 +10,13 @@ sourcesRouter.get("/", (_request, response) => {
   return response.json({
     city: ALLOWED_CITY,
     category: ALLOWED_DATASUS_CATEGORY,
-    total: allowedSources.length,
-    sources: allowedSources
+    total: publicSources.length,
+    sources: publicSources
   });
 });
 
 sourcesRouter.get("/:slug/availability", (request, response) => {
-  const source = getSourceBySlug(request.params.slug);
+  const source = getPublicSourceBySlug(request.params.slug);
 
   if (!source) {
     return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
@@ -66,7 +66,7 @@ sourcesRouter.get("/:slug/filters", async (request, response) => {
 });
 
 sourcesRouter.get("/:slug", (request, response) => {
-  const source = getSourceBySlug(request.params.slug);
+  const source = getPublicSourceBySlug(request.params.slug);
 
   if (!source) {
     return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");

@@ -1,5 +1,5 @@
 import "../config/env";
-import { activeSources, allowedSources } from "../config/sources";
+import { allowedSources, syncableSources } from "../config/sources";
 import { prisma } from "../database/prisma";
 import { syncSource } from "../modules/sync/sync.service";
 
@@ -7,8 +7,8 @@ async function main() {
   const requestedSource = process.argv[2] ?? "all";
   const sources =
     requestedSource === "all"
-      ? activeSources
-      : allowedSources.filter((source) => source.slug === requestedSource);
+      ? syncableSources
+      : allowedSources.filter((source) => source.slug === requestedSource && source.syncEnabled);
 
   if (sources.length === 0) {
     throw new Error(`Fonte nao permitida ou inexistente: ${requestedSource}.`);

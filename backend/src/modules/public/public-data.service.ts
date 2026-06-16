@@ -1,6 +1,6 @@
 import type { EpidemiologicalRecord, Prisma } from "@prisma/client";
 import { ALLOWED_CITY } from "../../config/city";
-import { allowedSources, getSourceBySlug } from "../../config/sources";
+import { allowedSources, getPublicSourceBySlug, getSourceBySlug, publicSources } from "../../config/sources";
 import { prisma } from "../../database/prisma";
 
 export type PublicFilters = {
@@ -57,29 +57,31 @@ const AGE_GROUP_ORDER = [
   "80 anos e mais",
   "Ignorado"
 ];
-const allowedSourceSlugs = allowedSources.map((source) => source.slug);
+const baseSourceSlugs = allowedSources
+  .filter((source) => source.kind !== "derived")
+  .map((source) => source.slug);
 
 export async function getDashboardOverview() {
-  const sourcesWithoutMunicipalData = allowedSources.filter(
+  const sourcesWithoutMunicipalData = publicSources.filter(
     (source) => source.municipalityFilterStatus === "unavailable"
   ).length;
-  const sourcesPendingValidation = allowedSources.filter(
+  const sourcesPendingValidation = publicSources.filter(
     (source) => source.municipalityFilterStatus === "unknown"
   ).length;
 
   const [totalNormalizedRecords, totalCases, lastImportedRecord, sourcesWithData] =
     await Promise.all([
       prisma.epidemiologicalRecord.count({
-        where: allowedCityRecordWhere()
+        where: baseCityRecordWhere()
       }),
       sumValues({
-        ...allowedCityRecordWhere(),
+        ...baseCityRecordWhere(),
         sourceTable: {
           contains: YEARLY_SOURCE_TABLE_FRAGMENT
         }
       }),
       prisma.epidemiologicalRecord.findFirst({
-        where: allowedCityRecordWhere(),
+        where: baseCityRecordWhere(),
         orderBy: {
           importedAt: "desc"
         },
@@ -87,16 +89,7 @@ export async function getDashboardOverview() {
           importedAt: true
         }
       }),
-      prisma.dataSource.count({
-        where: {
-          slug: {
-            in: allowedSourceSlugs
-          },
-          records: {
-            some: cityWhere()
-          }
-        }
-      })
+      countPublicSourcesWithData()
     ]);
 
   const yearlyEvolution = await getYearlyEvolution();
@@ -107,7 +100,7 @@ export async function getDashboardOverview() {
       totalRecords: totalNormalizedRecords,
       totalCases,
       lastUpdate: lastImportedRecord?.importedAt ?? null,
-      totalSources: allowedSources.length,
+      totalSources: publicSources.length,
       sourcesWithMunicipalData: sourcesWithData,
       sourcesWithoutMunicipalData,
       sourcesPendingValidation,
@@ -120,28 +113,15 @@ export async function getDashboardOverview() {
 }
 
 export async function getSourceSummary(sourceSlug: string) {
-  const source = getSourceBySlug(sourceSlug);
+  const source = getPublicSourceBySlug(sourceSlug);
 
   if (!source) {
     return null;
   }
 
-  const dataSource = await prisma.dataSource.findUnique({
-    where: {
-      slug: sourceSlug
-    },
-    include: {
-      availability: true,
-      syncJobs: {
-        orderBy: {
-          createdAt: "desc"
-        },
-        take: 1
-      }
-    }
-  });
+  const resolvedSourceIds = await getResolvedSourceIds(sourceSlug);
 
-  if (!dataSource) {
+  if (resolvedSourceIds.length === 0) {
     return {
       city: ALLOWED_CITY,
       source,
@@ -151,8 +131,37 @@ export async function getSourceSummary(sourceSlug: string) {
 
   const where = {
     ...cityWhere(),
-    sourceId: dataSource.id
+    sourceId: {
+      in: resolvedSourceIds
+    }
   };
+
+  const [latestSyncJob, latestAvailability] = await Promise.all([
+    prisma.syncJob.findFirst({
+      where: {
+        source: {
+          slug: {
+            in: getResolvedSourceSlugs(sourceSlug)
+          }
+        }
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    }),
+    prisma.dataAvailability.findFirst({
+      where: {
+        source: {
+          slug: {
+            in: getResolvedSourceSlugs(sourceSlug)
+          }
+        }
+      },
+      orderBy: {
+        checkedAt: "desc"
+      }
+    })
+  ]);
 
   const [totalRecords, totalCases, yearBounds, latestYearRecord] = await Promise.all([
     prisma.epidemiologicalRecord.count({ where }),
@@ -206,28 +215,24 @@ export async function getSourceSummary(sourceSlug: string) {
       lastAvailableYear: yearBounds._max.year,
       latestYear: latestYearRecord?.year ?? null,
       latestYearValue: decimalToNumber(latestYearRecord?.value ?? null),
-      lastUpdate: dataSource.syncJobs[0]?.finishedAt ?? null,
-      lastSyncStatus: dataSource.syncJobs[0]?.status ?? null,
-      municipalityDataAvailable: dataSource.municipalityFilterAvailable === true,
-      availabilityStatus: dataSource.availability?.status ?? null
+      lastUpdate: latestSyncJob?.finishedAt ?? null,
+      lastSyncStatus: latestSyncJob?.status ?? null,
+      municipalityDataAvailable: source.municipalityFilterStatus === "available",
+      availabilityStatus: latestAvailability?.status ?? null
     }
   };
 }
 
 export async function getSourceFilters(sourceSlug: string) {
-  const source = getSourceBySlug(sourceSlug);
+  const source = getPublicSourceBySlug(sourceSlug);
 
   if (!source) {
     return null;
   }
 
-  const dataSource = await prisma.dataSource.findUnique({
-    where: {
-      slug: sourceSlug
-    }
-  });
+  const resolvedSourceIds = await getResolvedSourceIds(sourceSlug);
 
-  if (!dataSource) {
+  if (resolvedSourceIds.length === 0) {
     return {
       city: ALLOWED_CITY,
       source,
@@ -244,7 +249,9 @@ export async function getSourceFilters(sourceSlug: string) {
 
   const where = {
     ...cityWhere(),
-    sourceId: dataSource.id
+    sourceId: {
+      in: resolvedSourceIds
+    }
   };
 
   const [years, sex, ageGroups, raceColors, conditions, metrics] = await Promise.all([
@@ -491,19 +498,11 @@ export function toRecordsCsv(records: SerializedRecord[]): string {
 }
 
 async function buildRecordWhere(filters: PublicFilters): Promise<Prisma.EpidemiologicalRecordWhereInput> {
-  const where: Prisma.EpidemiologicalRecordWhereInput = allowedCityRecordWhere();
+  const where: Prisma.EpidemiologicalRecordWhereInput = baseCityRecordWhere();
 
   if (filters.source) {
-    const dataSource = await prisma.dataSource.findUnique({
-      where: {
-        slug: filters.source
-      },
-      select: {
-        id: true
-      }
-    });
-
-    where.sourceId = dataSource?.id ?? -1;
+    const sourceIds = await getResolvedSourceIds(filters.source);
+    where.sourceId = sourceIds.length > 0 ? { in: sourceIds } : -1;
   }
 
   if (filters.year !== undefined) {
@@ -538,7 +537,7 @@ async function buildChartWhere(
   sourceTableFragment: string
 ): Promise<Prisma.EpidemiologicalRecordWhereInput> {
   const where: Prisma.EpidemiologicalRecordWhereInput = {
-    ...allowedCityRecordWhere(),
+    ...baseCityRecordWhere(),
     year: {
       not: null
     },
@@ -548,16 +547,8 @@ async function buildChartWhere(
   };
 
   if (sourceSlug) {
-    const dataSource = await prisma.dataSource.findUnique({
-      where: {
-        slug: sourceSlug
-      },
-      select: {
-        id: true
-      }
-    });
-
-    where.sourceId = dataSource?.id ?? -1;
+    const sourceIds = await getResolvedSourceIds(sourceSlug);
+    where.sourceId = sourceIds.length > 0 ? { in: sourceIds } : -1;
   }
 
   return where;
@@ -571,15 +562,75 @@ function cityWhere(): Prisma.EpidemiologicalRecordWhereInput {
   };
 }
 
-function allowedCityRecordWhere(): Prisma.EpidemiologicalRecordWhereInput {
+function baseCityRecordWhere(): Prisma.EpidemiologicalRecordWhereInput {
   return {
     ...cityWhere(),
     source: {
       slug: {
-        in: allowedSourceSlugs
+        in: baseSourceSlugs
       }
     }
   };
+}
+
+function getResolvedSourceSlugs(sourceSlug: string): string[] {
+  const source = getSourceBySlug(sourceSlug);
+
+  if (!source) {
+    return [];
+  }
+
+  if (source.kind === "derived") {
+    return [...(source.composedOf ?? [])];
+  }
+
+  return [source.slug];
+}
+
+async function getResolvedSourceIds(sourceSlug: string): Promise<number[]> {
+  const sourceSlugs = getResolvedSourceSlugs(sourceSlug);
+
+  if (sourceSlugs.length === 0) {
+    return [];
+  }
+
+  const rows = await prisma.dataSource.findMany({
+    where: {
+      slug: {
+        in: sourceSlugs
+      }
+    },
+    select: {
+      id: true
+    }
+  });
+
+  return rows.map((row) => row.id);
+}
+
+async function countPublicSourcesWithData(): Promise<number> {
+  const availability = await Promise.all(
+    publicSources.map(async (source) => {
+      const sourceIds = await getResolvedSourceIds(source.slug);
+
+      if (sourceIds.length === 0) {
+        return false;
+      }
+
+      const count = await prisma.epidemiologicalRecord.count({
+        where: {
+          ...cityWhere(),
+          sourceId: {
+            in: sourceIds
+          }
+        }
+      });
+
+      return count > 0;
+    })
+  );
+
+  return availability.filter(Boolean).length;
 }
 
 async function sumValues(where: Prisma.EpidemiologicalRecordWhereInput): Promise<number> {

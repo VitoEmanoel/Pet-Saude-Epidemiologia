@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { Response } from "express";
 import { ALLOWED_CITY } from "../config/city";
-import { getSourceBySlug } from "../config/sources";
+import { getPublicSourceBySlug } from "../config/sources";
 import {
   getChartByAgeGroup,
   getChartByRaceColor,
@@ -18,7 +18,7 @@ function resolveSource(response: Response, sourceSlug: unknown) {
     return null;
   }
 
-  const source = getSourceBySlug(sourceSlug);
+  const source = getPublicSourceBySlug(sourceSlug);
 
   if (!source) {
     sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");

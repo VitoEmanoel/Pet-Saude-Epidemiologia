@@ -1,6 +1,7 @@
 import { ALLOWED_DATASUS_CATEGORY } from "./city";
 
 export type MunicipalityFilterStatus = "unknown" | "available" | "unavailable";
+export type SourceKind = "primary" | "derived" | "internal";
 
 export type AllowedSource = {
   slug: string;
@@ -10,6 +11,9 @@ export type AllowedSource = {
   municipalityFilterStatus: MunicipalityFilterStatus;
   sourceUrl: string | null;
   active: boolean;
+  syncEnabled: boolean;
+  kind: SourceKind;
+  composedOf?: readonly string[];
 };
 
 export const allowedSources: readonly AllowedSource[] = [
@@ -20,7 +24,9 @@ export const allowedSources: readonly AllowedSource[] = [
     category: ALLOWED_DATASUS_CATEGORY,
     municipalityFilterStatus: "available",
     sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/tubercbr.def",
-    active: true
+    active: true,
+    syncEnabled: true,
+    kind: "primary"
   },
   {
     slug: "hanseniase_sinan",
@@ -29,7 +35,9 @@ export const allowedSources: readonly AllowedSource[] = [
     category: ALLOWED_DATASUS_CATEGORY,
     municipalityFilterStatus: "available",
     sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/hanswbr.def",
-    active: true
+    active: true,
+    syncEnabled: true,
+    kind: "primary"
   },
   {
     slug: "sifilis_congenita_sinan",
@@ -38,25 +46,32 @@ export const allowedSources: readonly AllowedSource[] = [
     category: ALLOWED_DATASUS_CATEGORY,
     municipalityFilterStatus: "available",
     sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/sifilisbr.def",
-    active: true
+    active: true,
+    syncEnabled: true,
+    kind: "primary"
   },
   {
     slug: "dengue_sinan",
     name: "Casos de Dengue",
     system: "SINAN",
     category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: false
+    municipalityFilterStatus: "available",
+    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/denguebr.def",
+    active: true,
+    syncEnabled: true,
+    kind: "primary"
   },
   {
     slug: "arboviroses_sinan",
     name: "Arboviroses em geral",
     system: "SINAN",
     category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
+    municipalityFilterStatus: "available",
     sourceUrl: null,
-    active: false
+    active: true,
+    syncEnabled: false,
+    kind: "derived",
+    composedOf: ["dengue_sinan", "zika_sinan"]
   },
   {
     slug: "sifilis_gestacional_sinan",
@@ -65,16 +80,35 @@ export const allowedSources: readonly AllowedSource[] = [
     category: ALLOWED_DATASUS_CATEGORY,
     municipalityFilterStatus: "unknown",
     sourceUrl: null,
-    active: false
+    active: false,
+    syncEnabled: false,
+    kind: "primary"
+  },
+  {
+    slug: "zika_sinan",
+    name: "Casos de Zika",
+    system: "SINAN",
+    category: ALLOWED_DATASUS_CATEGORY,
+    municipalityFilterStatus: "available",
+    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/zikabr.def",
+    active: true,
+    syncEnabled: true,
+    kind: "internal"
   }
 ] as const;
 
-export const activeSources = allowedSources.filter((source) => source.active);
+export const publicSources = allowedSources.filter((source) => source.kind !== "internal");
+export const activeSources = publicSources.filter((source) => source.active);
+export const syncableSources = allowedSources.filter((source) => source.syncEnabled);
 
 export type SourceSlug = (typeof allowedSources)[number]["slug"];
 
 export function getSourceBySlug(slug: string): AllowedSource | undefined {
   return allowedSources.find((source) => source.slug === slug);
+}
+
+export function getPublicSourceBySlug(slug: string): AllowedSource | undefined {
+  return publicSources.find((source) => source.slug === slug);
 }
 
 export function sourceExists(slug: string): slug is SourceSlug {

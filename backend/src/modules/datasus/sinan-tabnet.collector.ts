@@ -8,9 +8,9 @@ import { parsePrnTable } from "./tabnet-prn";
 
 const TABNET_CITY_CODE = "220770";
 const TABNET_CITY_OPTION_VALUE = "827";
-const LINE_ENCODED = "Ano_Diagn%F3stico";
-const LINE_LABEL = "Ano_Diagnostico";
-const MUNICIPALITY_RESIDENCE_FILTER = "SMunic%EDpio_de_resid%EAncia";
+const DEFAULT_LINE_ENCODED = "Ano_Diagn%F3stico";
+const DEFAULT_LINE_LABEL = "Ano_Diagnostico";
+const DEFAULT_MUNICIPALITY_RESIDENCE_FILTER = "SMunic%EDpio_de_resid%EAncia";
 
 type QueryDefinition = {
   name: string;
@@ -26,11 +26,14 @@ type SinanTabnetCollectorConfig = {
   metric: string;
   tabnetQueryUrl: string;
   periodFiles: string[];
+  lineEncoded?: string;
+  lineLabel?: string;
   incrementEncoded: string;
   incrementLabel: string;
   sourceTablePrefix: string;
   ageGroupColumnEncoded: string;
   ageGroupColumnLabel: string;
+  municipalityResidenceFilterEncoded?: string;
 };
 
 type NormalizedRecord = {
@@ -83,6 +86,34 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     incrementEncoded: "Casos_confirmados",
     incrementLabel: "Casos_confirmados",
     sourceTablePrefix: "tabnet_sifilis_congenita",
+    ageGroupColumnEncoded: "Faixa_Et%E1ria",
+    ageGroupColumnLabel: "Faixa Etaria"
+  },
+  dengue_sinan: {
+    sourceSlug: "dengue_sinan",
+    diseaseOrCondition: "Dengue",
+    metric: "casos_provaveis",
+    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/denguebr.def",
+    periodFiles: numberedFiles("dengbr", 7, 13),
+    lineEncoded: "Ano_1%BA_Sintoma(s)",
+    lineLabel: "Ano_1o_Sintoma(s)",
+    incrementEncoded: "Casos_Prov%E1veis",
+    incrementLabel: "Casos_Provaveis",
+    sourceTablePrefix: "tabnet_dengue",
+    ageGroupColumnEncoded: "Faixa_Et%E1ria",
+    ageGroupColumnLabel: "Faixa Etaria"
+  },
+  zika_sinan: {
+    sourceSlug: "zika_sinan",
+    diseaseOrCondition: "Zika",
+    metric: "todos_os_casos",
+    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/zikabr.def",
+    periodFiles: numberedFiles("zikabr", 15, 26),
+    lineEncoded: "Ano_1%BA_Sintoma(s)",
+    lineLabel: "Ano_1o_Sintoma(s)",
+    incrementEncoded: "Todos_os_casos",
+    incrementLabel: "Todos_os_casos",
+    sourceTablePrefix: "tabnet_zika",
     ageGroupColumnEncoded: "Faixa_Et%E1ria",
     ageGroupColumnLabel: "Faixa Etaria"
   }
@@ -211,11 +242,11 @@ function buildEncodedFormBody(
   queryDefinition: QueryDefinition
 ): string {
   return [
-    `Linha=${LINE_ENCODED}`,
+    `Linha=${config.lineEncoded ?? DEFAULT_LINE_ENCODED}`,
     `Coluna=${queryDefinition.columnEncoded}`,
     `Incremento=${config.incrementEncoded}`,
     ...config.periodFiles.map((file) => `Arquivos=${file}`),
-    `${MUNICIPALITY_RESIDENCE_FILTER}=${TABNET_CITY_OPTION_VALUE}`,
+    `${config.municipalityResidenceFilterEncoded ?? DEFAULT_MUNICIPALITY_RESIDENCE_FILTER}=${TABNET_CITY_OPTION_VALUE}`,
     "formato=prn",
     "mostre=Mostra"
   ].join("&");
@@ -227,7 +258,7 @@ function buildRequestParams(
 ): Prisma.InputJsonValue {
   return {
     queryName: queryDefinition.name,
-    line: LINE_LABEL,
+    line: config.lineLabel ?? DEFAULT_LINE_LABEL,
     column: queryDefinition.columnLabel,
     increment: config.incrementLabel,
     periodFiles: config.periodFiles,

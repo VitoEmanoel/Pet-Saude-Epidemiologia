@@ -634,6 +634,7 @@ export function AdminDashboard() {
                 const latestJob = latestJobsBySource.get(source.slug);
                 const busy = actionState.busyAction === source.slug || actionState.busyAction === "all";
                 const sourceIsActive = source.active;
+                const sourceCanSync = source.syncEnabled;
 
                 return (
                   <tr key={source.slug}>
@@ -660,11 +661,11 @@ export function AdminDashboard() {
                       <button
                         type="button"
                         onClick={() => void syncSource(source.slug)}
-                        disabled={busy || !authenticated || !sourceIsActive}
+                        disabled={busy || !authenticated || !sourceCanSync}
                         className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <Play size={16} aria-hidden="true" />
-                        {sourceIsActive ? "Fonte" : "Prevista"}
+                        {sourceCanSync ? "Fonte" : sourceIsActive ? "Derivada" : "Prevista"}
                       </button>
                     </td>
                   </tr>
