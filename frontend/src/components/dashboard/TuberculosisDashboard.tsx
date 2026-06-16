@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
-  Download,
   Filter,
   RefreshCw
 } from "lucide-react";
@@ -17,7 +16,6 @@ import {
   getChartByRaceColor,
   getChartBySex,
   getRecords,
-  getRecordsExportUrl,
   getSourceFilters,
   getSourceSummary,
   getYearlyEvolution
@@ -173,14 +171,6 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     );
   }
 
-  const exportUrl = getRecordsExportUrl({
-    source,
-    year: selectedFilters.year ? Number(selectedFilters.year) : undefined,
-    sex: selectedFilters.sex || undefined,
-    ageGroup: selectedFilters.ageGroup || undefined,
-    raceColor: selectedFilters.raceColor || undefined
-  });
-
   return (
     <div className="space-y-5">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -251,13 +241,6 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
             <Filter size={17} className="text-slate-500" aria-hidden="true" />
             <h2 className="text-sm font-semibold text-slate-950">Registros</h2>
           </div>
-          <a
-            href={exportUrl}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800"
-          >
-            <Download size={16} aria-hidden="true" />
-            CSV
-          </a>
         </div>
 
         <div className="grid gap-3 border-b border-slate-200 p-4 sm:grid-cols-2 xl:grid-cols-4">

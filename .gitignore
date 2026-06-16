@@ -2,9 +2,9 @@ node_modules/
 dist/
 .next/
 coverage/
+.runtime/
 .env
 .env.local
 .DS_Store
 *.log
 backend/storage/raw-imports/
-

@@ -5,7 +5,9 @@ import {
   CheckCircle2,
   Clock3,
   Database,
+  Download,
   KeyRound,
+  Filter,
   Play,
   RefreshCw,
   Shield,
@@ -13,7 +15,9 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
+  downloadAdminRecordsCsv,
   getAdminSyncHistory,
+  getSourceFilters,
   getSourceSummary,
   getSources,
   runAdminSyncAll,
@@ -23,6 +27,8 @@ import { formatDateTime, formatNumber } from "@/lib/format";
 import type {
   AdminSyncHistoryResponse,
   DataSource,
+  RecordFilters,
+  SourceFiltersResponse,
   SourceSummaryResponse,
   SourcesResponse
 } from "@/types/api";
@@ -44,12 +50,29 @@ type LoadState =
     }
   | { status: "error"; message: string };
 
+type ExportFiltersState =
+  | { status: "loading" }
+  | { status: "loaded"; filters: SourceFiltersResponse; sourceSlug: string }
+  | { status: "error"; message: string };
+
 const TOKEN_STORAGE_KEY = "painel_admin_token";
 
 export function AdminDashboard() {
   const [token, setToken] = useState("");
   const [draftToken, setDraftToken] = useState("");
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [exportSourceSlug, setExportSourceSlug] = useState("");
+  const [exportFiltersState, setExportFiltersState] = useState<ExportFiltersState>({
+    status: "loading"
+  });
+  const [exportFilters, setExportFilters] = useState<RecordFilters>({
+    source: "",
+    year: undefined,
+    sex: undefined,
+    ageGroup: undefined,
+    raceColor: undefined,
+    condition: undefined
+  });
   const [actionState, setActionState] = useState<{
     busyAction: string | null;
     message: string | null;
@@ -69,6 +92,48 @@ export function AdminDashboard() {
   useEffect(() => {
     void loadData(token);
   }, [token]);
+
+  useEffect(() => {
+    if (state.status !== "loaded") {
+      return;
+    }
+
+    if (!exportSourceSlug && state.sources.sources.length > 0) {
+      setExportSourceSlug(state.sources.sources[0].slug);
+    }
+  }, [exportSourceSlug, state]);
+
+  useEffect(() => {
+    if (!exportSourceSlug) {
+      return;
+    }
+
+    let active = true;
+    setExportFiltersState({ status: "loading" });
+
+    getSourceFilters(exportSourceSlug)
+      .then((filters) => {
+        if (active) {
+          setExportFiltersState({
+            status: "loaded",
+            filters,
+            sourceSlug: exportSourceSlug
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setExportFiltersState({
+            status: "error",
+            message: error instanceof Error ? error.message : "Falha ao carregar filtros de exportacao."
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [exportSourceSlug]);
 
   const latestJobsBySource = useMemo(() => {
     const jobs = state.status === "loaded" ? state.history?.syncJobs ?? [] : [];
@@ -192,6 +257,73 @@ export function AdminDashboard() {
     }
   }
 
+  function updateExportFilter(
+    key: keyof Omit<RecordFilters, "source" | "page" | "pageSize">,
+    value: string | number | undefined
+  ) {
+    setExportFilters((current) => ({
+      ...current,
+      [key]: value === "" ? undefined : value
+    }));
+  }
+
+  async function exportCsv() {
+    if (!token) {
+      setActionState({
+        busyAction: null,
+        message: null,
+        error: "Informe o ADMIN_TOKEN antes de exportar."
+      });
+      return;
+    }
+
+    if (!exportSourceSlug) {
+      setActionState({
+        busyAction: null,
+        message: null,
+        error: "Selecione uma fonte para exportar."
+      });
+      return;
+    }
+
+    setActionState({ busyAction: "export", message: null, error: null });
+
+    try {
+      const { blob, filename } = await downloadAdminRecordsCsv(
+        {
+          source: exportSourceSlug,
+          year: exportFilters.year,
+          sex: exportFilters.sex,
+          ageGroup: exportFilters.ageGroup,
+          raceColor: exportFilters.raceColor,
+          condition: exportFilters.condition
+        },
+        token
+      );
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+
+      setActionState({
+        busyAction: null,
+        message: "CSV exportado com sucesso.",
+        error: null
+      });
+    } catch (error) {
+      setActionState({
+        busyAction: null,
+        message: null,
+        error: error instanceof Error ? error.message : "Falha ao exportar CSV."
+      });
+    }
+  }
+
   if (state.status === "loading") {
     return <LoadingBlocks />;
   }
@@ -298,9 +430,126 @@ export function AdminDashboard() {
             {actionState.message}
           </div>
         ) : null}
-        {actionState.error ? (
+          {actionState.error ? (
           <div className="border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             {actionState.error}
+          </div>
+        ) : null}
+      </section>
+
+      <section className="rounded border border-slate-200 bg-white">
+        <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            <Filter size={17} className="text-slate-500" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-slate-950">Exportacao CSV</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => void exportCsv()}
+            disabled={actionState.busyAction !== null || exportFiltersState.status !== "loaded" || !token}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Download size={16} aria-hidden="true" />
+            Baixar CSV
+          </button>
+        </div>
+
+        <div className="grid gap-3 p-4 lg:grid-cols-2 xl:grid-cols-5">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Fonte</span>
+            <select
+              value={exportSourceSlug}
+              onChange={(event) => setExportSourceSlug(event.target.value)}
+              className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+            >
+              {state.status === "loaded"
+                ? state.sources.sources.map((source) => (
+                    <option key={source.slug} value={source.slug}>
+                      {source.name}
+                    </option>
+                  ))
+                : null}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Ano</span>
+            <select
+              value={exportFilters.year ?? ""}
+              onChange={(event) =>
+                updateExportFilter("year", event.target.value ? Number(event.target.value) : undefined)
+              }
+              className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+            >
+              <option value="">Todos</option>
+              {exportFiltersState.status === "loaded"
+                ? exportFiltersState.filters.filters.years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))
+                : null}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Sexo</span>
+            <select
+              value={exportFilters.sex ?? ""}
+              onChange={(event) => updateExportFilter("sex", event.target.value)}
+              className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+            >
+              <option value="">Todos</option>
+              {exportFiltersState.status === "loaded"
+                ? exportFiltersState.filters.filters.sex.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))
+                : null}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Faixa etaria</span>
+            <select
+              value={exportFilters.ageGroup ?? ""}
+              onChange={(event) => updateExportFilter("ageGroup", event.target.value)}
+              className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+            >
+              <option value="">Todos</option>
+              {exportFiltersState.status === "loaded"
+                ? exportFiltersState.filters.filters.ageGroups.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))
+                : null}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Raca/cor</span>
+            <select
+              value={exportFilters.raceColor ?? ""}
+              onChange={(event) => updateExportFilter("raceColor", event.target.value)}
+              className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+            >
+              <option value="">Todos</option>
+              {exportFiltersState.status === "loaded"
+                ? exportFiltersState.filters.filters.raceColors.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))
+                : null}
+            </select>
+          </label>
+        </div>
+
+        {exportFiltersState.status === "error" ? (
+          <div className="border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {exportFiltersState.message}
           </div>
         ) : null}
       </section>

@@ -6,8 +6,11 @@ import { createServer } from "../server";
 
 let server: Server;
 let baseUrl: string;
+const previousAdminToken = process.env.ADMIN_TOKEN;
 
 before(async () => {
+  process.env.ADMIN_TOKEN = "test-admin-token";
+
   const app = createServer();
 
   server = await new Promise<Server>((resolve) => {
@@ -24,6 +27,12 @@ before(async () => {
 });
 
 after(async () => {
+  if (previousAdminToken === undefined) {
+    delete process.env.ADMIN_TOKEN;
+  } else {
+    process.env.ADMIN_TOKEN = previousAdminToken;
+  }
+
   await new Promise<void>((resolve, reject) => {
     server.close((error) => {
       if (error) {
@@ -78,4 +87,18 @@ test("GET /api/sources/:slug rejeita fonte fora da lista permitida", async () =>
 
   assert.equal(response.status, 404);
   assert.equal(body.error.code, "not_found");
+});
+
+test("GET /api/records/export.csv nao existe mais na area publica", async () => {
+  const response = await fetch(`${baseUrl}/api/records/export.csv`);
+
+  assert.equal(response.status, 404);
+});
+
+test("GET /api/admin/records/export.csv exige token administrativo", async () => {
+  const response = await fetch(`${baseUrl}/api/admin/records/export.csv`);
+  const body = await response.json();
+
+  assert.equal(response.status, 401);
+  assert.equal(body.error.code, "unauthorized");
 });

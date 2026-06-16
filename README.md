@@ -326,6 +326,22 @@ npm run dev:frontend
 
 Subir cada parte separadamente.
 
+### Producao local em segundo plano
+
+```bash
+npm run prod:start
+```
+
+Faz build do backend e do frontend, depois sobe os dois em segundo plano.
+
+```bash
+npm run prod:status
+npm run prod:restart
+npm run prod:stop
+```
+
+Os PIDs ficam em `.runtime/pids/` e os logs ficam em `.runtime/logs/`.
+
 ### Sincronizar dados
 
 ```bash
@@ -397,13 +413,13 @@ GET  /api/sources/:slug/summary
 GET  /api/sources/:slug/filters
 GET  /api/dashboard/overview
 GET  /api/records
-GET  /api/records/export.csv
 GET  /api/charts/yearly-evolution?source=tuberculose_sinan
 GET  /api/charts/by-sex?source=tuberculose_sinan
 GET  /api/charts/by-age-group?source=tuberculose_sinan
 GET  /api/charts/by-race-color?source=tuberculose_sinan
 POST /api/admin/sync/:sourceSlug
 POST /api/admin/sync-all
+GET  /api/admin/records/export.csv
 GET  /api/admin/sync-history
 ```
 
@@ -413,7 +429,7 @@ Rotas administrativas exigem:
 Authorization: Bearer <ADMIN_TOKEN>
 ```
 
-A pagina `http://localhost:3000/admin` usa o mesmo `ADMIN_TOKEN` para carregar historico e disparar sincronizacoes.
+A pagina `http://localhost:3000/admin` usa o mesmo `ADMIN_TOKEN` para carregar historico, disparar sincronizacoes e exportar CSV.
 
 ## Regras Fixas
 

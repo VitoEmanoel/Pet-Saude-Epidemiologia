@@ -9,6 +9,10 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "dev": "node scripts/dev.mjs",
+    "prod:start": "node scripts/prod.mjs start",
+    "prod:stop": "node scripts/prod.mjs stop",
+    "prod:restart": "node scripts/prod.mjs restart",
+    "prod:status": "node scripts/prod.mjs status",
     "dev:backend": "npm --workspace backend run dev",
     "dev:frontend": "npm --workspace frontend run dev",
     "build:backend": "npm --workspace backend run build",

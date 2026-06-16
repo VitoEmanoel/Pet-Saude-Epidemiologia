@@ -9,11 +9,38 @@ import {
   UnsupportedCollectorError,
   syncSource
 } from "../modules/sync/sync.service";
+import { getRecordsForExport, parseFilters, toRecordsCsv } from "../modules/public/public-data.service";
 import { sendError } from "../utils/api-response";
+import { validateRecordsQuery } from "./records-query";
 
 export const adminRouter = Router();
 
 adminRouter.use(requireAdminAuth);
+
+adminRouter.get("/records/export.csv", async (request, response) => {
+  const validationError = validateRecordsQuery(request.query, false);
+
+  if (validationError) {
+    return validationError(response);
+  }
+
+  try {
+    const filters = parseFilters(request.query);
+    const records = await getRecordsForExport(filters);
+    const csv = toRecordsCsv(records);
+
+    response.setHeader("content-type", "text/csv; charset=utf-8");
+    response.setHeader(
+      "content-disposition",
+      "attachment; filename=\"registros-epidemiologicos-parnaiba.csv\""
+    );
+
+    return response.send(csv);
+  } catch (error) {
+    console.error(error);
+    return sendError(response, 500, "internal_error", "Erro ao exportar registros.");
+  }
+});
 
 adminRouter.post("/sync/:sourceSlug", async (request, response) => {
   const source = getSourceBySlug(request.params.sourceSlug);

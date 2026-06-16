@@ -17,7 +17,8 @@ Este arquivo define a ordem recomendada para evoluir o sistema a partir do estad
 - [x] Coleta real do DATASUS/TABNET para hanseniase.
 - [x] Coleta real do DATASUS/TABNET para sifilis congenita.
 - [x] Paginas de tuberculose, hanseniase e sifilis.
-- [x] Graficos, indicadores, filtros, tabela paginada e CSV.
+- [x] Graficos, indicadores, filtros e tabela paginada no site publico.
+- [x] Exportacao CSV movida para a area administrativa.
 - [x] README reorganizado para instalacao em computador novo.
 
 ## Ordem Recomendada

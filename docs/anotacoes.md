@@ -161,6 +161,8 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 - [x] Mostrar erros de coleta.
 - [x] Permitir sincronizar uma fonte especifica.
 - [x] Permitir sincronizar todas as fontes pela API administrativa.
+- [x] Mover exportacao CSV para a area administrativa.
+- [x] Remover exportacao CSV do site publico.
 - [ ] Permitir ativar ou desativar fonte.
 - [ ] Impedir sincronizacao de fonte fora da lista permitida.
 - [ ] Registrar usuario ou origem da solicitacao administrativa.

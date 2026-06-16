@@ -85,10 +85,6 @@ export function getRecords(filters: RecordFilters) {
   return fetchJson<RecordsResponse>(`/api/records?${buildSearchParams(filters)}`);
 }
 
-export function getRecordsExportUrl(filters: RecordFilters) {
-  return `${API_BASE_URL}/api/records/export.csv?${buildSearchParams(filters)}`;
-}
-
 export function getAdminSyncHistory(token: string) {
   return fetchAdminJson<AdminSyncHistoryResponse>("/api/admin/sync-history", token);
 }
@@ -105,6 +101,22 @@ export function runAdminSyncAll(token: string) {
   });
 }
 
+export async function downloadAdminRecordsCsv(filters: RecordFilters, token: string) {
+  const response = await fetchAdminResponse(
+    `/api/admin/records/export.csv?${buildSearchParams(filters)}`,
+    token
+  );
+
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get("content-disposition") ?? "";
+  const match = contentDisposition.match(/filename=\"?([^\";]+)\"?/i);
+
+  return {
+    blob,
+    filename: match?.[1] ?? "registros-epidemiologicos-parnaiba.csv"
+  };
+}
+
 function buildSearchParams(filters: RecordFilters) {
   const params = new URLSearchParams();
 
@@ -115,4 +127,30 @@ function buildSearchParams(filters: RecordFilters) {
   }
 
   return params.toString();
+}
+
+async function fetchAdminResponse(
+  path: string,
+  token: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    cache: "no-store",
+    headers: {
+      ...options.headers,
+      authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const message =
+      typeof body?.error?.message === "string"
+        ? body.error.message
+        : `API request failed: ${response.status}`;
+    throw new Error(message);
+  }
+
+  return response;
 }
