@@ -9,7 +9,7 @@ Este arquivo define a ordem recomendada para evoluir o sistema a partir do estad
 - [x] Estrutura em monorepo com backend e frontend.
 - [x] Banco PostgreSQL local com Prisma.
 - [x] Docker Compose com PostgreSQL e Redis.
-- [x] Setup unico com `npm run setup`.
+- [x] Fluxo unico com `npm run doctor` e `npm run start`.
 - [x] Execucao local com `npm run dev`.
 - [x] Painel limitado a Parnaiba - PI.
 - [x] Bloqueio de filtros publicos para outros municipios.
@@ -34,7 +34,7 @@ Este arquivo define a ordem recomendada para evoluir o sistema a partir do estad
 
 ## 2. Tela Administrativa
 
-- [x] Criar pagina administrativa com `ADMIN_TOKEN`.
+- [x] Criar pagina administrativa inicial com `ADMIN_TOKEN`.
 - [x] Mostrar fontes ativas.
 - [x] Mostrar ultima sincronizacao por fonte.
 - [x] Mostrar status da ultima sincronizacao.
@@ -43,7 +43,9 @@ Este arquivo define a ordem recomendada para evoluir o sistema a partir do estad
 - [x] Mostrar historico de sincronizacoes.
 - [x] Criar botao para atualizar uma fonte.
 - [x] Criar botao para atualizar todas as fontes.
-- [ ] Criar login administrativo mais robusto para producao.
+- [x] Separar layout administrativo da navegacao publica.
+- [x] Criar login administrativo com sessao HTTP-only.
+- [x] Melhorar auditoria administrativa por usuario.
 
 ## 3. Transparencia No Painel
 

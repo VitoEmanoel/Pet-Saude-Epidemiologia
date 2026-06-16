@@ -3,12 +3,13 @@ import { prisma } from "./database/prisma";
 import { startSyncScheduler } from "./modules/sync/sync-scheduler";
 import { createServer } from "./server";
 
-const port = Number(process.env.PORT ?? 3001);
+const port = Number(process.env.PORT ?? process.env.BACKEND_PORT ?? 3333);
+const host = process.env.HOST ?? "0.0.0.0";
 const app = createServer();
 const syncScheduler = startSyncScheduler();
 
-const server = app.listen(port, () => {
-  console.log(`Backend do Painel Epidemiologico de Parnaiba ouvindo na porta ${port}`);
+const server = app.listen(port, host, () => {
+  console.log(`Backend do Painel Epidemiologico de Parnaiba rodando em http://${host}:${port}`);
 });
 
 async function shutdown() {

@@ -1,7 +1,14 @@
 import { Router } from "express";
 import { ALLOWED_CITY } from "../config/city";
 import { allowedSources, getSourceBySlug } from "../config/sources";
-import { requireAdminAuth } from "../middleware/admin-auth";
+import { getAdminAuditLogs, recordAdminAudit } from "../modules/admin/admin-audit.service";
+import {
+  assertAdminCredentialConfigured,
+  clearAdminSessionCookie,
+  isValidAdminPassword,
+  requireAdminAuth,
+  setAdminSessionCookie
+} from "../middleware/admin-auth";
 import { prisma } from "../database/prisma";
 import {
   SourceNotAllowedError,
@@ -15,7 +22,44 @@ import { validateRecordsQuery } from "./records-query";
 
 export const adminRouter = Router();
 
+adminRouter.post("/auth/login", async (request, response) => {
+  if (!assertAdminCredentialConfigured(response)) {
+    return;
+  }
+
+  if (!isValidAdminPassword(request.body?.password)) {
+    await recordAdminAudit({
+      request,
+      action: "admin_login",
+      status: "FAILED"
+    });
+    return sendError(response, 401, "unauthorized", "Credencial administrativa invalida.");
+  }
+
+  setAdminSessionCookie(response);
+  await recordAdminAudit({
+    request,
+    action: "admin_login",
+    status: "SUCCESS"
+  });
+  return response.json({ authenticated: true });
+});
+
 adminRouter.use(requireAdminAuth);
+
+adminRouter.get("/auth/me", (_request, response) => {
+  return response.json({ authenticated: true });
+});
+
+adminRouter.post("/auth/logout", async (request, response) => {
+  clearAdminSessionCookie(response);
+  await recordAdminAudit({
+    request,
+    action: "admin_logout",
+    status: "SUCCESS"
+  });
+  return response.json({ authenticated: false });
+});
 
 adminRouter.get("/records/export.csv", async (request, response) => {
   const validationError = validateRecordsQuery(request.query, false);
@@ -29,6 +73,16 @@ adminRouter.get("/records/export.csv", async (request, response) => {
     const records = await getRecordsForExport(filters);
     const csv = toRecordsCsv(records);
 
+    await recordAdminAudit({
+      request,
+      action: "admin_export_csv",
+      status: "SUCCESS",
+      metadata: {
+        filters,
+        recordsExported: records.length
+      }
+    });
+
     response.setHeader("content-type", "text/csv; charset=utf-8");
     response.setHeader(
       "content-disposition",
@@ -38,6 +92,14 @@ adminRouter.get("/records/export.csv", async (request, response) => {
     return response.send(csv);
   } catch (error) {
     console.error(error);
+    await recordAdminAudit({
+      request,
+      action: "admin_export_csv",
+      status: "FAILED",
+      metadata: {
+        message: error instanceof Error ? error.message : "Erro desconhecido."
+      }
+    });
     return sendError(response, 500, "internal_error", "Erro ao exportar registros.");
   }
 });
@@ -51,6 +113,17 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
 
   try {
     const result = await syncSource(source.slug, "admin_api");
+    await recordAdminAudit({
+      request,
+      action: "admin_sync_source",
+      status: result.syncJob.status === "FAILED" ? "FAILED" : "SUCCESS",
+      metadata: {
+        source: source.slug,
+        syncJobId: result.syncJob.id,
+        syncStatus: result.syncJob.status,
+        recordsImported: result.syncJob.recordsImported
+      }
+    });
     return response.json(result);
   } catch (error) {
     if (error instanceof UnsupportedCollectorError) {
@@ -68,15 +141,34 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
     }
 
     if (error instanceof SyncAlreadyRunningError) {
+      await recordAdminAudit({
+        request,
+        action: "admin_sync_source",
+        status: "FAILED",
+        metadata: {
+          source: source.slug,
+          code: "sync_already_running",
+          message: error.message
+        }
+      });
       return sendError(response, 409, "sync_already_running", error.message);
     }
 
     console.error(error);
+    await recordAdminAudit({
+      request,
+      action: "admin_sync_source",
+      status: "FAILED",
+      metadata: {
+        source: source.slug,
+        message: error instanceof Error ? error.message : "Erro desconhecido."
+      }
+    });
     return sendError(response, 500, "internal_error", "Erro ao executar sincronizacao.");
   }
 });
 
-adminRouter.post("/sync-all", async (_request, response) => {
+adminRouter.post("/sync-all", async (request, response) => {
   const results = [];
 
   for (const source of allowedSources) {
@@ -120,9 +212,31 @@ adminRouter.post("/sync-all", async (_request, response) => {
     }
   }
 
+  await recordAdminAudit({
+    request,
+    action: "admin_sync_all",
+    status: results.some((result) => "error" in result) ? "FAILED" : "SUCCESS",
+    metadata: {
+      totalSources: allowedSources.length,
+      results: results.map((result) => ({
+        source: result.source.slug,
+        status: "syncJob" in result ? result.syncJob?.status : undefined,
+        error: "error" in result ? result.error?.code : undefined
+      }))
+    }
+  });
+
   return response.json({
     city: ALLOWED_CITY,
     results
+  });
+});
+
+adminRouter.get("/audit-logs", async (_request, response) => {
+  const auditLogs = await getAdminAuditLogs();
+
+  return response.json({
+    auditLogs
   });
 });
 

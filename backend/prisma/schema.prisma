@@ -80,6 +80,22 @@ model SyncJob {
   @@map("sync_jobs")
 }
 
+model AdminAuditLog {
+  id        Int      @id @default(autoincrement())
+  actor     String   @default("admin") @db.VarChar(100)
+  action    String   @db.VarChar(100)
+  status    String   @db.VarChar(50)
+  ipAddress String?  @map("ip_address") @db.VarChar(100)
+  userAgent String?  @map("user_agent")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([action])
+  @@index([status])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
+}
+
 model RawImport {
   id             Int      @id @default(autoincrement())
   sourceId       Int      @map("source_id")
@@ -136,4 +152,3 @@ model EpidemiologicalRecord {
   @@index([importedAt])
   @@map("epidemiological_records")
 }
-

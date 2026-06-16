@@ -1,4 +1,6 @@
 import type {
+  AdminAuditLogsResponse,
+  AdminAuthResponse,
   AdminSyncAllResponse,
   AdminSyncHistoryResponse,
   AdminSyncResult,
@@ -13,7 +15,7 @@ import type {
   SourcesResponse
 } from "@/types/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -27,13 +29,13 @@ async function fetchJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-async function fetchAdminJson<T>(path: string, token: string, options: RequestInit = {}): Promise<T> {
+async function fetchAdminJson<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     cache: "no-store",
+    credentials: "include",
     headers: {
-      ...options.headers,
-      authorization: `Bearer ${token}`
+      ...options.headers
     }
   });
 
@@ -85,26 +87,49 @@ export function getRecords(filters: RecordFilters) {
   return fetchJson<RecordsResponse>(`/api/records?${buildSearchParams(filters)}`);
 }
 
-export function getAdminSyncHistory(token: string) {
-  return fetchAdminJson<AdminSyncHistoryResponse>("/api/admin/sync-history", token);
+export function loginAdmin(password: string) {
+  return fetchAdminJson<AdminAuthResponse>("/api/admin/auth/login", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ password })
+  });
 }
 
-export function runAdminSyncSource(slug: string, token: string) {
-  return fetchAdminJson<AdminSyncResult>(`/api/admin/sync/${slug}`, token, {
+export function getAdminSession() {
+  return fetchAdminJson<AdminAuthResponse>("/api/admin/auth/me");
+}
+
+export function logoutAdmin() {
+  return fetchAdminJson<AdminAuthResponse>("/api/admin/auth/logout", {
     method: "POST"
   });
 }
 
-export function runAdminSyncAll(token: string) {
-  return fetchAdminJson<AdminSyncAllResponse>("/api/admin/sync-all", token, {
+export function getAdminSyncHistory() {
+  return fetchAdminJson<AdminSyncHistoryResponse>("/api/admin/sync-history");
+}
+
+export function getAdminAuditLogs() {
+  return fetchAdminJson<AdminAuditLogsResponse>("/api/admin/audit-logs");
+}
+
+export function runAdminSyncSource(slug: string) {
+  return fetchAdminJson<AdminSyncResult>(`/api/admin/sync/${slug}`, {
     method: "POST"
   });
 }
 
-export async function downloadAdminRecordsCsv(filters: RecordFilters, token: string) {
+export function runAdminSyncAll() {
+  return fetchAdminJson<AdminSyncAllResponse>("/api/admin/sync-all", {
+    method: "POST"
+  });
+}
+
+export async function downloadAdminRecordsCsv(filters: RecordFilters) {
   const response = await fetchAdminResponse(
-    `/api/admin/records/export.csv?${buildSearchParams(filters)}`,
-    token
+    `/api/admin/records/export.csv?${buildSearchParams(filters)}`
   );
 
   const blob = await response.blob();
@@ -131,15 +156,14 @@ function buildSearchParams(filters: RecordFilters) {
 
 async function fetchAdminResponse(
   path: string,
-  token: string,
   options: RequestInit = {}
 ): Promise<Response> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     cache: "no-store",
+    credentials: "include",
     headers: {
-      ...options.headers,
-      authorization: `Bearer ${token}`
+      ...options.headers
     }
   });
 

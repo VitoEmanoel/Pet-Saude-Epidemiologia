@@ -6,25 +6,30 @@ import {
   Clock3,
   Database,
   Download,
-  KeyRound,
   Filter,
+  LogIn,
+  LogOut,
   Play,
   RefreshCw,
-  Shield,
-  Trash2
+  Shield
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   downloadAdminRecordsCsv,
+  getAdminAuditLogs,
+  getAdminSession,
   getAdminSyncHistory,
   getSourceFilters,
   getSourceSummary,
   getSources,
+  loginAdmin,
+  logoutAdmin,
   runAdminSyncAll,
   runAdminSyncSource
 } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import type {
+  AdminAuditLogsResponse,
   AdminSyncHistoryResponse,
   DataSource,
   RecordFilters,
@@ -47,6 +52,7 @@ type LoadState =
       sources: SourcesResponse;
       sourceSummaries: SourceWithSummary[];
       history: AdminSyncHistoryResponse | null;
+      auditLogs: AdminAuditLogsResponse | null;
     }
   | { status: "error"; message: string };
 
@@ -55,11 +61,11 @@ type ExportFiltersState =
   | { status: "loaded"; filters: SourceFiltersResponse; sourceSlug: string }
   | { status: "error"; message: string };
 
-const TOKEN_STORAGE_KEY = "painel_admin_token";
+type AuthState = { status: "checking" } | { status: "authenticated" } | { status: "unauthenticated" };
 
 export function AdminDashboard() {
-  const [token, setToken] = useState("");
-  const [draftToken, setDraftToken] = useState("");
+  const [authState, setAuthState] = useState<AuthState>({ status: "checking" });
+  const [password, setPassword] = useState("");
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [exportSourceSlug, setExportSourceSlug] = useState("");
   const [exportFiltersState, setExportFiltersState] = useState<ExportFiltersState>({
@@ -84,14 +90,26 @@ export function AdminDashboard() {
   });
 
   useEffect(() => {
-    const storedToken = window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? "";
-    setToken(storedToken);
-    setDraftToken(storedToken);
-  }, []);
+    let active = true;
 
-  useEffect(() => {
-    void loadData(token);
-  }, [token]);
+    getAdminSession()
+      .then(() => {
+        if (active) {
+          setAuthState({ status: "authenticated" });
+          void loadData(true);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setAuthState({ status: "unauthenticated" });
+          void loadData(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (state.status !== "loaded") {
@@ -148,26 +166,28 @@ export function AdminDashboard() {
     return map;
   }, [state]);
 
-  async function loadData(currentToken: string) {
+  async function loadData(includeAdminHistory: boolean) {
     setState({ status: "loading" });
 
     try {
       const sources = await getSources();
-      const [sourceSummaries, history] = await Promise.all([
+      const [sourceSummaries, history, auditLogs] = await Promise.all([
         Promise.all(
           sources.sources.map(async (source) => ({
             source,
             summary: (await getSourceSummary(source.slug)).summary
           }))
         ),
-        currentToken ? getAdminSyncHistory(currentToken) : Promise.resolve(null)
+        includeAdminHistory ? getAdminSyncHistory() : Promise.resolve(null),
+        includeAdminHistory ? getAdminAuditLogs() : Promise.resolve(null)
       ]);
 
       setState({
         status: "loaded",
         sources,
         sourceSummaries,
-        history
+        history,
+        auditLogs
       });
     } catch (error) {
       setState({
@@ -177,34 +197,67 @@ export function AdminDashboard() {
     }
   }
 
-  function saveToken() {
-    const trimmed = draftToken.trim();
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, trimmed);
-    setToken(trimmed);
-    setActionState({
-      busyAction: null,
-      message: trimmed ? "Token administrativo salvo." : "Token removido.",
-      error: null
-    });
-  }
+  async function login() {
+    const trimmedPassword = password.trim();
 
-  function clearToken() {
-    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-    setDraftToken("");
-    setToken("");
-    setActionState({
-      busyAction: null,
-      message: "Token administrativo removido.",
-      error: null
-    });
-  }
-
-  async function syncSource(slug: string) {
-    if (!token) {
+    if (!trimmedPassword) {
       setActionState({
         busyAction: null,
         message: null,
-        error: "Informe o ADMIN_TOKEN antes de sincronizar."
+        error: "Informe a senha administrativa."
+      });
+      return;
+    }
+
+    setActionState({ busyAction: "login", message: null, error: null });
+
+    try {
+      await loginAdmin(trimmedPassword);
+      setPassword("");
+      setAuthState({ status: "authenticated" });
+      await loadData(true);
+      setActionState({
+        busyAction: null,
+        message: "Sessao administrativa iniciada.",
+        error: null
+      });
+    } catch (error) {
+      setAuthState({ status: "unauthenticated" });
+      setActionState({
+        busyAction: null,
+        message: null,
+        error: error instanceof Error ? error.message : "Falha ao autenticar."
+      });
+    }
+  }
+
+  async function logout() {
+    setActionState({ busyAction: "logout", message: null, error: null });
+
+    try {
+      await logoutAdmin();
+      setAuthState({ status: "unauthenticated" });
+      await loadData(false);
+      setActionState({
+        busyAction: null,
+        message: "Sessao administrativa encerrada.",
+        error: null
+      });
+    } catch (error) {
+      setActionState({
+        busyAction: null,
+        message: null,
+        error: error instanceof Error ? error.message : "Falha ao sair."
+      });
+    }
+  }
+
+  async function syncSource(slug: string) {
+    if (authState.status !== "authenticated") {
+      setActionState({
+        busyAction: null,
+        message: null,
+        error: "Entre na sessao administrativa antes de sincronizar."
       });
       return;
     }
@@ -212,8 +265,8 @@ export function AdminDashboard() {
     setActionState({ busyAction: slug, message: null, error: null });
 
     try {
-      const result = await runAdminSyncSource(slug, token);
-      await loadData(token);
+      const result = await runAdminSyncSource(slug);
+      await loadData(true);
       setActionState({
         busyAction: null,
         message: `${result.source.name}: ${result.syncJob?.status ?? "concluido"}.`,
@@ -229,11 +282,11 @@ export function AdminDashboard() {
   }
 
   async function syncAll() {
-    if (!token) {
+    if (authState.status !== "authenticated") {
       setActionState({
         busyAction: null,
         message: null,
-        error: "Informe o ADMIN_TOKEN antes de sincronizar."
+        error: "Entre na sessao administrativa antes de sincronizar."
       });
       return;
     }
@@ -241,8 +294,8 @@ export function AdminDashboard() {
     setActionState({ busyAction: "all", message: null, error: null });
 
     try {
-      const result = await runAdminSyncAll(token);
-      await loadData(token);
+      const result = await runAdminSyncAll();
+      await loadData(true);
       setActionState({
         busyAction: null,
         message: `${result.results.length} fontes processadas.`,
@@ -268,11 +321,11 @@ export function AdminDashboard() {
   }
 
   async function exportCsv() {
-    if (!token) {
+    if (authState.status !== "authenticated") {
       setActionState({
         busyAction: null,
         message: null,
-        error: "Informe o ADMIN_TOKEN antes de exportar."
+        error: "Entre na sessao administrativa antes de exportar."
       });
       return;
     }
@@ -297,8 +350,7 @@ export function AdminDashboard() {
           ageGroup: exportFilters.ageGroup,
           raceColor: exportFilters.raceColor,
           condition: exportFilters.condition
-        },
-        token
+        }
       );
 
       const url = window.URL.createObjectURL(blob);
@@ -342,6 +394,7 @@ export function AdminDashboard() {
   );
   const successfulJobs = state.history?.syncJobs.filter((job) => job.status === "SUCCESS").length ?? 0;
   const failedJobs = state.history?.syncJobs.filter((job) => job.status === "FAILED").length ?? 0;
+  const authenticated = authState.status === "authenticated";
 
   return (
     <div className="space-y-5">
@@ -379,7 +432,7 @@ export function AdminDashboard() {
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
               type="button"
-              onClick={() => void loadData(token)}
+              onClick={() => void loadData(authenticated)}
               className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               <RefreshCw size={16} aria-hidden="true" />
@@ -388,7 +441,7 @@ export function AdminDashboard() {
             <button
               type="button"
               onClick={() => void syncAll()}
-              disabled={actionState.busyAction !== null}
+              disabled={actionState.busyAction !== null || !authenticated}
               className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Play size={16} aria-hidden="true" />
@@ -396,34 +449,40 @@ export function AdminDashboard() {
             </button>
           </div>
         </div>
-        <div className="grid gap-3 p-4 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="grid gap-3 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
           <label className="block">
             <span className="mb-1 block text-xs font-medium uppercase text-slate-500">
-              ADMIN_TOKEN
+              Senha administrativa
             </span>
             <input
               type="password"
-              value={draftToken}
-              onChange={(event) => setDraftToken(event.target.value)}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              disabled={authenticated}
               className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
             />
           </label>
-          <button
-            type="button"
-            onClick={saveToken}
-            className="inline-flex h-10 items-center justify-center gap-2 self-end rounded bg-health-700 px-3 text-sm font-medium text-white hover:bg-health-800"
-          >
-            <KeyRound size={16} aria-hidden="true" />
-            Salvar
-          </button>
-          <button
-            type="button"
-            onClick={clearToken}
-            className="inline-flex h-10 items-center justify-center gap-2 self-end rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            <Trash2 size={16} aria-hidden="true" />
-            Remover
-          </button>
+          {authenticated ? (
+            <button
+              type="button"
+              onClick={() => void logout()}
+              disabled={actionState.busyAction !== null}
+              className="inline-flex h-10 items-center justify-center gap-2 self-end rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <LogOut size={16} aria-hidden="true" />
+              Sair
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void login()}
+              disabled={actionState.busyAction !== null || authState.status === "checking"}
+              className="inline-flex h-10 items-center justify-center gap-2 self-end rounded bg-health-700 px-3 text-sm font-medium text-white hover:bg-health-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <LogIn size={16} aria-hidden="true" />
+              Entrar
+            </button>
+          )}
         </div>
         {actionState.message ? (
           <div className="border-t border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -446,7 +505,7 @@ export function AdminDashboard() {
           <button
             type="button"
             onClick={() => void exportCsv()}
-            disabled={actionState.busyAction !== null || exportFiltersState.status !== "loaded" || !token}
+            disabled={actionState.busyAction !== null || exportFiltersState.status !== "loaded" || !authenticated}
             className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Download size={16} aria-hidden="true" />
@@ -597,7 +656,7 @@ export function AdminDashboard() {
                       <button
                         type="button"
                         onClick={() => void syncSource(source.slug)}
-                        disabled={busy}
+                        disabled={busy || !authenticated}
                         className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <Play size={16} aria-hidden="true" />
@@ -616,14 +675,29 @@ export function AdminDashboard() {
         <div className="border-b border-slate-200 px-4 py-3">
           <h2 className="text-sm font-semibold text-slate-950">Historico de sincronizacoes</h2>
         </div>
-        {!token ? (
+        {!authenticated ? (
           <div className="p-4 text-sm text-slate-600">
-            Informe o ADMIN_TOKEN para carregar o historico administrativo.
+            Entre na sessao administrativa para carregar o historico.
           </div>
         ) : state.history ? (
           <HistoryTable history={state.history} />
         ) : (
           <div className="p-4 text-sm text-slate-600">Historico indisponivel.</div>
+        )}
+      </section>
+
+      <section className="rounded border border-slate-200 bg-white">
+        <div className="border-b border-slate-200 px-4 py-3">
+          <h2 className="text-sm font-semibold text-slate-950">Auditoria administrativa</h2>
+        </div>
+        {!authenticated ? (
+          <div className="p-4 text-sm text-slate-600">
+            Entre na sessao administrativa para carregar a auditoria.
+          </div>
+        ) : state.auditLogs ? (
+          <AuditTable auditLogs={state.auditLogs} />
+        ) : (
+          <div className="p-4 text-sm text-slate-600">Auditoria indisponivel.</div>
         )}
       </section>
     </div>
@@ -694,6 +768,79 @@ function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
       </table>
     </div>
   );
+}
+
+function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
+  if (auditLogs.auditLogs.length === 0) {
+    return <div className="p-4 text-sm text-slate-600">Nenhum evento administrativo registrado.</div>;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <tr>
+            <th className="px-4 py-3 font-semibold">Data</th>
+            <th className="px-4 py-3 font-semibold">Acao</th>
+            <th className="px-4 py-3 font-semibold">Status</th>
+            <th className="px-4 py-3 font-semibold">Origem</th>
+            <th className="px-4 py-3 font-semibold">Detalhes</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {auditLogs.auditLogs.map((log) => (
+            <tr key={log.id}>
+              <td className="px-4 py-3 text-slate-700">{formatDateTime(log.createdAt)}</td>
+              <td className="px-4 py-3 text-slate-950">{formatAuditAction(log.action)}</td>
+              <td className="px-4 py-3">
+                <JobStatus status={log.status} />
+              </td>
+              <td className="px-4 py-3 text-slate-700">{log.ipAddress ?? "-"}</td>
+              <td className="max-w-lg px-4 py-3 text-slate-700">
+                {formatAuditMetadata(log.metadata)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function formatAuditAction(action: string) {
+  const labels: Record<string, string> = {
+    admin_login: "Login",
+    admin_logout: "Logout",
+    admin_export_csv: "Exportacao CSV",
+    admin_sync_source: "Sincronizacao de fonte",
+    admin_sync_all: "Sincronizacao geral"
+  };
+
+  return labels[action] ?? action;
+}
+
+function formatAuditMetadata(metadata: Record<string, unknown> | null) {
+  if (!metadata) {
+    return "-";
+  }
+
+  if (typeof metadata.source === "string") {
+    return metadata.source;
+  }
+
+  if (typeof metadata.recordsExported === "number") {
+    return `${formatNumber(metadata.recordsExported)} registros`;
+  }
+
+  if (typeof metadata.totalSources === "number") {
+    return `${formatNumber(metadata.totalSources)} fontes`;
+  }
+
+  if (typeof metadata.message === "string") {
+    return metadata.message;
+  }
+
+  return "-";
 }
 
 function LoadingBlocks() {

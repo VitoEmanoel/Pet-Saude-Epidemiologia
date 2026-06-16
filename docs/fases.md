@@ -12,7 +12,7 @@ Entregas:
 - Lista fixa de fontes permitidas.
 - Rotas iniciais da API.
 - Bloqueio de parametros de municipio nas consultas publicas.
-- Area administrativa protegida por token.
+- Area administrativa protegida por autenticacao.
 - Schema Prisma para PostgreSQL.
 - Docker Compose com PostgreSQL e Redis.
 
@@ -55,7 +55,7 @@ Entregas:
 - Cards de indicadores.
 - Graficos de evolucao anual.
 - Tabela paginada.
-- Exportacao CSV.
+- Exportacao CSV administrativa.
 - Mensagens de transparencia.
 
 ## Fase 5 - Expansao das fontes
@@ -69,4 +69,3 @@ Entregas:
 - Sincronizacao manual por fonte.
 - Sincronizacao geral.
 - Agendamento mensal.
-

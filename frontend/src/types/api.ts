@@ -153,6 +153,25 @@ export type AdminSyncHistoryResponse = {
   syncJobs: AdminSyncJob[];
 };
 
+export type AdminAuthResponse = {
+  authenticated: boolean;
+};
+
+export type AdminAuditLog = {
+  id: number;
+  actor: string;
+  action: string;
+  status: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+};
+
+export type AdminAuditLogsResponse = {
+  auditLogs: AdminAuditLog[];
+};
+
 export type AdminSyncResult = {
   city: City;
   source: {

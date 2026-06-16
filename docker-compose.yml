@@ -1,31 +1,103 @@
 services:
+  backend:
+    build:
+      context: .
+      target: backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${BACKEND_PORT:-3333}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-pet_saude}?schema=public
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "${APP_BIND_HOST:-0.0.0.0}:${BACKEND_PORT:-3333}:${BACKEND_PORT:-3333}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - painel_network
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3333}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      HOST: ${HOST:-0.0.0.0}
+      FRONTEND_PORT: ${FRONTEND_PORT:-3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3333}
+    ports:
+      - "${APP_BIND_HOST:-0.0.0.0}:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    networks:
+      - painel_network
+
   postgres:
     image: postgres:16-alpine
-    container_name: painel_parnaiba_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: painel_parnaiba
-      POSTGRES_USER: painel
-      POSTGRES_PASSWORD: painel_dev
+      POSTGRES_DB: ${POSTGRES_DB:-pet_saude}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - "5433:5432"
+      - "${SERVICE_BIND_HOST:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - painel_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U painel -d painel_parnaiba"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-pet_saude}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: painel_parnaiba_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${SERVICE_BIND_HOST:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - painel_network
+
+  sync-data:
+    build:
+      context: .
+      target: backend
+    profiles:
+      - manual
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-pet_saude}?schema=public
+      REDIS_URL: redis://redis:6379
+    command: npm --workspace backend run sync:data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - painel_network
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  painel_network:
+    driver: bridge

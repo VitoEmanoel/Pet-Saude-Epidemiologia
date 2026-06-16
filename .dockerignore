@@ -1,0 +1,9 @@
+node_modules
+backend/dist
+frontend/.next
+.runtime
+.git
+.env
+.env.local
+npm-debug.log
+*.log

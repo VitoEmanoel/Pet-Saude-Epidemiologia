@@ -7,9 +7,13 @@ import { createServer } from "../server";
 let server: Server;
 let baseUrl: string;
 const previousAdminToken = process.env.ADMIN_TOKEN;
+const previousAdminPassword = process.env.ADMIN_PASSWORD;
+const previousAdminSessionSecret = process.env.ADMIN_SESSION_SECRET;
 
 before(async () => {
   process.env.ADMIN_TOKEN = "test-admin-token";
+  process.env.ADMIN_PASSWORD = "test-admin-password";
+  process.env.ADMIN_SESSION_SECRET = "test-admin-session-secret";
 
   const app = createServer();
 
@@ -31,6 +35,18 @@ after(async () => {
     delete process.env.ADMIN_TOKEN;
   } else {
     process.env.ADMIN_TOKEN = previousAdminToken;
+  }
+
+  if (previousAdminPassword === undefined) {
+    delete process.env.ADMIN_PASSWORD;
+  } else {
+    process.env.ADMIN_PASSWORD = previousAdminPassword;
+  }
+
+  if (previousAdminSessionSecret === undefined) {
+    delete process.env.ADMIN_SESSION_SECRET;
+  } else {
+    process.env.ADMIN_SESSION_SECRET = previousAdminSessionSecret;
   }
 
   await new Promise<void>((resolve, reject) => {
@@ -95,10 +111,61 @@ test("GET /api/records/export.csv nao existe mais na area publica", async () => 
   assert.equal(response.status, 404);
 });
 
-test("GET /api/admin/records/export.csv exige token administrativo", async () => {
+test("GET /api/admin/records/export.csv exige autenticacao administrativa", async () => {
   const response = await fetch(`${baseUrl}/api/admin/records/export.csv`);
   const body = await response.json();
 
   assert.equal(response.status, 401);
   assert.equal(body.error.code, "unauthorized");
+});
+
+test("POST /api/admin/auth/login rejeita senha invalida", async () => {
+  const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ password: "senha-errada" })
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 401);
+  assert.equal(body.error.code, "unauthorized");
+});
+
+test("POST /api/admin/auth/login cria sessao administrativa", async () => {
+  const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ password: "test-admin-password" })
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.authenticated, true);
+  assert.match(response.headers.get("set-cookie") ?? "", /painel_admin_session=/);
+});
+
+test("GET /api/admin/auth/me aceita sessao administrativa", async () => {
+  const loginResponse = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ password: "test-admin-password" })
+  });
+  const cookie = loginResponse.headers.get("set-cookie") ?? "";
+  const sessionCookie = cookie.split(";")[0];
+
+  const response = await fetch(`${baseUrl}/api/admin/auth/me`, {
+    headers: {
+      cookie: sessionCookie
+    }
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.authenticated, true);
 });

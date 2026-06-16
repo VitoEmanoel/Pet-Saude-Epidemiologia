@@ -13,7 +13,8 @@ export function createServer() {
 
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN?.split(",") ?? true
+      origin: process.env.CORS_ORIGIN?.split(",") ?? true,
+      credentials: true
     })
   );
   app.use(express.json());
@@ -43,4 +44,3 @@ export function createServer() {
 
   return app;
 }
-

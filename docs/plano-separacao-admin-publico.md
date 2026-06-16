@@ -14,11 +14,11 @@ Este documento define o plano para separar o site publico da area administrativa
 
 ## Estado Atual
 
-- O frontend publico mostra graficos, filtros, tabela e botao de exportacao CSV.
+- O frontend publico mostra graficos, filtros e tabela de consulta.
 - O backend deve expor a exportacao CSV apenas na area administrativa.
-- O admin atual compartilha a mesma aplicacao web do publico.
-- A protecao administrativa atual usa `ADMIN_TOKEN` via header `Authorization`.
-- O token administrativo pode ficar salvo no navegador, o que nao e ideal para producao.
+- O admin tem layout proprio separado da navegacao publica.
+- A protecao administrativa usa login com cookie HTTP-only.
+- O backend ainda aceita `Authorization: Bearer <ADMIN_TOKEN>` temporariamente para chamadas manuais.
 
 ## Arquitetura Alvo
 
@@ -117,31 +117,31 @@ packages/
 
 ### Fase 1: Remocao Do Download Do Publico
 
-- [ ] Remover o botao CSV do frontend publico.
-- [ ] Remover qualquer link visivel para exportacao na area publica.
-- [ ] Revisar textos da interface para nao sugerir download publico.
-- [ ] Ajustar a documentacao publica para refletir que o CSV e administrativo.
+- [x] Remover o botao CSV do frontend publico.
+- [x] Remover qualquer link visivel para exportacao na area publica.
+- [x] Revisar textos da interface para nao sugerir download publico.
+- [x] Ajustar a documentacao publica para refletir que o CSV e administrativo.
 
 ### Fase 2: Protecao Da Exportacao
 
-- [ ] Mover a exportacao CSV para uma rota administrativa.
-- [ ] Proteger a rota com autenticacao admin.
-- [ ] Garantir que a exportacao nao funcione sem permissao.
+- [x] Mover a exportacao CSV para uma rota administrativa.
+- [x] Proteger a rota com autenticacao admin.
+- [x] Garantir que a exportacao nao funcione sem permissao.
 - [ ] Registrar no historico quem solicitou a exportacao, se possivel.
 
 ### Fase 3: Separacao Da Interface
 
-- [ ] Criar layout proprio para a area admin.
-- [ ] Tirar o admin da navegacao publica.
-- [ ] Manter o publico apenas com elementos de leitura.
+- [x] Criar layout proprio para a area admin.
+- [x] Tirar o admin da navegacao publica.
+- [x] Manter o publico apenas com elementos de leitura.
 - [ ] Definir URL separada para o admin, se desejado.
 
-### Fase 4: Autenticacao Mais Sera
+### Fase 4: Autenticacao Mais Segura
 
-- [ ] Substituir o uso de `ADMIN_TOKEN` salvo no navegador por login administrativo real.
-- [ ] Usar sessao segura no backend.
-- [ ] Definir expiracao e logout.
-- [ ] Melhorar a auditoria de acesso.
+- [x] Substituir o uso de `ADMIN_TOKEN` salvo no navegador por login administrativo real.
+- [x] Usar sessao segura no backend.
+- [x] Definir expiracao e logout.
+- [x] Melhorar a auditoria de acesso.
 
 ### Fase 5: Organizacao Final Do Projeto
 

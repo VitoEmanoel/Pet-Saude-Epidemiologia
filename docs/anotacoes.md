@@ -51,14 +51,12 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 ## Preparacao local
 
 - [x] Criar arquivo `.env` local a partir de `.env.example`.
-- [x] Definir um `ADMIN_TOKEN` real no `.env`.
-- [x] Confirmar que `NEXT_PUBLIC_API_URL` aponta para `http://localhost:3001`.
-- [x] Confirmar que `DATABASE_URL` aponta para `localhost:5433`.
-- [x] Confirmar que PostgreSQL e Redis sobem com `docker compose up -d`.
-- [x] Confirmar que backend sobe com `npm run dev:backend`.
-- [x] Confirmar que frontend sobe com `npm run dev:frontend`.
-- [x] Criar `npm run setup` para subir Docker, aplicar migrations, rodar seed e sincronizar dados.
-- [x] Confirmar que `npm run dev` fica separado para apenas subir backend e frontend.
+- [x] Definir `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` reais no `.env`.
+- [x] Confirmar que `NEXT_PUBLIC_API_URL` aponta para `http://localhost:3333`.
+- [x] Confirmar que `DATABASE_URL` aponta para o servico `postgres` dentro do Docker.
+- [x] Confirmar que PostgreSQL, Redis, backend e frontend sobem com `npm run start`.
+- [x] Criar comandos oficiais `doctor`, `start`, `stop`, `restart`, `sync:data`, `db:reset` e `docker:recover`.
+- [x] Confirmar que `npm run dev` fica separado para desenvolvimento fora do fluxo Docker principal.
 
 ## Fase 2 - Validacao tecnica do DATASUS/TABNET
 
@@ -141,7 +139,7 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 - [x] Criar grafico por raca/cor, quando disponivel.
 - [x] Criar tabela detalhada paginada.
 - [x] Criar filtros por fonte.
-- [x] Criar botao de exportacao CSV.
+- [x] Criar exportacao CSV na area administrativa.
 - [x] Exibir ultima atualizacao.
 - [x] Exibir status da coleta.
 - [x] Exibir aviso quando dados municipais estiverem indisponiveis.
@@ -154,6 +152,8 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 
 - [x] Criar tela administrativa.
 - [x] Criar acesso administrativo via `ADMIN_TOKEN`.
+- [x] Criar login administrativo com sessao HTTP-only.
+- [x] Criar auditoria administrativa para login, logout, exportacao e sincronizacao.
 - [x] Listar todas as fontes ativas.
 - [x] Mostrar status de disponibilidade municipal por fonte.
 - [x] Mostrar ultima sincronizacao por fonte.
@@ -163,10 +163,12 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 - [x] Permitir sincronizar todas as fontes pela API administrativa.
 - [x] Mover exportacao CSV para a area administrativa.
 - [x] Remover exportacao CSV do site publico.
+- [x] Separar layout administrativo da navegacao publica.
 - [ ] Permitir ativar ou desativar fonte.
 - [ ] Impedir sincronizacao de fonte fora da lista permitida.
 - [ ] Registrar usuario ou origem da solicitacao administrativa.
-- [ ] Criar login administrativo mais robusto para producao.
+- [x] Remover uso de token administrativo salvo no navegador.
+- [x] Melhorar auditoria administrativa por usuario.
 
 ## Fase 7 - Atualizacao automatica
 
