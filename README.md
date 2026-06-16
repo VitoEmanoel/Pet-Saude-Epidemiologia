@@ -32,21 +32,30 @@ sifilis gestacional
 tuberculose_sinan
 hanseniase_sinan
 sifilis_congenita_sinan
+dengue_sinan
+arboviroses_sinan
 ```
 
-Estas sao as fontes ativas e integradas no produto hoje.
+Estas sao as fontes publicas ativas e integradas no produto hoje.
+
+Estado atual:
+
+- `tuberculose_sinan`, `hanseniase_sinan` e `sifilis_congenita_sinan` usam coleta direta do DATASUS/TABNET.
+- `dengue_sinan` usa coleta direta do DATASUS/TABNET.
+- `arboviroses_sinan` e uma visao agregada do painel baseada, por enquanto, em `dengue_sinan` e `zika_sinan`.
 
 ## Casos Em Validacao
 
 Casos que ja aparecem no catalogo, mas ainda nao estao operacionais:
 
 ```txt
-dengue
-arboviroses em geral
 sifilis gestacional
 ```
 
-Esses casos continuam no roadmap, mas ainda nao fazem parte da operacao corrente.
+Limitacoes atuais:
+
+- `arboviroses_sinan` ainda nao inclui chikungunya.
+- `sifilis_gestacional_sinan` continua no roadmap, mas ainda nao possui fonte oficial municipal validada em formato compativel com a coleta automatica.
 
 ## Tecnologias
 

@@ -1,6 +1,6 @@
 # Anotacoes do projeto
 
-Atualizado em: 2026-06-15
+Atualizado em: 2026-06-16
 
 Este arquivo serve como controle do que precisa ser feito para o sistema funcionar de ponta a ponta. Marcar com `[x]` apenas quando a etapa estiver implementada e validada.
 
@@ -10,16 +10,17 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 
 - [x] Tuberculose
 - [x] Hanseníase
-- [ ] Dengue
-- [ ] Arboviroses em geral
+- [x] Dengue
+- [x] Arboviroses em geral
 - [x] Sífilis Congênita
 - [ ] Sífilis Gestacional
 
 ## Escopo atual
 
-- [x] Fontes ativas em producao: `tuberculose_sinan`, `hanseniase_sinan`, `sifilis_congenita_sinan`.
+- [x] Fontes publicas ativas em producao: `tuberculose_sinan`, `hanseniase_sinan`, `sifilis_congenita_sinan`, `dengue_sinan`, `arboviroses_sinan`.
 - [x] Painel limitado a Parnaiba - PI.
 - [x] Coleta, dashboard e area administrativa validados para o escopo atual.
+- [x] `arboviroses_sinan` operacional como visao derivada agregando dengue e zika.
 
 ## Escopo futuro
 
@@ -154,6 +155,8 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 - [x] Criar pagina da fonte piloto.
 - [x] Criar paginas para hanseniase e sifilis.
 - [x] Criar paginas de validacao para dengue, arboviroses em geral e sifilis gestacional.
+- [x] Tornar dengue operacional no catalogo publico.
+- [x] Tornar arboviroses operacionalmente visivel como agregacao de dengue e zika.
 - [x] Criar cards de indicadores reais.
 - [x] Criar grafico de evolucao anual.
 - [x] Criar grafico por sexo.
@@ -207,12 +210,14 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 
 - [x] Validar `hanseniase_sinan`.
 - [x] Validar `sifilis_congenita_sinan`.
+- [x] Validar `dengue_sinan`.
 - [x] Remover do painel as fontes sem coletor implementado no escopo atual.
 - [ ] Avaliar futuramente se sifilis adquirida e sifilis gestacional devem virar fontes separadas.
-- [ ] Concluir a validacao tecnica de dengue.
-- [ ] Concluir a validacao tecnica de arboviroses em geral.
+- [x] Concluir a validacao tecnica de dengue.
+- [x] Concluir a validacao tecnica base de arboviroses em geral com dengue e zika.
 - [ ] Concluir a validacao tecnica de sifilis gestacional.
-- [ ] Criar coletor para cada nova fonte validada.
+- [ ] Integrar chikungunya para completar arboviroses em geral.
+- [ ] Criar coletor para sifilis gestacional quando a fonte oficial for localizada.
 - [ ] Marcar fonte como indisponivel quando nao houver filtro municipal.
 - [ ] Documentar parametros e limitacoes de cada fonte.
 

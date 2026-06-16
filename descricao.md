@@ -89,16 +89,29 @@ As fontes realmente ativas no sistema hoje são:
 1. Casos de Tuberculose — Desde 2001 — SINAN
 2. Casos de Hanseníase — Desde 2001 — SINAN
 3. Notificações de casos suspeitos de Sífilis Congênita — SINAN
+4. Casos de Dengue — SINAN
+5. Arboviroses em geral — visão agregada do painel baseada em Dengue e Zika
 
-Essas são as fontes integradas ao produto atual. As demais permanecem como escopo permitido da plataforma, mas ainda nao estao ativas na operacao corrente.
+Essas são as fontes integradas ao produto atual.
+
+No estado atual do sistema:
+
+- Tuberculose, Hanseníase, Sífilis Congênita e Dengue possuem coleta automatica validada no DATASUS/TABNET.
+- Arboviroses em geral ja aparece operacionalmente no painel, mas como composicao derivada de fontes integradas, e nao como uma tabela unica independente do DATASUS/TABNET.
+- Zika ja e usada internamente para compor a visao de arboviroses, mas nao aparece como caso publico obrigatorio do menu.
+- As demais permanecem como escopo permitido da plataforma, mas ainda nao estao ativas na operacao corrente.
 
 ### 3.3 Escopo futuro
 
 Os casos abaixo ainda precisam ser validados e implementados para Parnaíba - PI:
 
-1. Dengue
-2. Arboviroses em geral
-3. Sífilis Gestacional
+1. Sífilis Gestacional
+2. Inclusão de Chikungunya na visão de Arboviroses em geral
+
+Observacao importante:
+
+- Dengue ja foi validada e implementada.
+- Arboviroses em geral ja existe no produto, mas ainda precisa ser ampliada para cobrir mais do que Dengue e Zika.
 
 ---
 
