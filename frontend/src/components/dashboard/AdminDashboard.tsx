@@ -399,7 +399,7 @@ export function AdminDashboard() {
   return (
     <div className="space-y-5">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Fontes" value={state.sources.total} detail="Ativas" icon={Database} />
+        <MetricCard label="Fontes" value={state.sources.total} detail="No catálogo" icon={Database} />
         <MetricCard
           label="Registros"
           value={formatNumber(totalRecords)}
@@ -445,7 +445,7 @@ export function AdminDashboard() {
               className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Play size={16} aria-hidden="true" />
-              Todas
+              Ativas
             </button>
           </div>
         </div>
@@ -633,12 +633,16 @@ export function AdminDashboard() {
               {state.sourceSummaries.map(({ source, summary }) => {
                 const latestJob = latestJobsBySource.get(source.slug);
                 const busy = actionState.busyAction === source.slug || actionState.busyAction === "all";
+                const sourceIsActive = source.active;
 
                 return (
                   <tr key={source.slug}>
                     <td className="px-4 py-3">
                       <div className="font-medium text-slate-950">{source.name}</div>
                       <div className="text-xs text-slate-500">{source.slug}</div>
+                      <div className="mt-1 text-xs font-medium uppercase text-slate-400">
+                        {sourceIsActive ? "Operacional" : "Em validacao"}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <StatusPill status={source.municipalityFilterStatus} />
@@ -656,11 +660,11 @@ export function AdminDashboard() {
                       <button
                         type="button"
                         onClick={() => void syncSource(source.slug)}
-                        disabled={busy || !authenticated}
+                        disabled={busy || !authenticated || !sourceIsActive}
                         className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <Play size={16} aria-hidden="true" />
-                        Fonte
+                        {sourceIsActive ? "Fonte" : "Prevista"}
                       </button>
                     </td>
                   </tr>

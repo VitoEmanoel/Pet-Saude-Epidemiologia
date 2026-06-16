@@ -13,7 +13,20 @@ O sistema usa um banco local para guardar os dados coletados. Isso evita depende
 - Exibe graficos, indicadores, filtros e tabela paginada.
 - Permite exportar registros em CSV.
 
-Fontes ativas atualmente:
+## Casos Obrigatorios
+
+O sistema deve entregar estes casos:
+
+```txt
+tuberculose
+hanseniase
+dengue
+arboviroses em geral
+sifilis congenita
+sifilis gestacional
+```
+
+## Escopo Atual
 
 ```txt
 tuberculose_sinan
@@ -21,13 +34,19 @@ hanseniase_sinan
 sifilis_congenita_sinan
 ```
 
-Fontes planejadas para expansao futura:
+Estas sao as fontes ativas e integradas no produto hoje.
+
+## Casos Em Validacao
+
+Casos que ja aparecem no catalogo, mas ainda nao estao operacionais:
 
 ```txt
 dengue
 arboviroses em geral
 sifilis gestacional
 ```
+
+Esses casos continuam no roadmap, mas ainda nao fazem parte da operacao corrente.
 
 ## Tecnologias
 

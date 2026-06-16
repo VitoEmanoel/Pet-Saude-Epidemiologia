@@ -71,6 +71,35 @@ As únicas fontes permitidas são:
 12. Sistema de Informação do Câncer — SISCAN
 13. Tempo até o início do tratamento oncológico — Painel Oncologia
 
+### 3.1 Casos obrigatorios do projeto
+
+O sistema deve entregar estes casos:
+
+1. Tuberculose
+2. Hanseníase
+3. Dengue
+4. Arboviroses em geral
+5. Sífilis Congênita
+6. Sífilis Gestacional
+
+### 3.2 Escopo atual do projeto
+
+As fontes realmente ativas no sistema hoje são:
+
+1. Casos de Tuberculose — Desde 2001 — SINAN
+2. Casos de Hanseníase — Desde 2001 — SINAN
+3. Notificações de casos suspeitos de Sífilis Congênita — SINAN
+
+Essas são as fontes integradas ao produto atual. As demais permanecem como escopo permitido da plataforma, mas ainda nao estao ativas na operacao corrente.
+
+### 3.3 Escopo futuro
+
+Os casos abaixo ainda precisam ser validados e implementados para Parnaíba - PI:
+
+1. Dengue
+2. Arboviroses em geral
+3. Sífilis Gestacional
+
 ---
 
 ## 4. Ideia geral do funcionamento

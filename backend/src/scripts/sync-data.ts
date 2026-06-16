@@ -1,5 +1,5 @@
 import "../config/env";
-import { allowedSources } from "../config/sources";
+import { activeSources, allowedSources } from "../config/sources";
 import { prisma } from "../database/prisma";
 import { syncSource } from "../modules/sync/sync.service";
 
@@ -7,7 +7,7 @@ async function main() {
   const requestedSource = process.argv[2] ?? "all";
   const sources =
     requestedSource === "all"
-      ? allowedSources
+      ? activeSources
       : allowedSources.filter((source) => source.slug === requestedSource);
 
   if (sources.length === 0) {

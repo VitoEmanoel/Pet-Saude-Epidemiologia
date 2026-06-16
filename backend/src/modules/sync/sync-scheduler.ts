@@ -1,5 +1,5 @@
 import { SyncJobStatus } from "@prisma/client";
-import { allowedSources } from "../../config/sources";
+import { activeSources } from "../../config/sources";
 import { prisma } from "../../database/prisma";
 import { SyncAlreadyRunningError, UnsupportedCollectorError, syncSource } from "./sync.service";
 
@@ -66,11 +66,7 @@ async function runScheduledSync(intervalDays: number) {
   schedulerRunning = true;
 
   try {
-    for (const source of allowedSources) {
-      if (source.municipalityFilterStatus !== "available") {
-        continue;
-      }
-
+    for (const source of activeSources) {
       const shouldSync = await shouldSyncSource(source.slug, intervalDays);
 
       if (!shouldSync) {

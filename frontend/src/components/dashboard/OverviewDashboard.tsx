@@ -18,7 +18,10 @@ type LoadState =
 const sourcePages: Record<string, string> = {
   tuberculose_sinan: "/tuberculose",
   hanseniase_sinan: "/hanseniase",
-  sifilis_congenita_sinan: "/sifilis"
+  sifilis_congenita_sinan: "/sifilis",
+  dengue_sinan: "/dengue",
+  arboviroses_sinan: "/arboviroses",
+  sifilis_gestacional_sinan: "/sifilis-gestacional"
 };
 
 export function OverviewDashboard() {
@@ -146,6 +149,7 @@ export function OverviewDashboard() {
             <tbody className="divide-y divide-slate-100">
               {sources.sources.map((source) => {
                 const pageHref = sourcePages[source.slug];
+                const pageLabel = source.active ? "Abrir" : "Em validacao";
 
                 return (
                   <tr key={source.slug}>
@@ -160,7 +164,7 @@ export function OverviewDashboard() {
                           href={pageHref}
                           className="font-medium text-institutional-600 hover:text-institutional-800"
                         >
-                          Abrir
+                          {pageLabel}
                         </Link>
                       ) : (
                         <span className="text-slate-400">Indisponivel</span>

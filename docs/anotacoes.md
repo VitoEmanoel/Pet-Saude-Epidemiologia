@@ -6,6 +6,27 @@ Este arquivo serve como controle do que precisa ser feito para o sistema funcion
 
 Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 
+## Casos obrigatorios
+
+- [x] Tuberculose
+- [x] Hanseníase
+- [ ] Dengue
+- [ ] Arboviroses em geral
+- [x] Sífilis Congênita
+- [ ] Sífilis Gestacional
+
+## Escopo atual
+
+- [x] Fontes ativas em producao: `tuberculose_sinan`, `hanseniase_sinan`, `sifilis_congenita_sinan`.
+- [x] Painel limitado a Parnaiba - PI.
+- [x] Coleta, dashboard e area administrativa validados para o escopo atual.
+
+## Escopo futuro
+
+- [ ] Expansao para novas fontes DATASUS/TABNET.
+- [ ] Melhorias de transparencia visual no painel.
+- [ ] Preparacao para deploy em producao.
+
 ## Fase 1 - Fundacao tecnica
 
 - [x] Criar estrutura do projeto em monorepo.
@@ -132,6 +153,7 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 - [x] Criar pagina de visao geral.
 - [x] Criar pagina da fonte piloto.
 - [x] Criar paginas para hanseniase e sifilis.
+- [x] Criar paginas de validacao para dengue, arboviroses em geral e sifilis gestacional.
 - [x] Criar cards de indicadores reais.
 - [x] Criar grafico de evolucao anual.
 - [x] Criar grafico por sexo.
@@ -186,10 +208,10 @@ Roadmap priorizado: [`docs/roadmap.md`](./roadmap.md).
 - [x] Validar `hanseniase_sinan`.
 - [x] Validar `sifilis_congenita_sinan`.
 - [x] Remover do painel as fontes sem coletor implementado no escopo atual.
-- [ ] Avaliar futuramente se sifilis adquirida e sifilis em gestante devem virar fontes separadas.
-- [ ] Adicionar futuramente casos de dengue.
-- [ ] Adicionar futuramente arboviroses em geral.
-- [ ] Adicionar futuramente sifilis gestacional.
+- [ ] Avaliar futuramente se sifilis adquirida e sifilis gestacional devem virar fontes separadas.
+- [ ] Concluir a validacao tecnica de dengue.
+- [ ] Concluir a validacao tecnica de arboviroses em geral.
+- [ ] Concluir a validacao tecnica de sifilis gestacional.
 - [ ] Criar coletor para cada nova fonte validada.
 - [ ] Marcar fonte como indisponivel quando nao houver filtro municipal.
 - [ ] Documentar parametros e limitacoes de cada fonte.

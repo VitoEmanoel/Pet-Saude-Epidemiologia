@@ -4,6 +4,27 @@ Atualizado em: 2026-06-15
 
 Este arquivo define a ordem recomendada para evoluir o sistema a partir do estado atual.
 
+## Casos Obrigatorios
+
+O produto deve cobrir estes casos:
+
+- tuberculose
+- hanseniase
+- dengue
+- arboviroses em geral
+- sifilis congenita
+- sifilis gestacional
+
+## Estado Atual
+
+O sistema opera hoje com escopo reduzido para:
+
+- tuberculose_sinan
+- hanseniase_sinan
+- sifilis_congenita_sinan
+
+O restante do roadmap abaixo trata de transparencia, novas fontes e deploy futuro.
+
 ## Ja Feito
 
 - [x] Estrutura em monorepo com backend e frontend.
@@ -17,6 +38,7 @@ Este arquivo define a ordem recomendada para evoluir o sistema a partir do estad
 - [x] Coleta real do DATASUS/TABNET para hanseniase.
 - [x] Coleta real do DATASUS/TABNET para sifilis congenita.
 - [x] Paginas de tuberculose, hanseniase e sifilis.
+- [x] Catalogo com 6 casos, incluindo 3 em validacao tecnica.
 - [x] Graficos, indicadores, filtros e tabela paginada no site publico.
 - [x] Exportacao CSV movida para a area administrativa.
 - [x] README reorganizado para instalacao em computador novo.
@@ -91,4 +113,4 @@ O proximo bloco recomendado e:
 2. Novas Fontes
 ```
 
-Esses dois blocos deixam o sistema mais controlavel antes de adicionar dengue, arboviroses e sifilis gestacional.
+Esses dois blocos deixam o sistema mais controlavel antes de concluir dengue, arboviroses em geral e sifilis gestacional.

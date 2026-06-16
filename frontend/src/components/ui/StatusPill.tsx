@@ -26,8 +26,7 @@ export function StatusPill({ status }: StatusPillProps) {
   return (
     <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
       <Clock3 size={13} aria-hidden="true" />
-      Pendente
+      Em validacao
     </span>
   );
 }
-

@@ -171,6 +171,8 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     );
   }
 
+  const sourceIsActive = state.summary.source.active;
+
   return (
     <div className="space-y-5">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -212,7 +214,12 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
         />
       </section>
 
-      {!state.summary.summary.municipalityDataAvailable ? (
+      {!sourceIsActive ? (
+        <div className="rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          Este caso ainda esta em validacao tecnica. A pagina foi criada para acompanhar a
+          expansao do painel, mas a coleta automatica ainda nao esta ativa.
+        </div>
+      ) : !state.summary.summary.municipalityDataAvailable ? (
         <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Esta fonte nao disponibiliza consulta municipal para Parnaiba - PI no formato acessado pelo sistema.
         </div>

@@ -1,8 +1,15 @@
 import Link from "next/link";
-import { Activity, BarChart3, Database, MapPinned } from "lucide-react";
+import { Activity, BarChart3, Clock3, Database, MapPinned } from "lucide-react";
 
 type AppShellProps = {
-  active: "overview" | "tuberculose" | "hanseniase" | "sifilis";
+  active:
+    | "overview"
+    | "tuberculose"
+    | "hanseniase"
+    | "sifilis"
+    | "dengue"
+    | "arboviroses"
+    | "sifilis-gestacional";
   children: React.ReactNode;
 };
 
@@ -27,9 +34,27 @@ const navItems = [
   },
   {
     href: "/sifilis",
-    label: "Sifilis",
+    label: "Sifilis congenita",
     active: "sifilis",
     icon: Activity
+  },
+  {
+    href: "/dengue",
+    label: "Dengue",
+    active: "dengue",
+    icon: Clock3
+  },
+  {
+    href: "/arboviroses",
+    label: "Arboviroses",
+    active: "arboviroses",
+    icon: Clock3
+  },
+  {
+    href: "/sifilis-gestacional",
+    label: "Sifilis gestacional",
+    active: "sifilis-gestacional",
+    icon: Clock3
   }
 ] as const;
 
@@ -84,7 +109,7 @@ export function AppShell({ active, children }: AppShellProps) {
                 Painel Epidemiologico
               </h1>
             </div>
-            <div className="flex items-center gap-2 lg:hidden">
+            <div className="flex max-w-[70vw] items-center gap-2 overflow-x-auto lg:hidden">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const selected = active === item.active;
@@ -95,7 +120,7 @@ export function AppShell({ active, children }: AppShellProps) {
                     href={item.href}
                     aria-label={item.label}
                     title={item.label}
-                    className={`flex h-10 w-10 items-center justify-center rounded border ${
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded border ${
                       selected
                         ? "border-health-600 bg-health-50 text-health-700"
                         : "border-slate-200 bg-white text-slate-600"

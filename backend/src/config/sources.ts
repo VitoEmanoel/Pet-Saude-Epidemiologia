@@ -39,8 +39,37 @@ export const allowedSources: readonly AllowedSource[] = [
     municipalityFilterStatus: "available",
     sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/sifilisbr.def",
     active: true
+  },
+  {
+    slug: "dengue_sinan",
+    name: "Casos de Dengue",
+    system: "SINAN",
+    category: ALLOWED_DATASUS_CATEGORY,
+    municipalityFilterStatus: "unknown",
+    sourceUrl: null,
+    active: false
+  },
+  {
+    slug: "arboviroses_sinan",
+    name: "Arboviroses em geral",
+    system: "SINAN",
+    category: ALLOWED_DATASUS_CATEGORY,
+    municipalityFilterStatus: "unknown",
+    sourceUrl: null,
+    active: false
+  },
+  {
+    slug: "sifilis_gestacional_sinan",
+    name: "Casos de Sífilis Gestacional",
+    system: "SINAN",
+    category: ALLOWED_DATASUS_CATEGORY,
+    municipalityFilterStatus: "unknown",
+    sourceUrl: null,
+    active: false
   }
 ] as const;
+
+export const activeSources = allowedSources.filter((source) => source.active);
 
 export type SourceSlug = (typeof allowedSources)[number]["slug"];
 
