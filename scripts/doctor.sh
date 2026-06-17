@@ -140,7 +140,7 @@ fi
 ok "Docker e Docker Compose acessiveis pelo usuario atual."
 
 if docker_is_snap_install; then
-  info "Docker via Snap detectado. Se containers presos retornarem permission denied, use npm run docker:recover para reiniciar com snap restart docker."
+  warn "Docker via Snap detectado. Migre para Docker Engine oficial; o Snap pode travar containers e gerar permission denied no stop."
 fi
 
 check_port "frontend" "$(compose_service_id frontend)" "$APP_BIND_HOST" "$FRONTEND_PORT"

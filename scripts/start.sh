@@ -226,7 +226,7 @@ echo "Aplicando migrations..."
 "${COMPOSE_CMD[@]}" run --rm backend npm --workspace backend run prisma:deploy
 
 echo "Executando seed inicial..."
-"${COMPOSE_CMD[@]}" run --rm backend npm --workspace backend run prisma:seed
+"${COMPOSE_CMD[@]}" run --rm backend npm --workspace backend run seed:prod
 
 echo "Subindo backend e frontend..."
 start_app_services

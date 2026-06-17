@@ -24,9 +24,16 @@ esac
 
 restart_docker_daemon() {
   if docker_is_snap_install; then
-    echo "Docker via Snap detectado. Reiniciando com sudo snap restart docker..."
-    sudo snap restart docker
-    return
+    echo "Docker via Snap detectado."
+    echo "Este projeto recomenda Docker Engine oficial, nao Docker via Snap."
+    echo
+    echo "Migre o Docker da maquina antes de continuar:"
+    echo "sudo snap remove --purge docker"
+    echo "curl -fsSL https://get.docker.com | sudo sh"
+    echo "sudo usermod -aG docker \"\$USER\""
+    echo
+    echo "Depois faca logout/login ou reinicie a maquina."
+    exit 1
   fi
 
   echo "Reiniciando o daemon Docker com sudo systemctl restart docker..."

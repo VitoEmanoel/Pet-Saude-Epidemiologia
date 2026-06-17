@@ -159,6 +159,8 @@ npm -v
 
 #### 4. Instalar Docker
 
+Use Docker Engine oficial. Nao use Docker instalado via Snap para este projeto.
+
 ```bash
 curl -fsSL https://get.docker.com | sudo sh
 ```
@@ -179,6 +181,28 @@ docker compose version
 ```
 
 Se `docker info` falhar com `permission denied`, o usuario ainda nao recebeu a permissao corretamente.
+
+Conferencia importante:
+
+```bash
+docker info --format '{{.DockerRootDir}}'
+```
+
+O resultado esperado com Docker oficial e:
+
+```txt
+/var/lib/docker
+```
+
+Se aparecer algo dentro de `/var/snap/docker`, a maquina esta usando Docker via Snap. Remova o Snap e instale o Docker oficial:
+
+```bash
+sudo snap remove --purge docker
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker "$USER"
+```
+
+Depois faca logout/login ou reinicie a maquina.
 
 ### Windows
 
@@ -497,7 +521,15 @@ Se aparecer algo como:
 - `permission denied`
 - container preso sem encerrar
 
-Use:
+Primeiro confirme se a maquina esta usando Docker oficial:
+
+```bash
+docker info --format '{{.DockerRootDir}}'
+```
+
+Se retornar `/var/snap/docker/...`, o problema provavelmente vem do Docker via Snap. Migre para Docker oficial seguindo a secao de instalacao acima.
+
+Se retornar `/var/lib/docker`, use:
 
 ```bash
 npm run docker:recover

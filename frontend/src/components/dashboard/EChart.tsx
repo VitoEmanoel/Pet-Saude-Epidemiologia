@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import * as echarts from "echarts";
+import { BarChart, LineChart } from "echarts/charts";
+import { GridComponent, TooltipComponent } from "echarts/components";
+import { init, use } from "echarts/core";
+import type { EChartsOption } from "echarts";
+import { CanvasRenderer } from "echarts/renderers";
+
+use([BarChart, LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
 
 type EChartProps = {
-  option: echarts.EChartsOption;
+  option: EChartsOption;
   height?: number;
 };
 
@@ -16,7 +22,7 @@ export function EChart({ option, height = 280 }: EChartProps) {
       return;
     }
 
-    const chart = echarts.init(containerRef.current);
+    const chart = init(containerRef.current);
     chart.setOption(option);
 
     const resizeObserver = new ResizeObserver(() => chart.resize());

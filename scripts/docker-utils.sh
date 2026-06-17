@@ -14,19 +14,10 @@ docker_is_snap_install() {
     return 0
   fi
 
-  if command -v snap >/dev/null 2>&1 && snap list docker >/dev/null 2>&1; then
-    return 0
-  fi
-
   return 1
 }
 
 docker_restart_command_text() {
-  if docker_is_snap_install; then
-    echo "sudo snap restart docker"
-    return
-  fi
-
   echo "sudo systemctl restart docker"
 }
 
