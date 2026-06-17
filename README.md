@@ -1,32 +1,39 @@
 # Painel Epidemiologico de Parnaiba - PI
 
-Sistema web para consultar, visualizar e exportar dados publicos do DATASUS/TABNET filtrados para o municipio de Parnaiba - PI.
+Sistema web para consulta, visualizacao e exportacao de dados publicos do DATASUS/TABNET, filtrados para o municipio de Parnaiba - PI.
 
-O sistema usa um banco local para guardar os dados coletados. Isso evita depender do DATASUS/TABNET toda vez que alguem abre a pagina. O fluxo correto e: sincronizar os dados para o banco local e depois navegar pelo painel.
+O projeto funciona assim:
+
+1. O backend coleta os dados publicos nas fontes oficiais.
+2. Os dados sao gravados em um banco PostgreSQL local.
+3. O frontend consome esse banco local para exibir indicadores, tabelas e graficos.
+
+Isso significa que abrir o painel sem sincronizar os dados antes pode mostrar o sistema vazio.
+
+## Objetivo Deste README
+
+Este guia foi reestruturado para ajudar colaboradores a:
+
+1. Preparar a maquina corretamente.
+2. Configurar o projeto sem pular etapas.
+3. Subir o sistema pela primeira vez.
+4. Validar se tudo realmente funcionou.
+5. Resolver os erros mais comuns.
+
+Se a pessoa seguir a ordem abaixo, a chance de erro cai bastante.
 
 ## O Que O Sistema Faz
 
 - Coleta dados publicos do DATASUS/TABNET.
 - Filtra os dados para Parnaiba - PI.
-- Salva importacoes brutas para auditoria.
+- Armazena importacoes brutas para auditoria.
 - Normaliza registros em PostgreSQL.
-- Exibe graficos, indicadores, filtros e tabela paginada.
-- Permite exportar registros em CSV.
+- Exibe dashboards, graficos, filtros e tabela paginada.
+- Permite exportacao de registros em CSV.
 
-## Casos Obrigatorios
+### Fontes publicas ativas hoje
 
-O sistema deve entregar estes casos:
-
-```txt
-tuberculose
-hanseniase
-dengue
-arboviroses em geral
-sifilis congenita
-sifilis gestacional
-```
-
-## Escopo Atual
+Essas fontes aparecem para consulta no sistema:
 
 ```txt
 tuberculose_sinan
@@ -36,28 +43,24 @@ dengue_sinan
 arboviroses_sinan
 ```
 
-Estas sao as fontes publicas ativas e integradas no produto hoje.
+### Fontes sincronizadas hoje pelo backend
 
-Estado atual:
-
-- `tuberculose_sinan`, `hanseniase_sinan` e `sifilis_congenita_sinan` usam coleta direta do DATASUS/TABNET.
-- `dengue_sinan` usa coleta direta do DATASUS/TABNET.
-- `arboviroses_sinan` e uma visao agregada do painel baseada, por enquanto, em `dengue_sinan` e `zika_sinan`.
-
-## Casos Em Validacao
-
-Casos que ja aparecem no catalogo, mas ainda nao estao operacionais:
+Essas fontes sao efetivamente coletadas quando voce roda `npm run sync:data`:
 
 ```txt
-sifilis gestacional
+tuberculose_sinan
+hanseniase_sinan
+sifilis_congenita_sinan
+dengue_sinan
+zika_sinan
 ```
 
-Limitacoes atuais:
+Observacao:
 
-- `arboviroses_sinan` ainda nao inclui chikungunya.
-- `sifilis_gestacional_sinan` continua no roadmap, mas ainda nao possui fonte oficial municipal validada em formato compativel com a coleta automatica.
+- `arboviroses_sinan` e uma fonte derivada, composta por `dengue_sinan` e `zika_sinan`.
+- `sifilis_gestacional_sinan` existe no codigo, mas hoje esta inativa e nao entra na sincronizacao.
 
-## Tecnologias
+## Stack Do Projeto
 
 - Node.js 20 ou superior
 - npm
@@ -69,340 +72,344 @@ Limitacoes atuais:
 - Next.js
 - React
 - Tailwind CSS
-- Docker e Docker Compose
+- Docker com Docker Compose
 
-As bibliotecas do backend e do frontend sao instaladas automaticamente com `npm install`.
-
-## Estrutura Do Projeto
+## Estrutura Do Repositorio
 
 ```txt
 backend/              API Express, Prisma e coletores DATASUS/TABNET
 frontend/             Interface Next.js
-docs/                 Documentacao e anotacoes do projeto
+docs/                 Documentacao complementar
 scripts/              Scripts oficiais de operacao
-docker-compose.yml    Servicos Docker do sistema
+docker-compose.yml    Definicao dos servicos
 .env.example          Modelo de configuracao local
 ```
 
-## Instalar Em Um Computador Novo
+## Antes De Comecar
 
-Siga a ordem abaixo. Em caso de computador novo, instale primeiro Node.js, npm, Docker e Docker Compose.
+### Ambiente recomendado
 
-## Linux Ubuntu/Debian
+O fluxo oficial deste projeto foi pensado para Linux.
 
-### 1. Atualizar o sistema
+Se voce estiver em Windows, o recomendado e usar uma destas opcoes:
+
+1. WSL2 com Ubuntu.
+2. Uma maquina Linux.
+
+Motivo:
+
+- Os comandos principais do projeto usam scripts `bash`.
+- O script `npm run doctor` depende do comando `ss`.
+- O uso via Windows nativo pode falhar mesmo com Node e Docker instalados.
+
+Se o colaborador usa Windows e quer evitar problemas, a melhor decisao e rodar tudo no WSL2.
+
+### Programas obrigatorios
+
+Instale antes de clonar o projeto:
+
+1. `git`
+2. `node` na versao 20 ou superior
+3. `npm`
+4. `docker`
+5. `docker compose`
+
+### Conferencia rapida
+
+Depois da instalacao, confirme:
+
+```bash
+git --version
+node -v
+npm -v
+docker --version
+docker compose version
+```
+
+## Instalacao Do Ambiente
+
+### Linux Ubuntu ou Debian
+
+#### 1. Atualizar o sistema
 
 ```bash
 sudo apt update
 sudo apt upgrade -y
 ```
 
-### 2. Instalar ferramentas basicas
+#### 2. Instalar utilitarios basicos
 
 ```bash
 sudo apt install -y curl ca-certificates gnupg git
 ```
 
-### 3. Instalar Node.js e npm
-
-Instale Node.js 20 LTS:
+#### 3. Instalar Node.js 20 LTS
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 
-Confirme:
+Validar:
 
 ```bash
 node -v
 npm -v
 ```
 
-O Node precisa ser versao 20 ou superior.
-
-### 4. Instalar Docker e Docker Compose
+#### 4. Instalar Docker
 
 ```bash
 curl -fsSL https://get.docker.com | sudo sh
 ```
 
-Adicione seu usuario ao grupo Docker:
+#### 5. Permitir uso do Docker sem `sudo`
 
 ```bash
-sudo usermod -aG docker $USER
+sudo usermod -aG docker "$USER"
 ```
 
-Depois faca logout/login ou reinicie o computador.
+Agora faca logout e login novamente, ou reinicie a maquina.
 
-Confirme:
+Validar:
 
 ```bash
-docker --version
+docker info
 docker compose version
 ```
 
-Se `docker compose up -d` retornar `permission denied`, o usuario ainda nao esta com permissao no Docker. Reinicie a sessao antes de continuar.
-Se sua instalacao do Docker for via Snap, `npm run docker:recover` reinicia o servico com `sudo snap restart docker`.
+Se `docker info` falhar com `permission denied`, o usuario ainda nao recebeu a permissao corretamente.
 
-## Windows
+### Windows
 
-### 1. Instalar Git, Node.js, npm e Docker Desktop
+Para Windows, use WSL2 com Ubuntu e execute o projeto dentro do ambiente Linux.
 
-Abra o PowerShell como administrador e rode:
+Resumo do caminho recomendado:
 
-```powershell
-winget install Git.Git
-winget install OpenJS.NodeJS.LTS
-winget install Docker.DockerDesktop
-```
+1. Instalar WSL2.
+2. Instalar Ubuntu no WSL.
+3. Instalar Docker Desktop com integracao ao WSL habilitada.
+4. Abrir o projeto dentro do Ubuntu.
+5. Seguir o restante deste README como se estivesse em Linux.
 
-Depois:
-
-1. Abra o Docker Desktop.
-2. Aguarde o Docker ficar ativo.
-3. Feche e abra o terminal novamente.
-
-Confirme:
-
-```powershell
-node -v
-npm -v
-docker --version
-docker compose version
-```
-
-Se preferir instalar manualmente:
-
-- Node.js: https://nodejs.org/
-- Docker Desktop: https://www.docker.com/products/docker-desktop/
-- Git: https://git-scm.com/
-
-## Outras Distribuicoes Linux
-
-Instale pelos pacotes oficiais da sua distribuicao:
-
-- Node.js 20 ou superior
-- npm
-- Docker
-- Docker Compose
-- git
-
-Depois confirme:
+## Clonar O Projeto
 
 ```bash
-node -v
-npm -v
-docker --version
-docker compose version
+git clone <URL_DO_REPOSITORIO>
+cd Pet_Saude
 ```
 
-## Oracle Cloud
+## Passo A Passo Para Rodar Pela Primeira Vez
 
-Use uma VM Ubuntu 22.04 ou 24.04 na Oracle Cloud.
+Esta e a sequencia correta para um colaborador novo.
 
-### 1. Criar a VM
+### 1. Instalar as dependencias do monorepo
 
-- Escolha uma imagem Ubuntu.
-- Gere uma chave SSH para acesso remoto.
-- Anote o IP publico da instancia.
-
-### 2. Liberar Rede
-
-- Na Security List ou no Network Security Group, libere `TCP 3000` e `TCP 3333`.
-- No `firewalld` ou `ufw` da VM, libere as mesmas portas.
-- Nao exponha `5432` ou `6379` para a internet.
-
-### 3. Preparar a VM
-
-Conecte por SSH e instale os requisitos:
+Na raiz do projeto:
 
 ```bash
-sudo apt update
-sudo apt upgrade -y
-sudo apt install -y git curl ca-certificates gnupg
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker $USER
+npm install
 ```
 
-Depois faça logout/login ou reinicie a VM.
+Esse comando instala as dependencias do projeto raiz, do backend e do frontend.
 
-### 4. Baixar o projeto
-
-```bash
-git clone https://github.com/VitoEmanoel/Pet-Saude-Epidemiologia.git
-cd Pet-Saude-Epidemiologia
-cp .env.example .env
-```
-
-### 5. Ajustar o `.env`
-
-Substitua `SEU_IP_OU_DOMINIO` pelo IP publico ou pelo dominio apontado para a VM:
-
-```env
-APP_BIND_HOST=0.0.0.0
-SERVICE_BIND_HOST=127.0.0.1
-FRONTEND_URL=http://SEU_IP_OU_DOMINIO:3000
-BACKEND_URL=http://SEU_IP_OU_DOMINIO:3333
-NEXT_PUBLIC_API_URL=http://SEU_IP_OU_DOMINIO:3333
-CORS_ORIGIN=http://SEU_IP_OU_DOMINIO:3000
-ADMIN_PASSWORD=sua-senha
-ADMIN_SESSION_SECRET=seu-segredo-longo
-POSTGRES_PORT=5433
-```
-
-### 6. Subir o sistema
-
-```bash
-npm run doctor
-npm run start
-```
-
-### 7. Validar
-
-Abra no navegador:
-
-```txt
-http://SEU_IP_OU_DOMINIO:3000
-http://SEU_IP_OU_DOMINIO:3333/health
-```
-
-Se a VM ficar exposta publicamente, use um dominio com HTTPS na frente em vez de acessar direto pela porta, se isso for uma exigencia do ambiente.
-
-## Rodar O Sistema
-
-Use um unico fluxo para localhost, servidor Linux ou Oracle Cloud. O que muda entre os ambientes e somente o `.env`.
-
-### Regras
-
-- Use os comandos `npm run ...`; nao opere este projeto com `docker compose` manual no dia a dia.
-- Nao misture `docker ...` com `sudo docker ...`. O Docker deve funcionar para seu usuario sem `sudo`.
-- Use `npm run docker:recover` somente quando o daemon Docker travar e se recusar a parar containers.
-- Nao altere `POSTGRES_USER`, `POSTGRES_PASSWORD` ou `POSTGRES_DB` depois do banco criado sem resetar os volumes do projeto.
-- PostgreSQL e Redis ficam presos em `127.0.0.1` por padrao; apenas frontend e backend ficam expostos.
-
-### Configurar
+### 2. Criar o arquivo de ambiente
 
 ```bash
 cp .env.example .env
 ```
 
-Para rodar na sua maquina:
+### 3. Editar o `.env`
+
+Os campos minimos que precisam de atencao sao:
 
 ```env
 APP_BIND_HOST=0.0.0.0
 SERVICE_BIND_HOST=127.0.0.1
+
 FRONTEND_URL=http://localhost:3000
 BACKEND_URL=http://localhost:3333
 NEXT_PUBLIC_API_URL=http://localhost:3333
 CORS_ORIGIN=http://localhost:3000
-ADMIN_PASSWORD=sua-senha
-ADMIN_SESSION_SECRET=seu-segredo-longo
+
+ADMIN_PASSWORD=sua-senha-aqui
+ADMIN_SESSION_SECRET=um-segredo-longo-e-dificil
+
 POSTGRES_PORT=5433
 ```
 
-Para servidor, troque `localhost` pelo IP ou dominio publico:
+### 4. Entender o que cada grupo de variaveis faz
+
+#### URLs da aplicacao
+
+- `FRONTEND_URL`: endereco em que o frontend sera acessado.
+- `BACKEND_URL`: endereco da API.
+- `NEXT_PUBLIC_API_URL`: URL que o frontend usa para chamar o backend.
+- `CORS_ORIGIN`: origem autorizada a acessar a API.
+
+Para testes locais, mantenha:
 
 ```env
-FRONTEND_URL=http://SEU_IP_OU_DOMINIO:3000
-BACKEND_URL=http://SEU_IP_OU_DOMINIO:3333
-NEXT_PUBLIC_API_URL=http://SEU_IP_OU_DOMINIO:3333
-CORS_ORIGIN=http://SEU_IP_OU_DOMINIO:3000
+FRONTEND_URL=http://localhost:3000
+BACKEND_URL=http://localhost:3333
+NEXT_PUBLIC_API_URL=http://localhost:3333
+CORS_ORIGIN=http://localhost:3000
 ```
 
-Em servidor ou Oracle Cloud, libere externamente apenas as portas `3000` e `3333`.
+#### Credenciais administrativas
 
-### Iniciar
+- `ADMIN_PASSWORD`: senha de acesso da area administrativa.
+- `ADMIN_SESSION_SECRET`: segredo da sessao do admin.
 
-Rode sempre nesta ordem:
+Nao deixe os placeholders abaixo:
+
+```env
+ADMIN_PASSWORD=troque-esta-senha
+ADMIN_SESSION_SECRET=troque-este-segredo-de-sessao
+```
+
+O script `npm run start` bloqueia a inicializacao se esses placeholders continuarem no arquivo.
+
+#### Portas
+
+Padrao recomendado para maquina local:
+
+```env
+FRONTEND_PORT=3000
+BACKEND_PORT=3333
+POSTGRES_PORT=5433
+REDIS_PORT=6379
+```
+
+O PostgreSQL usa `5433` no host para evitar conflito com instalacoes locais que ja usam `5432`.
+
+#### Credenciais do banco
+
+Os valores padrao sao:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=pet_saude
+```
+
+Importante:
+
+- Se voce mudar `POSTGRES_USER`, `POSTGRES_PASSWORD` ou `POSTGRES_DB` depois que o volume do banco ja foi criado, pode quebrar a subida do projeto.
+- Se isso acontecer, normalmente o conserto e resetar os volumes com `npm run db:reset -- --force`.
+
+### 5. Executar o diagnostico antes de subir
 
 ```bash
 npm run doctor
+```
+
+Esse comando verifica:
+
+- se Docker e Docker Compose estao acessiveis;
+- se o `.env` existe;
+- se as variaveis obrigatorias foram preenchidas;
+- se as portas necessarias estao livres;
+- se o banco e o Redis respondem corretamente quando ja existem containers rodando.
+
+Se o `doctor` acusar erro, corrija antes de seguir.
+
+### 6. Subir o sistema
+
+```bash
 npm run start
 ```
 
-Enderecos padrao:
+Esse comando faz o fluxo oficial completo:
+
+1. sobe PostgreSQL e Redis;
+2. valida a conexao com o banco;
+3. builda backend e frontend;
+4. aplica as migrations do Prisma;
+5. executa o seed inicial;
+6. sobe backend e frontend.
+
+Nao e necessario rodar `docker compose up` manualmente no dia a dia.
+
+### 7. Conferir se a aplicacao abriu
+
+Acesse:
 
 ```txt
 Frontend: http://localhost:3000
-Backend:  http://localhost:3333
 Admin:    http://localhost:3000/admin
+Backend:  http://localhost:3333
 Health:   http://localhost:3333/health
 ```
 
-### Buscar Dados Datasus/Tabnet
+### 8. Sincronizar os dados
 
-Com o sistema rodando:
+Depois que backend e frontend estiverem rodando:
 
 ```bash
 npm run sync:data
 ```
 
-Fontes sincronizadas atualmente:
+Sem esse passo, o painel pode abrir sem dados.
+
+Na pratica, a sincronizacao atual percorre estas fontes:
 
 ```txt
 tuberculose_sinan
 hanseniase_sinan
 sifilis_congenita_sinan
+dengue_sinan
+zika_sinan
 ```
 
-O backend tambem pode sincronizar automaticamente conforme as variaveis `SYNC_SCHEDULE_*` do `.env`.
+### 9. Validar a sincronizacao
 
-### Parar E Ver Logs
-
-```bash
-npm run stop
-npm run logs
-```
-
-Para reiniciar:
-
-```bash
-npm run restart
-```
-
-### Recuperar Docker Travado
-
-Se aparecer `cannot stop container`, `permission denied` ao parar containers ou o container se recusar a fechar:
-
-```bash
-npm run docker:recover
-npm run doctor
-npm run start
-```
-
-Se o problema tambem exigir recriar o banco local deste projeto:
-
-```bash
-npm run docker:recover -- --reset-db
-npm run start
-```
-
-Use `--reset-db` apenas quando puder apagar e recriar os dados locais do PostgreSQL e Redis deste projeto. Em instalacoes Docker via Snap, a recuperacao reinicia o servico com `sudo snap restart docker`.
-
-### Resetar Banco Local
-
-Quando `start` ou `doctor` indicarem credenciais antigas no volume do PostgreSQL:
-
-```bash
-npm run db:reset -- --force
-npm run start
-```
-
-Esse comando remove os volumes Docker do banco e do Redis deste projeto.
-
-### Validar
+Use pelo menos estes testes:
 
 ```bash
 curl http://localhost:3333/health
 curl http://localhost:3333/api/sources
 ```
 
-O painel le dados do banco local. Se o DATASUS/TABNET estiver fora do ar, a navegacao continua usando a ultima coleta salva.
+Se essas rotas responderem e o painel carregar no navegador, o ambiente esta funcional para testes.
 
-## Comandos Oficiais
+## Fluxo Diario Para Colaboradores
+
+Depois da primeira configuracao, o uso mais comum passa a ser:
+
+### Subir o sistema
+
+```bash
+npm run start
+```
+
+### Ver logs
+
+```bash
+npm run logs
+```
+
+### Parar tudo
+
+```bash
+npm run stop
+```
+
+### Reiniciar
+
+```bash
+npm run restart
+```
+
+### Sincronizar dados novamente
+
+```bash
+npm run sync:data
+```
+
+## Comandos Oficiais Do Projeto
+
+Sempre prefira estes scripts:
 
 ```bash
 npm run doctor
@@ -417,13 +424,126 @@ npm run docker:recover
 
 ## Desenvolvimento
 
-Use somente para programar fora do fluxo Docker principal:
+Se o objetivo for desenvolvimento local de codigo, existem estes comandos:
 
 ```bash
-npm install
 npm run dev
 npm run test:backend
 ```
+
+Observacao:
+
+- `npm run start` e o fluxo principal para ambiente de teste e demonstracao.
+- `npm run dev` e um fluxo separado para programacao.
+
+## Solucao De Problemas
+
+### Erro 1: Docker sem permissao para o usuario
+
+Sintomas comuns:
+
+- `permission denied`
+- `Cannot connect to the Docker daemon`
+- `docker info` falha
+
+Correcao:
+
+```bash
+sudo usermod -aG docker "$USER"
+```
+
+Depois encerre a sessao e entre novamente.
+
+### Erro 2: Placeholders ainda no `.env`
+
+Se o `start` recusar subir, confira se ainda existem estas linhas:
+
+```env
+ADMIN_PASSWORD=troque-esta-senha
+ADMIN_SESSION_SECRET=troque-este-segredo-de-sessao
+```
+
+Troque por valores reais.
+
+### Erro 3: Porta ja esta em uso
+
+Se `doctor` ou `start` informarem conflito de porta, verifique principalmente:
+
+- `3000` para frontend
+- `3333` para backend
+- `5433` para PostgreSQL
+- `6379` para Redis
+
+Ajuste o `.env` se necessario.
+
+### Erro 4: Banco nao aceita usuario ou senha configurados
+
+Isso normalmente acontece quando o volume do PostgreSQL foi criado com credenciais antigas.
+
+Se puder apagar os dados locais do projeto:
+
+```bash
+npm run db:reset -- --force
+npm run start
+```
+
+Esse reset remove os volumes Docker do PostgreSQL e do Redis deste projeto.
+
+### Erro 5: Docker travou e nao para containers
+
+Se aparecer algo como:
+
+- `cannot stop container`
+- `permission denied`
+- container preso sem encerrar
+
+Use:
+
+```bash
+npm run docker:recover
+npm run doctor
+npm run start
+```
+
+Se tambem precisar recriar banco e Redis:
+
+```bash
+npm run docker:recover -- --reset-db
+npm run start
+```
+
+Use `--reset-db` somente quando puder apagar os dados locais.
+
+### Erro 6: Painel abre, mas sem informacoes
+
+Nesse caso, normalmente o sistema subiu, mas ainda nao houve sincronizacao.
+
+Rode:
+
+```bash
+npm run sync:data
+```
+
+## Executar Em Servidor
+
+O mesmo fluxo funciona em servidor Linux. O que muda e o `.env`.
+
+Troque `localhost` pelo IP ou dominio real:
+
+```env
+FRONTEND_URL=http://SEU_IP_OU_DOMINIO:3000
+BACKEND_URL=http://SEU_IP_OU_DOMINIO:3333
+NEXT_PUBLIC_API_URL=http://SEU_IP_OU_DOMINIO:3333
+CORS_ORIGIN=http://SEU_IP_OU_DOMINIO:3000
+APP_BIND_HOST=0.0.0.0
+```
+
+Em servidor, exponha apenas:
+
+- porta `3000`
+- porta `3333`
+
+PostgreSQL e Redis devem continuar restritos ao host local, o que ja e o comportamento padrao do projeto.
 
 ## API
 
@@ -441,11 +561,11 @@ GET  /api/admin/records/export.csv
 GET  /api/admin/sync-history
 ```
 
-Rotas administrativas exigem login em `/admin` com `ADMIN_PASSWORD`.
+As rotas administrativas exigem autenticacao em `/admin` com a senha definida em `ADMIN_PASSWORD`.
 
-## Regras Fixas
+## Regras Fixas Do Projeto
 
-- O municipio e fixo: Parnaiba - PI.
+- O municipio alvo e fixo: Parnaiba - PI.
 - O codigo IBGE e fixo: `2207702`.
 - A API publica bloqueia filtros para outro municipio.
-- O frontend nao permite trocar municipio.
+- O frontend nao permite troca de municipio.
