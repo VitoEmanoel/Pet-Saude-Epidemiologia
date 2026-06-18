@@ -1,0 +1,159 @@
+<mxfile host="app.diagrams.net" modified="2026-06-18T00:00:00.000Z" agent="Codex" version="24.7.17">
+  <diagram id="sync-admin-flow" name="Fluxograma Sync Admin">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Fluxograma - Clique no botao Fonte / Sincronizar fonte" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="700" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n1" value="Admin clica no botao&#xa;&lt;b&gt;Fonte / Sincronizar fonte&lt;/b&gt;&#xa;na tela administrativa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="90" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="Frontend executa&#xa;&lt;b&gt;syncSource(source.slug)&lt;/b&gt;&#xa;em AdminDashboard.tsx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="210" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="Admin autenticado?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="505" y="330" width="190" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="noauth" value="Nao&#xa;mostra erro no painel&#xa;&lt;b&gt;Entre na sessao administrativa&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="860" y="335" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="Frontend abre confirmacao&#xa;&lt;b&gt;window.confirm(...)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="470" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="Usuario confirmou?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="505" y="590" width="190" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cancel" value="Nao&#xa;acao cancelada&#xa;nenhuma coleta executada" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="860" y="595" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="Frontend chama&#xa;&lt;b&gt;runAdminSyncSource(slug)&lt;/b&gt;&#xa;e faz POST para&#xa;&lt;b&gt;/api/admin/sync/:sourceSlug&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="450" y="730" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="Backend recebe a rota&#xa;&lt;b&gt;adminRouter.post('/sync/:sourceSlug')&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="870" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="Backend valida:&#xa;- fonte existe&#xa;- sessao admin ativa&#xa;- origem permitida" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="990" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="Sincronizacao&#xa;ja em andamento?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="500" y="1120" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="busy" value="Sim&#xa;retorna erro 409&#xa;&lt;b&gt;sync_already_running&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="860" y="1130" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" value="Servico &lt;b&gt;syncSource(...)&lt;/b&gt; faz:&#xa;- upsert em data_sources&#xa;- cria sync_job com status RUNNING" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="440" y="1270" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" value="Coletor SINAN/TABNET monta o formulario&#xa;com Linha, Coluna, Incremento, Arquivos&#xa;e filtro municipal de Parnaiba" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1410" width="340" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" value="Backend faz POST no&#xa;&lt;b&gt;DataSUS / TabNet&lt;/b&gt;&#xa;Nao usa API JSON oficial" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="1560" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="n10" value="TabNet retorna HTML com bloco PRE em formato PRN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="1690" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n11" value="Sistema parseia o PRN, normaliza linhas&#xa;e gera registros epidemiologicos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="1810" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="n12" value="Salva o HTML bruto em disco&#xa;&lt;b&gt;backend/storage/raw-imports/...&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1815" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="n13" value="Grava metadados em&#xa;&lt;b&gt;raw_imports&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1945" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n14" value="Faz upsert em&#xa;&lt;b&gt;epidemiological_records&lt;/b&gt;&#xa;no PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="1945" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="n15" value="Atualiza&#xa;&lt;b&gt;data_availability&lt;/b&gt;&#xa;e finaliza o &lt;b&gt;sync_jobs&lt;/b&gt;&#xa;como SUCCESS, UNAVAILABLE ou FAILED" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="820" y="1940" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="n16" value="Registra auditoria em&#xa;&lt;b&gt;admin_audit_logs&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="820" y="1815" width="300" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n17" value="Backend responde o resultado&#xa;da sincronizacao para o frontend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="2080" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n18" value="Frontend recarrega o painel admin&#xa;e atualiza:&#xa;- ultimo job&#xa;- ultima sincronizacao&#xa;- quantidade de registros" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="450" y="2200" width="300" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" edge="1" parent="1" source="n1" target="n2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="n2" target="d1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="Nao" edge="1" parent="1" source="d1" target="noauth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="Sim" edge="1" parent="1" source="d1" target="n3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="n3" target="d2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="Nao" edge="1" parent="1" source="d2" target="cancel" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="Sim" edge="1" parent="1" source="d2" target="n4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="n4" target="n5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="n5" target="n6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="n6" target="d3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="Sim" edge="1" parent="1" source="d3" target="busy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="Nao" edge="1" parent="1" source="d3" target="n7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="n7" target="n8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="n8" target="n9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="n9" target="n10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="n10" target="n11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="n11" target="n12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="n12" target="n13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="n11" target="n14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="n14" target="n15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="n15" target="n17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="n17" target="n18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="n5" target="n16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="n16" target="n17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

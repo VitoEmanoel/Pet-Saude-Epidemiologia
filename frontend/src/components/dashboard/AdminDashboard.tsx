@@ -49,6 +49,7 @@ type SourceWithSummary = {
 };
 
 type LoadState =
+  | { status: "idle" }
   | { status: "loading" }
   | {
       status: "loaded";
@@ -96,8 +97,9 @@ function getSourceReferenceUrl(sourceUrl: string | null) {
 
 export function AdminDashboard() {
   const [authState, setAuthState] = useState<AuthState>({ status: "checking" });
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [state, setState] = useState<LoadState>({ status: "idle" });
   const [exportSourceSlug, setExportSourceSlug] = useState("");
   const [exportFiltersState, setExportFiltersState] = useState<ExportFiltersState>({
     status: "loading"
@@ -133,7 +135,6 @@ export function AdminDashboard() {
       .catch(() => {
         if (active) {
           setAuthState({ status: "unauthenticated" });
-          void loadData(false);
         }
       });
 
@@ -143,6 +144,10 @@ export function AdminDashboard() {
   }, []);
 
   useEffect(() => {
+    if (authState.status !== "authenticated") {
+      return;
+    }
+
     if (state.status !== "loaded") {
       return;
     }
@@ -150,10 +155,10 @@ export function AdminDashboard() {
     if (!exportSourceSlug && state.sources.sources.length > 0) {
       setExportSourceSlug(state.sources.sources[0].slug);
     }
-  }, [exportSourceSlug, state]);
+  }, [authState.status, exportSourceSlug, state]);
 
   useEffect(() => {
-    if (!exportSourceSlug) {
+    if (authState.status !== "authenticated" || !exportSourceSlug) {
       return;
     }
 
@@ -182,7 +187,7 @@ export function AdminDashboard() {
     return () => {
       active = false;
     };
-  }, [exportSourceSlug]);
+  }, [authState.status, exportSourceSlug]);
 
   const latestJobsBySource = useMemo(() => {
     const jobs = state.status === "loaded" ? state.history?.syncJobs ?? [] : [];
@@ -223,8 +228,9 @@ export function AdminDashboard() {
     } catch (error) {
       if (includeAdminHistory && isAdminAuthError(error)) {
         setAuthState({ status: "unauthenticated" });
+        setState({ status: "idle" });
+        setUsername("");
         setPassword("");
-        void loadData(false);
         return;
       }
 
@@ -236,13 +242,14 @@ export function AdminDashboard() {
   }
 
   async function login() {
+    const trimmedUsername = username.trim();
     const trimmedPassword = password.trim();
 
-    if (!trimmedPassword) {
+    if (!trimmedUsername || !trimmedPassword) {
       setActionState({
         busyAction: null,
         message: null,
-        error: "Informe a senha administrativa."
+        error: "Informe usuario e senha administrativos."
       });
       return;
     }
@@ -250,7 +257,11 @@ export function AdminDashboard() {
     setActionState({ busyAction: "login", message: null, error: null });
 
     try {
-      await loginAdmin(trimmedPassword);
+      await loginAdmin({
+        username: trimmedUsername,
+        password: trimmedPassword
+      });
+      setUsername("");
       setPassword("");
       setAuthState({ status: "authenticated" });
       await loadData(true);
@@ -262,7 +273,6 @@ export function AdminDashboard() {
     } catch (error) {
       if (isAdminAuthError(error)) {
         setAuthState({ status: "unauthenticated" });
-        setPassword("");
       }
       setActionState({
         busyAction: null,
@@ -282,7 +292,11 @@ export function AdminDashboard() {
     try {
       await logoutAdmin();
       setAuthState({ status: "unauthenticated" });
-      await loadData(false);
+      setState({ status: "idle" });
+      setExportSourceSlug("");
+      setExportFiltersState({ status: "loading" });
+      setUsername("");
+      setPassword("");
       setActionState({
         busyAction: null,
         message: "Sessao administrativa encerrada.",
@@ -291,6 +305,8 @@ export function AdminDashboard() {
     } catch (error) {
       if (isAdminAuthError(error)) {
         setAuthState({ status: "unauthenticated" });
+        setState({ status: "idle" });
+        setUsername("");
         setPassword("");
       }
       setActionState({
@@ -464,8 +480,60 @@ export function AdminDashboard() {
     }
   }
 
-  if (state.status === "loading") {
+  if (authState.status === "checking" || (authState.status === "authenticated" && state.status === "loading")) {
     return <LoadingBlocks />;
+  }
+
+  if (authState.status !== "authenticated") {
+    return (
+      <section className="mx-auto max-w-md rounded border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded bg-health-700 text-white">
+              <Shield size={20} aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-slate-950">Login administrativo</h2>
+              <p className="text-sm text-slate-500">
+                O painel interno so e liberado com credenciais validas.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-4 p-6">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Usuario</span>
+            <input
+              type="text"
+              autoComplete="username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              className="h-11 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Senha</span>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="h-11 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => void login()}
+            disabled={actionState.busyAction !== null}
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded bg-health-700 px-4 text-sm font-medium text-white hover:bg-health-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <LogIn size={16} aria-hidden="true" />
+            Entrar no painel
+          </button>
+        </div>
+        <StatusMessages actionState={actionState} />
+      </section>
+    );
   }
 
   if (state.status === "error") {
@@ -476,6 +544,10 @@ export function AdminDashboard() {
     );
   }
 
+  if (state.status !== "loaded") {
+    return <LoadingBlocks />;
+  }
+
   const totalRecords = state.sourceSummaries.reduce(
     (total, item) => total + (item.summary?.totalRecords ?? 0),
     0
@@ -483,7 +555,6 @@ export function AdminDashboard() {
   const successfulJobs = state.history?.syncJobs.filter((job) => job.status === "SUCCESS").length ?? 0;
   const failedJobs = state.history?.syncJobs.filter((job) => job.status === "FAILED").length ?? 0;
   const authenticated = authState.status === "authenticated";
-
   return (
     <div className="space-y-5">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -520,7 +591,7 @@ export function AdminDashboard() {
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
               type="button"
-              onClick={() => void loadData(authenticated)}
+              onClick={() => void loadData(true)}
               className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               <RefreshCw size={16} aria-hidden="true" />
@@ -529,7 +600,7 @@ export function AdminDashboard() {
             <button
               type="button"
               onClick={() => void syncAll()}
-              disabled={actionState.busyAction !== null || !authenticated}
+              disabled={actionState.busyAction !== null}
               className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Play size={16} aria-hidden="true" />
@@ -537,7 +608,18 @@ export function AdminDashboard() {
             </button>
           </div>
         </div>
-        <div className="grid gap-3 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="grid gap-3 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">
+              Usuario administrativo
+            </span>
+            <input
+              type="text"
+              value="Autenticado"
+              disabled
+              className="h-10 w-full rounded border border-slate-200 bg-slate-100 px-3 text-sm text-slate-500"
+            />
+          </label>
           <label className="block">
             <span className="mb-1 block text-xs font-medium uppercase text-slate-500">
               Senha administrativa
@@ -546,42 +628,21 @@ export function AdminDashboard() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              disabled={authenticated}
-              className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+              disabled
+              className="h-10 w-full rounded border border-slate-200 bg-slate-100 px-3 text-sm text-slate-500"
             />
           </label>
-          {authenticated ? (
-            <button
-              type="button"
-              onClick={() => void logout()}
-              disabled={actionState.busyAction !== null}
-              className="inline-flex h-10 items-center justify-center gap-2 self-end rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <LogOut size={16} aria-hidden="true" />
-              Sair
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => void login()}
-              disabled={actionState.busyAction !== null || authState.status === "checking"}
-              className="inline-flex h-10 items-center justify-center gap-2 self-end rounded bg-health-700 px-3 text-sm font-medium text-white hover:bg-health-800 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <LogIn size={16} aria-hidden="true" />
-              Entrar
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => void logout()}
+            disabled={actionState.busyAction !== null}
+            className="inline-flex h-10 items-center justify-center gap-2 self-end rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <LogOut size={16} aria-hidden="true" />
+            Sair
+          </button>
         </div>
-        {actionState.message ? (
-          <div className="border-t border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            {actionState.message}
-          </div>
-        ) : null}
-          {actionState.error ? (
-          <div className="border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            {actionState.error}
-          </div>
-        ) : null}
+        <StatusMessages actionState={actionState} />
       </section>
 
       <section className="rounded border border-slate-200 bg-white">
@@ -593,7 +654,7 @@ export function AdminDashboard() {
           <button
             type="button"
             onClick={() => void exportCsv()}
-            disabled={actionState.busyAction !== null || exportFiltersState.status !== "loaded" || !authenticated}
+            disabled={actionState.busyAction !== null || exportFiltersState.status !== "loaded"}
             className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Download size={16} aria-hidden="true" />
@@ -1089,6 +1150,31 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
         </tbody>
       </table>
       </div>
+    </>
+  );
+}
+
+function StatusMessages({
+  actionState
+}: {
+  actionState: {
+    busyAction: string | null;
+    message: string | null;
+    error: string | null;
+  };
+}) {
+  return (
+    <>
+      {actionState.message ? (
+        <div className="border-t border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {actionState.message}
+        </div>
+      ) : null}
+      {actionState.error ? (
+        <div className="border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {actionState.error}
+        </div>
+      ) : null}
     </>
   );
 }

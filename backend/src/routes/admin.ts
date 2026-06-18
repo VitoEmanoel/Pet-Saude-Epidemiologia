@@ -8,7 +8,7 @@ import {
   clearAdminSessionCookie,
   getAdminLoginRateLimit,
   isAllowedAdminOrigin,
-  isValidAdminPassword,
+  isValidAdminCredentials,
   requireAdminAuth,
   registerFailedAdminLogin,
   setAdminSecurityHeaders,
@@ -74,14 +74,15 @@ adminRouter.post("/auth/login", async (request, response) => {
     );
   }
 
-  if (!isValidAdminPassword(request.body?.password)) {
+  if (!isValidAdminCredentials(request.body?.username, request.body?.password)) {
     registerFailedAdminLogin(request);
     await recordAdminAudit({
       request,
       action: "admin_login",
       status: "FAILED",
       metadata: {
-        reason: "invalid_credentials"
+        reason: "invalid_credentials",
+        username: typeof request.body?.username === "string" ? request.body.username : null
       }
     });
     return sendError(response, 401, "unauthorized", "Credencial administrativa invalida.");

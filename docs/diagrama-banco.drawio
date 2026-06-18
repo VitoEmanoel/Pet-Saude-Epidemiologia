@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net" modified="2026-06-18T00:00:00.000Z" agent="Codex" version="24.7.17">
+  <diagram id="pet-saude-erd" name="Banco de Dados">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="DER - Pet Saude Epidemiologia" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="360" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="data_sources" value="&lt;b&gt;data_sources&lt;/b&gt;&lt;br&gt;PK id : int&lt;br&gt;name : varchar(255)&lt;br&gt;slug : varchar(100) UNIQUE&lt;br&gt;system : varchar(100)&lt;br&gt;category : varchar(100)&lt;br&gt;source_url : text?&lt;br&gt;municipality_filter_available : boolean?&lt;br&gt;active : boolean&lt;br&gt;created_at : timestamp&lt;br&gt;updated_at : timestamp" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=6;container=0;dropTarget=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="280" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="data_availability" value="&lt;b&gt;data_availability&lt;/b&gt;&lt;br&gt;PK id : int&lt;br&gt;FK source_id : int UNIQUE&lt;br&gt;status : enum&lt;br&gt;message : text?&lt;br&gt;checked_at : timestamp?&lt;br&gt;created_at : timestamp&lt;br&gt;updated_at : timestamp" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=6;container=0;dropTarget=0;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="90" width="260" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="sync_jobs" value="&lt;b&gt;sync_jobs&lt;/b&gt;&lt;br&gt;PK id : int&lt;br&gt;FK source_id : int?&lt;br&gt;status : enum&lt;br&gt;started_at : timestamp?&lt;br&gt;finished_at : timestamp?&lt;br&gt;records_imported : int&lt;br&gt;error_message : text?&lt;br&gt;requested_by : text?&lt;br&gt;created_at : timestamp" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=6;container=0;dropTarget=0;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="320" width="260" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="raw_imports" value="&lt;b&gt;raw_imports&lt;/b&gt;&lt;br&gt;PK id : int&lt;br&gt;FK source_id : int&lt;br&gt;FK sync_job_id : int?&lt;br&gt;request_url : text?&lt;br&gt;request_params : jsonb?&lt;br&gt;response_format : varchar(50)?&lt;br&gt;content_hash : varchar(128)?&lt;br&gt;stored_path : text?&lt;br&gt;row_count : int&lt;br&gt;imported_at : timestamp" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=6;container=0;dropTarget=0;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="760" y="260" width="290" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="epidemiological_records" value="&lt;b&gt;epidemiological_records&lt;/b&gt;&lt;br&gt;PK id : int&lt;br&gt;FK source_id : int&lt;br&gt;FK sync_job_id : int?&lt;br&gt;state : varchar(100)&lt;br&gt;state_code : varchar(2)&lt;br&gt;city : varchar(100)&lt;br&gt;city_ibge_code : varchar(20)&lt;br&gt;year : int?&lt;br&gt;month : int?&lt;br&gt;disease_or_condition : varchar(255)?&lt;br&gt;metric : varchar(100)?&lt;br&gt;value : decimal(18,4)?&lt;br&gt;sex : varchar(50)?&lt;br&gt;age_group : varchar(100)?&lt;br&gt;race_color : varchar(100)?&lt;br&gt;dimensions : jsonb?&lt;br&gt;source_table : varchar(255)?&lt;br&gt;record_key : varchar(128) UNIQUE&lt;br&gt;imported_at : timestamp" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=6;container=0;dropTarget=0;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="760" y="520" width="320" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="admin_audit_logs" value="&lt;b&gt;admin_audit_logs&lt;/b&gt;&lt;br&gt;PK id : int&lt;br&gt;actor : varchar(100)&lt;br&gt;action : varchar(100)&lt;br&gt;status : varchar(50)&lt;br&gt;ip_address : varchar(100)?&lt;br&gt;user_agent : text?&lt;br&gt;metadata : jsonb?&lt;br&gt;created_at : timestamp" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=6;container=0;dropTarget=0;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="90" width="250" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_ds_da" value="1 : 1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="data_sources" target="data_availability">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_ds_sj" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="data_sources" target="sync_jobs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_ds_ri" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="data_sources" target="raw_imports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_ds_er" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="data_sources" target="epidemiological_records">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_sj_ri" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="sync_jobs" target="raw_imports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_sj_er" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="sync_jobs" target="epidemiological_records">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -7,16 +7,18 @@ import { createServer } from "../server";
 
 let server: Server;
 let baseUrl: string;
+const previousAdminUsername = process.env.ADMIN_USERNAME;
 const previousAdminToken = process.env.ADMIN_TOKEN;
 const previousAdminPassword = process.env.ADMIN_PASSWORD;
 const previousAdminSessionSecret = process.env.ADMIN_SESSION_SECRET;
 const previousCorsOrigin = process.env.CORS_ORIGIN;
 
 before(async () => {
-  process.env.ADMIN_TOKEN = "test-admin-token";
+  process.env.ADMIN_USERNAME = "test-admin";
   process.env.ADMIN_PASSWORD = "test-admin-password";
   process.env.ADMIN_SESSION_SECRET = "test-admin-session-secret";
   process.env.CORS_ORIGIN = "http://localhost:3000";
+  delete process.env.ADMIN_TOKEN;
   resetAdminSecurityState();
 
   const app = createServer();
@@ -35,6 +37,12 @@ before(async () => {
 });
 
 after(async () => {
+  if (previousAdminUsername === undefined) {
+    delete process.env.ADMIN_USERNAME;
+  } else {
+    process.env.ADMIN_USERNAME = previousAdminUsername;
+  }
+
   if (previousAdminToken === undefined) {
     delete process.env.ADMIN_TOKEN;
   } else {
@@ -137,7 +145,7 @@ test("POST /api/admin/auth/login rejeita senha invalida", async () => {
     headers: {
       "content-type": "application/json"
     },
-    body: JSON.stringify({ password: "senha-errada" })
+    body: JSON.stringify({ username: "test-admin", password: "senha-errada" })
   });
   const body = await response.json();
 
@@ -154,7 +162,7 @@ test("POST /api/admin/auth/login rejeita origem fora da lista permitida", async 
       "content-type": "application/json",
       origin: "http://evil.example"
     },
-    body: JSON.stringify({ password: "test-admin-password" })
+    body: JSON.stringify({ username: "test-admin", password: "test-admin-password" })
   });
   const body = await response.json();
 
@@ -171,7 +179,7 @@ test("POST /api/admin/auth/login aplica limite de tentativas", async () => {
       headers: {
         "content-type": "application/json"
       },
-      body: JSON.stringify({ password: `senha-errada-${attempt}` })
+      body: JSON.stringify({ username: "test-admin", password: `senha-errada-${attempt}` })
     });
 
     assert.equal(response.status, 401);
@@ -182,7 +190,7 @@ test("POST /api/admin/auth/login aplica limite de tentativas", async () => {
     headers: {
       "content-type": "application/json"
     },
-    body: JSON.stringify({ password: "senha-errada-final" })
+    body: JSON.stringify({ username: "test-admin", password: "senha-errada-final" })
   });
   const blockedBody = await blockedResponse.json();
 
@@ -198,7 +206,7 @@ test("POST /api/admin/auth/login cria sessao administrativa", async () => {
     headers: {
       "content-type": "application/json"
     },
-    body: JSON.stringify({ password: "test-admin-password" })
+    body: JSON.stringify({ username: "test-admin", password: "test-admin-password" })
   });
   const body = await response.json();
 
@@ -215,7 +223,7 @@ test("GET /api/admin/auth/me aceita sessao administrativa", async () => {
     headers: {
       "content-type": "application/json"
     },
-    body: JSON.stringify({ password: "test-admin-password" })
+    body: JSON.stringify({ username: "test-admin", password: "test-admin-password" })
   });
   const cookie = loginResponse.headers.get("set-cookie") ?? "";
   const sessionCookie = cookie.split(";")[0];
@@ -223,6 +231,30 @@ test("GET /api/admin/auth/me aceita sessao administrativa", async () => {
   const response = await fetch(`${baseUrl}/api/admin/auth/me`, {
     headers: {
       cookie: sessionCookie
+    }
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.authenticated, true);
+});
+
+test("GET /api/admin/auth/me aceita sessao mesmo com cookie antigo invalido", async () => {
+  resetAdminSecurityState();
+
+  const loginResponse = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ username: "test-admin", password: "test-admin-password" })
+  });
+  const cookie = loginResponse.headers.get("set-cookie") ?? "";
+  const sessionCookie = cookie.split(";")[0];
+
+  const response = await fetch(`${baseUrl}/api/admin/auth/me`, {
+    headers: {
+      cookie: `painel_admin_session=valor-antigo-invalido; ${sessionCookie}`
     }
   });
   const body = await response.json();

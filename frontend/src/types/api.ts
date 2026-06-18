@@ -160,6 +160,11 @@ export type AdminAuthResponse = {
   authenticated: boolean;
 };
 
+export type AdminLoginPayload = {
+  username: string;
+  password: string;
+};
+
 export type AdminAuditLog = {
   id: number;
   actor: string;

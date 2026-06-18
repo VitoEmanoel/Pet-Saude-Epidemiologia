@@ -3,6 +3,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { sendError } from "../utils/api-response";
 
 const ADMIN_SESSION_COOKIE = "painel_admin_session";
+const ADMIN_SESSION_COOKIE_PATH = "/api/admin";
+const LEGACY_ADMIN_SESSION_COOKIE_PATH = "/";
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const ADMIN_LOGIN_MAX_ATTEMPTS = 5;
@@ -35,13 +37,16 @@ export function assertAdminSecurityConfigured(response: Response) {
   return false;
 }
 
-export function isValidAdminPassword(password: unknown) {
-  const configuredCredential = getAdminCredential();
+export function isValidAdminCredentials(username: unknown, password: unknown) {
+  const credentials = getAdminCredentials();
 
   return (
+    typeof username === "string" &&
     typeof password === "string" &&
-    typeof configuredCredential === "string" &&
-    safeEqual(password, configuredCredential)
+    typeof credentials?.username === "string" &&
+    typeof credentials?.password === "string" &&
+    safeEqual(username, credentials.username) &&
+    safeEqual(password, credentials.password)
   );
 }
 
@@ -96,6 +101,10 @@ export function setAdminSecurityHeaders(response: Response) {
   response.setHeader("x-content-type-options", "nosniff");
   response.setHeader("x-frame-options", "DENY");
   response.setHeader("referrer-policy", "no-referrer");
+  response.setHeader(
+    "content-security-policy",
+    "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+  );
 }
 
 export function setAdminSessionCookie(response: Response) {
@@ -108,21 +117,27 @@ export function setAdminSessionCookie(response: Response) {
   response.cookie(ADMIN_SESSION_COOKIE, `${payload}.${signature}`, {
     httpOnly: true,
     maxAge: SESSION_MAX_AGE_MS,
-    path: "/api/admin",
-    sameSite: "lax",
-    secure: process.env.ADMIN_COOKIE_SECURE === "true"
+    path: ADMIN_SESSION_COOKIE_PATH,
+    sameSite: "strict",
+    secure: isSecureAdminCookieEnabled()
   });
 }
 
 export function clearAdminSessionCookie(response: Response) {
-  response.clearCookie(ADMIN_SESSION_COOKIE, {
-    path: "/api/admin",
-    sameSite: "lax",
-    secure: process.env.ADMIN_COOKIE_SECURE === "true"
-  });
+  for (const path of [ADMIN_SESSION_COOKIE_PATH, LEGACY_ADMIN_SESSION_COOKIE_PATH]) {
+    response.clearCookie(ADMIN_SESSION_COOKIE, {
+      path,
+      sameSite: "strict",
+      secure: isSecureAdminCookieEnabled()
+    });
+  }
 }
 
 function hasValidBearerToken(request: Request) {
+  if (process.env.ADMIN_ALLOW_BEARER_TOKEN !== "true") {
+    return false;
+  }
+
   const configuredToken = process.env.ADMIN_TOKEN;
 
   if (!configuredToken) {
@@ -137,12 +152,16 @@ function hasValidBearerToken(request: Request) {
 
 function hasValidSessionCookie(request: Request) {
   const rawCookie = request.header("cookie") ?? "";
-  const cookieValue = parseCookie(rawCookie, ADMIN_SESSION_COOKIE);
+  const cookieValues = parseCookieValues(rawCookie, ADMIN_SESSION_COOKIE);
 
-  if (!cookieValue) {
+  if (cookieValues.length === 0) {
     return false;
   }
 
+  return cookieValues.some(isValidSessionCookieValue);
+}
+
+function isValidSessionCookieValue(cookieValue: string) {
   const [payload, signature] = cookieValue.split(".");
 
   if (!payload || !signature || !safeEqual(signature, sign(payload))) {
@@ -161,16 +180,18 @@ function hasValidSessionCookie(request: Request) {
   }
 }
 
-function parseCookie(rawCookie: string, name: string) {
+function parseCookieValues(rawCookie: string, name: string) {
+  const values: string[] = [];
+
   for (const item of rawCookie.split(";")) {
     const [rawName, ...valueParts] = item.trim().split("=");
 
     if (rawName === name) {
-      return decodeURIComponent(valueParts.join("="));
+      values.push(decodeURIComponent(valueParts.join("=")));
     }
   }
 
-  return null;
+  return values;
 }
 
 function sign(payload: string) {
@@ -178,8 +199,15 @@ function sign(payload: string) {
   return createHmac("sha256", secret).update(payload).digest("base64url");
 }
 
-function getAdminCredential() {
-  return process.env.ADMIN_PASSWORD ?? process.env.ADMIN_TOKEN;
+function getAdminCredentials() {
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!username || !password) {
+    return null;
+  }
+
+  return { username, password };
 }
 
 function getAdminSessionSecret() {
@@ -193,7 +221,11 @@ function getAdminSessionSecret() {
 }
 
 function isAdminSecurityConfigured() {
-  return Boolean(getAdminCredential() && process.env.ADMIN_SESSION_SECRET);
+  return Boolean(getAdminCredentials() && process.env.ADMIN_SESSION_SECRET);
+}
+
+function isSecureAdminCookieEnabled() {
+  return process.env.ADMIN_COOKIE_SECURE === "true";
 }
 
 function safeEqual(left: string, right: string) {
@@ -241,7 +273,7 @@ function sendAdminNotConfigured(response: Response) {
     response,
     503,
     "admin_not_configured",
-    "ADMIN_PASSWORD, ADMIN_TOKEN ou ADMIN_SESSION_SECRET nao foi configurado no backend."
+    "ADMIN_USERNAME, ADMIN_PASSWORD ou ADMIN_SESSION_SECRET nao foi configurado no backend."
   );
 }
 

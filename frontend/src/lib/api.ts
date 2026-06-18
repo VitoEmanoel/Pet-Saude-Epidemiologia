@@ -1,6 +1,7 @@
 import type {
   AdminAuditLogsResponse,
   AdminAuthResponse,
+  AdminLoginPayload,
   AdminSyncAllResponse,
   AdminSyncHistoryResponse,
   AdminSyncResult,
@@ -99,13 +100,13 @@ export function getRecords(filters: RecordFilters) {
   return fetchJson<RecordsResponse>(`/api/records?${buildSearchParams(filters)}`);
 }
 
-export function loginAdmin(password: string) {
+export function loginAdmin(payload: AdminLoginPayload) {
   return fetchAdminJson<AdminAuthResponse>("/api/admin/auth/login", {
     method: "POST",
     headers: {
       "content-type": "application/json"
     },
-    body: JSON.stringify({ password })
+    body: JSON.stringify(payload)
   });
 }
 

@@ -126,6 +126,7 @@ require_var FRONTEND_URL
 require_var BACKEND_URL
 require_var NEXT_PUBLIC_API_URL
 require_var CORS_ORIGIN
+require_var ADMIN_USERNAME
 require_var ADMIN_PASSWORD
 require_var ADMIN_SESSION_SECRET
 
