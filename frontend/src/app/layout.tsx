@@ -13,8 +13,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var storedTheme = window.localStorage.getItem("painel-theme");
+                  var theme = storedTheme === "dark" || storedTheme === "light"
+                    ? storedTheme
+                    : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+                  document.documentElement.classList.toggle("dark", theme === "dark");
+                  document.documentElement.style.colorScheme = theme;
+                } catch (error) {
+                  document.documentElement.classList.remove("dark");
+                  document.documentElement.style.colorScheme = "light";
+                }
+              })();
+            `
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
-

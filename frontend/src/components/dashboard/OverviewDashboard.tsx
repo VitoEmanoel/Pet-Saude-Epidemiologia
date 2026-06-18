@@ -136,7 +136,35 @@ export function OverviewDashboard() {
         <div className="border-b border-slate-200 px-4 py-3">
           <h2 className="text-sm font-semibold text-slate-950">Fontes permitidas</h2>
         </div>
-        <div className="overflow-x-auto">
+        <div className="divide-y divide-slate-100 md:hidden">
+          {sources.sources.map((source) => {
+            const pageHref = sourcePages[source.slug];
+            const pageLabel = source.active ? "Abrir pagina" : "Em validacao";
+
+            return (
+              <div key={source.slug} className="space-y-3 p-4">
+                <div>
+                  <div className="font-medium text-slate-950">{source.name}</div>
+                  <div className="mt-1 text-xs text-slate-500">{source.system}</div>
+                </div>
+                <StatusPill status={source.municipalityFilterStatus} />
+                <div className="text-sm">
+                  {pageHref ? (
+                    <Link
+                      href={pageHref}
+                      className="font-medium text-institutional-600 hover:text-institutional-800"
+                    >
+                      {pageLabel}
+                    </Link>
+                  ) : (
+                    <span className="text-slate-400">Indisponivel</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>

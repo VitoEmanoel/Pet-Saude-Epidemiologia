@@ -8,6 +8,10 @@
   color-scheme: light;
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -17,6 +21,123 @@ body {
   background: #f8fafc;
   color: #0f172a;
   overflow-x: hidden;
+}
+
+html.dark body {
+  background: #020617;
+  color: #e2e8f0;
+}
+
+html.dark .bg-white,
+html.dark .bg-white\/95 {
+  background-color: #0f172a !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #111827 !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+
+html.dark .bg-slate-950 {
+  background-color: #020617 !important;
+}
+
+html.dark .bg-health-50 {
+  background-color: #123524 !important;
+}
+
+html.dark .bg-institutional-50 {
+  background-color: #172554 !important;
+}
+
+html.dark .bg-amber-50 {
+  background-color: #3f2a0d !important;
+}
+
+html.dark .bg-rose-50 {
+  background-color: #43181b !important;
+}
+
+html.dark .bg-sky-50 {
+  background-color: #082f49 !important;
+}
+
+html.dark .border-slate-200,
+html.dark .border-slate-300,
+html.dark .border-white\/10,
+html.dark .border-sky-200 {
+  border-color: #334155 !important;
+}
+
+html.dark .text-slate-950 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-900 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-health-700 {
+  color: #6ee7b7 !important;
+}
+
+html.dark .text-institutional-800,
+html.dark .text-institutional-600 {
+  color: #93c5fd !important;
+}
+
+html.dark .text-amber-700 {
+  color: #fcd34d !important;
+}
+
+html.dark .text-rose-700 {
+  color: #fda4af !important;
+}
+
+html.dark .text-sky-700,
+html.dark .text-sky-800 {
+  color: #7dd3fc !important;
+}
+
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-white\/10:hover {
+  background-color: #1e293b !important;
+}
+
+html.dark .hover\:bg-sky-100:hover {
+  background-color: #0c4a6e !important;
+}
+
+html.dark .hover\:text-slate-950:hover,
+html.dark .hover\:text-white:hover {
+  color: #f8fafc !important;
+}
+
+html.dark .hover\:text-sky-700:hover,
+html.dark .hover\:text-sky-800:hover {
+  color: #bae6fd !important;
+}
+
+html.dark .focus\:ring-institutional-50:focus {
+  --tw-ring-color: rgb(30 58 138 / 0.35) !important;
+}
+
+html.dark .focus\:border-institutional-600:focus {
+  border-color: #60a5fa !important;
 }
 
 .leaflet-container {

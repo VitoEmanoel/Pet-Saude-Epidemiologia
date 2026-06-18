@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Activity, Database, Home, Shield } from "lucide-react";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 type AdminShellProps = {
   children: React.ReactNode;
@@ -43,20 +44,23 @@ export function AdminShell({ children }: AdminShellProps) {
 
       <div className="min-w-0 lg:pl-72">
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex min-h-16 max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-0 lg:px-8">
             <div>
               <p className="text-xs font-medium uppercase text-health-700">Administracao</p>
               <h1 className="text-lg font-semibold text-slate-950 sm:text-xl">
                 Painel interno
               </h1>
             </div>
-            <Link
-              href="/"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              <Home size={16} aria-hidden="true" />
-              Publico
-            </Link>
+            <div className="flex w-full items-center justify-between gap-3 lg:w-auto lg:justify-end">
+              <ThemeToggle />
+              <Link
+                href="/"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:min-w-32"
+              >
+                <Home size={16} aria-hidden="true" />
+                Publico
+              </Link>
+            </div>
           </div>
         </header>
         <main className="mx-auto max-w-7xl min-w-0 px-4 py-5 sm:px-6 lg:px-8">{children}</main>

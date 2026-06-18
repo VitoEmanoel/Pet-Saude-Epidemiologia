@@ -705,7 +705,93 @@ export function AdminDashboard() {
         <div className="border-b border-slate-200 px-4 py-3">
           <h2 className="text-sm font-semibold text-slate-950">Fontes</h2>
         </div>
-        <div className="overflow-x-auto">
+        <div className="divide-y divide-slate-100 md:hidden">
+          {state.sourceSummaries.map(({ source, summary }) => {
+            const latestJob = latestJobsBySource.get(source.slug);
+            const busy = actionState.busyAction === source.slug || actionState.busyAction === "all";
+            const sourceIsActive = source.active;
+            const sourceCanSync = source.syncEnabled;
+            const referenceUrl = getSourceReferenceUrl(source.sourceUrl);
+
+            return (
+              <article key={source.slug} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    {referenceUrl ? (
+                      <a
+                        href={referenceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 font-medium text-slate-950 transition hover:text-sky-700 hover:underline"
+                      >
+                        {source.name}
+                        <ExternalLink size={14} aria-hidden="true" />
+                      </a>
+                    ) : (
+                      <div className="font-medium text-slate-950">{source.name}</div>
+                    )}
+                    <div className="mt-1 break-all text-xs text-slate-500">{source.slug}</div>
+                    <div className="mt-1 text-xs font-medium uppercase text-slate-400">
+                      {sourceIsActive ? "Operacional" : "Em validacao"}
+                    </div>
+                  </div>
+                  {referenceUrl ? (
+                    <a
+                      href={referenceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`Abrir fonte oficial de ${source.name}`}
+                      title={`Abrir fonte oficial de ${source.name}`}
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-sky-200 bg-sky-50 text-sky-700 transition hover:bg-sky-100 hover:text-sky-800"
+                    >
+                      <Globe size={16} aria-hidden="true" />
+                    </a>
+                  ) : (
+                    <span
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-slate-200 bg-slate-100 text-slate-400"
+                      aria-label="Sem fonte oficial direta"
+                      title="Sem fonte oficial direta"
+                    >
+                      <Globe size={16} aria-hidden="true" />
+                    </span>
+                  )}
+                </div>
+                <dl className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="col-span-2">
+                    <dt className="mb-1 text-xs uppercase text-slate-500">Status municipal</dt>
+                    <dd>
+                      <StatusPill status={source.municipalityFilterStatus} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs uppercase text-slate-500">Registros</dt>
+                    <dd className="mt-1 text-slate-900">{formatNumber(summary?.totalRecords ?? 0)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs uppercase text-slate-500">Ultimo job</dt>
+                    <dd className="mt-1">
+                      <JobStatus status={latestJob?.status ?? summary?.lastSyncStatus ?? null} />
+                    </dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="text-xs uppercase text-slate-500">Ultima sincronizacao</dt>
+                    <dd className="mt-1 text-slate-700">{formatDateTime(summary?.lastUpdate ?? null)}</dd>
+                  </div>
+                </dl>
+                <button
+                  type="button"
+                  onClick={() => void syncSource(source.slug)}
+                  disabled={busy || !authenticated || !sourceCanSync}
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Play size={16} aria-hidden="true" />
+                  {sourceCanSync ? "Sincronizar fonte" : sourceIsActive ? "Fonte derivada" : "Fonte prevista"}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
@@ -863,7 +949,46 @@ function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      <div className="divide-y divide-slate-100 md:hidden">
+        {history.syncJobs.map((job) => (
+          <article key={job.id} className="space-y-3 p-4">
+            <div>
+              <div className="font-medium text-slate-950">{job.source?.name ?? "-"}</div>
+              <div className="mt-1 break-all text-xs text-slate-500">{job.source?.slug ?? "-"}</div>
+            </div>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <dt className="mb-1 text-xs uppercase text-slate-500">Status</dt>
+                <dd>
+                  <JobStatus status={job.status} />
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase text-slate-500">Registros</dt>
+                <dd className="mt-1 text-slate-900">{formatNumber(job.recordsImported)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase text-slate-500">Inicio</dt>
+                <dd className="mt-1 text-slate-700">{formatDateTime(job.startedAt)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase text-slate-500">Fim</dt>
+                <dd className="mt-1 text-slate-700">{formatDateTime(job.finishedAt)}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs uppercase text-slate-500">Origem</dt>
+                <dd className="mt-1 text-slate-700">{job.requestedBy ?? "-"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs uppercase text-slate-500">Erro</dt>
+                <dd className="mt-1 text-slate-700">{job.errorMessage ?? "-"}</dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
       <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
         <thead className="bg-slate-50 text-xs uppercase text-slate-500">
           <tr>
@@ -895,7 +1020,8 @@ function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -905,7 +1031,35 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      <div className="divide-y divide-slate-100 md:hidden">
+        {auditLogs.auditLogs.map((log) => (
+          <article key={log.id} className="space-y-3 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="font-medium text-slate-950">{formatAuditAction(log.action)}</div>
+                <div className="mt-1 text-xs text-slate-500">{formatDateTime(log.createdAt)}</div>
+              </div>
+              <JobStatus status={log.status} />
+            </div>
+            <dl className="grid grid-cols-1 gap-3 text-sm">
+              <div>
+                <dt className="text-xs uppercase text-slate-500">Origem</dt>
+                <dd className="mt-1 text-slate-700">{log.ipAddress ?? "-"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase text-slate-500">User-Agent</dt>
+                <dd className="mt-1 break-words text-slate-700">{log.userAgent ?? "-"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase text-slate-500">Detalhes</dt>
+                <dd className="mt-1 text-slate-700">{formatAuditMetadata(log.metadata)}</dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
       <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
         <thead className="bg-slate-50 text-xs uppercase text-slate-500">
           <tr>
@@ -934,7 +1088,8 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }
 

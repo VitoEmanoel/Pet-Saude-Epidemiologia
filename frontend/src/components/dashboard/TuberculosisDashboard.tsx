@@ -349,7 +349,43 @@ function RecordsTable({
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className="divide-y divide-slate-100 md:hidden">
+        {state.data.records.map((record) => (
+          <article key={record.id} className="space-y-3 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="font-medium text-slate-950">{record.diseaseOrCondition ?? "-"}</div>
+                <div className="mt-1 text-xs text-slate-500">Ano {record.year ?? "-"}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs uppercase text-slate-500">Valor</div>
+                <div className="font-semibold text-slate-950">{formatNumber(record.value)}</div>
+              </div>
+            </div>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <dt className="text-xs uppercase text-slate-500">Sexo</dt>
+                <dd className="mt-1 text-slate-700">{record.sex ?? "-"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase text-slate-500">Raca/cor</dt>
+                <dd className="mt-1 text-slate-700">{record.raceColor ?? "-"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs uppercase text-slate-500">Faixa etaria</dt>
+                <dd className="mt-1 text-slate-700">{record.ageGroup ?? "-"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs uppercase text-slate-500">Tabela</dt>
+                <dd className="mt-1 break-all font-mono text-xs text-slate-500">
+                  {record.sourceTable ?? "-"}
+                </dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
@@ -381,7 +417,7 @@ function RecordsTable({
         <p className="text-sm text-slate-600">
           {formatNumber(state.data.pagination.total)} registros
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 sm:justify-start">
           <button
             type="button"
             aria-label="Pagina anterior"
@@ -392,7 +428,7 @@ function RecordsTable({
           >
             <ChevronLeft size={17} aria-hidden="true" />
           </button>
-          <span className="min-w-24 text-center text-sm text-slate-600">
+          <span className="min-w-20 text-center text-sm text-slate-600 sm:min-w-24">
             {state.data.pagination.page}/{state.data.pagination.totalPages}
           </span>
           <button
