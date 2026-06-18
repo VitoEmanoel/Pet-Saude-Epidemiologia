@@ -6,7 +6,9 @@ import {
   Clock3,
   Database,
   Download,
+  ExternalLink,
   Filter,
+  Globe,
   LogIn,
   LogOut,
   Play,
@@ -78,6 +80,18 @@ function confirmAdminAction(message: string) {
   }
 
   return window.confirm(message);
+}
+
+function getSourceReferenceUrl(sourceUrl: string | null) {
+  if (!sourceUrl) {
+    return null;
+  }
+
+  if (sourceUrl.startsWith("http://tabnet.datasus.gov.br")) {
+    return sourceUrl.replace("http://tabnet.datasus.gov.br", "https://tabnet.datasus.gov.br");
+  }
+
+  return sourceUrl;
 }
 
 export function AdminDashboard() {
@@ -700,6 +714,7 @@ export function AdminDashboard() {
                 <th className="px-4 py-3 font-semibold">Registros</th>
                 <th className="px-4 py-3 font-semibold">Ultima sincronizacao</th>
                 <th className="px-4 py-3 font-semibold">Ultimo job</th>
+                <th className="px-4 py-3 font-semibold">Origem</th>
                 <th className="px-4 py-3 font-semibold">Acao</th>
               </tr>
             </thead>
@@ -709,11 +724,24 @@ export function AdminDashboard() {
                 const busy = actionState.busyAction === source.slug || actionState.busyAction === "all";
                 const sourceIsActive = source.active;
                 const sourceCanSync = source.syncEnabled;
+                const referenceUrl = getSourceReferenceUrl(source.sourceUrl);
 
                 return (
                   <tr key={source.slug}>
                     <td className="px-4 py-3">
-                      <div className="font-medium text-slate-950">{source.name}</div>
+                      {referenceUrl ? (
+                        <a
+                          href={referenceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 font-medium text-slate-950 transition hover:text-sky-700 hover:underline"
+                        >
+                          {source.name}
+                          <ExternalLink size={14} aria-hidden="true" />
+                        </a>
+                      ) : (
+                        <div className="font-medium text-slate-950">{source.name}</div>
+                      )}
                       <div className="text-xs text-slate-500">{source.slug}</div>
                       <div className="mt-1 text-xs font-medium uppercase text-slate-400">
                         {sourceIsActive ? "Operacional" : "Em validacao"}
@@ -730,6 +758,28 @@ export function AdminDashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <JobStatus status={latestJob?.status ?? summary?.lastSyncStatus ?? null} />
+                    </td>
+                    <td className="px-4 py-3">
+                      {referenceUrl ? (
+                        <a
+                          href={referenceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`Abrir fonte oficial de ${source.name}`}
+                          title={`Abrir fonte oficial de ${source.name}`}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded border border-sky-200 bg-sky-50 text-sky-700 transition hover:bg-sky-100 hover:text-sky-800"
+                        >
+                          <Globe size={16} aria-hidden="true" />
+                        </a>
+                      ) : (
+                        <span
+                          className="inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 bg-slate-100 text-slate-400"
+                          aria-label="Sem fonte oficial direta"
+                          title="Sem fonte oficial direta"
+                        >
+                          <Globe size={16} aria-hidden="true" />
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <button
