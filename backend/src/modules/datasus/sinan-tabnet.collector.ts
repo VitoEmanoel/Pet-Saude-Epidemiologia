@@ -34,6 +34,7 @@ type SinanTabnetCollectorConfig = {
   ageGroupColumnEncoded: string;
   ageGroupColumnLabel: string;
   municipalityResidenceFilterEncoded?: string;
+  municipalityResidenceOptionValue?: string;
 };
 
 type NormalizedRecord = {
@@ -102,6 +103,21 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     sourceTablePrefix: "tabnet_dengue",
     ageGroupColumnEncoded: "Faixa_Et%E1ria",
     ageGroupColumnLabel: "Faixa Etaria"
+  },
+  sifilis_gestacional_sinan: {
+    sourceSlug: "sifilis_gestacional_sinan",
+    diseaseOrCondition: "Sifilis gestacional",
+    metric: "casos_confirmados",
+    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/sifilisgestantepi.def",
+    periodFiles: numberedFiles("sifgpi", 7, 24),
+    lineEncoded: "Ano_de_Diagn%F3stico",
+    lineLabel: "Ano de Diagnostico",
+    incrementEncoded: "Casos_confirmados",
+    incrementLabel: "Casos_confirmados",
+    sourceTablePrefix: "tabnet_sifilis_gestacional",
+    ageGroupColumnEncoded: "Faixa_Et%E1ria",
+    ageGroupColumnLabel: "Faixa Etaria",
+    municipalityResidenceOptionValue: "152"
   },
   zika_sinan: {
     sourceSlug: "zika_sinan",
@@ -241,12 +257,15 @@ function buildEncodedFormBody(
   config: SinanTabnetCollectorConfig,
   queryDefinition: QueryDefinition
 ): string {
+  const municipalityOptionValue =
+    config.municipalityResidenceOptionValue ?? TABNET_CITY_OPTION_VALUE;
+
   return [
     `Linha=${config.lineEncoded ?? DEFAULT_LINE_ENCODED}`,
     `Coluna=${queryDefinition.columnEncoded}`,
     `Incremento=${config.incrementEncoded}`,
     ...config.periodFiles.map((file) => `Arquivos=${file}`),
-    `${config.municipalityResidenceFilterEncoded ?? DEFAULT_MUNICIPALITY_RESIDENCE_FILTER}=${TABNET_CITY_OPTION_VALUE}`,
+    `${config.municipalityResidenceFilterEncoded ?? DEFAULT_MUNICIPALITY_RESIDENCE_FILTER}=${municipalityOptionValue}`,
     "formato=prn",
     "mostre=Mostra"
   ].join("&");
@@ -256,6 +275,9 @@ function buildRequestParams(
   config: SinanTabnetCollectorConfig,
   queryDefinition: QueryDefinition
 ): Prisma.InputJsonValue {
+  const municipalityOptionValue =
+    config.municipalityResidenceOptionValue ?? TABNET_CITY_OPTION_VALUE;
+
   return {
     queryName: queryDefinition.name,
     line: config.lineLabel ?? DEFAULT_LINE_LABEL,
@@ -265,7 +287,7 @@ function buildRequestParams(
     municipalityFilter: {
       type: "municipio_residencia",
       tabnetCode: TABNET_CITY_CODE,
-      tabnetOptionValue: TABNET_CITY_OPTION_VALUE,
+      tabnetOptionValue: municipalityOptionValue,
       cityIbgeCode: ALLOWED_CITY.ibgeCode,
       city: ALLOWED_CITY.name,
       uf: ALLOWED_CITY.uf
@@ -349,7 +371,8 @@ function buildRecord(
     aggregationType: queryDefinition.aggregationType,
     locationType: "municipio_residencia",
     tabnetMunicipalityCode: TABNET_CITY_CODE,
-    tabnetMunicipalityOptionValue: TABNET_CITY_OPTION_VALUE
+    tabnetMunicipalityOptionValue:
+      config.municipalityResidenceOptionValue ?? TABNET_CITY_OPTION_VALUE
   };
 
   return {

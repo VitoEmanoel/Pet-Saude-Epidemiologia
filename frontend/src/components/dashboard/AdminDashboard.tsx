@@ -28,6 +28,7 @@ import {
   runAdminSyncSource
 } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
+import { ApiRequestError } from "@/lib/api";
 import type {
   AdminAuditLogsResponse,
   AdminSyncHistoryResponse,
@@ -62,6 +63,22 @@ type ExportFiltersState =
   | { status: "error"; message: string };
 
 type AuthState = { status: "checking" } | { status: "authenticated" } | { status: "unauthenticated" };
+
+function isAdminAuthError(error: unknown) {
+  return error instanceof ApiRequestError && (error.status === 401 || error.status === 403);
+}
+
+function isAdminRateLimitError(error: unknown) {
+  return error instanceof ApiRequestError && error.status === 429;
+}
+
+function confirmAdminAction(message: string) {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  return window.confirm(message);
+}
 
 export function AdminDashboard() {
   const [authState, setAuthState] = useState<AuthState>({ status: "checking" });
@@ -190,6 +207,13 @@ export function AdminDashboard() {
         auditLogs
       });
     } catch (error) {
+      if (includeAdminHistory && isAdminAuthError(error)) {
+        setAuthState({ status: "unauthenticated" });
+        setPassword("");
+        void loadData(false);
+        return;
+      }
+
       setState({
         status: "error",
         message: error instanceof Error ? error.message : "Falha ao carregar painel administrativo."
@@ -222,11 +246,18 @@ export function AdminDashboard() {
         error: null
       });
     } catch (error) {
-      setAuthState({ status: "unauthenticated" });
+      if (isAdminAuthError(error)) {
+        setAuthState({ status: "unauthenticated" });
+        setPassword("");
+      }
       setActionState({
         busyAction: null,
         message: null,
-        error: error instanceof Error ? error.message : "Falha ao autenticar."
+        error: isAdminRateLimitError(error)
+          ? "Muitas tentativas. Aguarde e tente novamente."
+          : error instanceof Error
+            ? error.message
+            : "Falha ao autenticar."
       });
     }
   }
@@ -244,6 +275,10 @@ export function AdminDashboard() {
         error: null
       });
     } catch (error) {
+      if (isAdminAuthError(error)) {
+        setAuthState({ status: "unauthenticated" });
+        setPassword("");
+      }
       setActionState({
         busyAction: null,
         message: null,
@@ -262,6 +297,19 @@ export function AdminDashboard() {
       return;
     }
 
+    const sourceName =
+      state.status === "loaded"
+        ? state.sources.sources.find((source) => source.slug === slug)?.name ?? slug
+        : slug;
+
+    if (
+      !confirmAdminAction(
+        `Sincronizar ${sourceName} agora? Isso pode substituir o estado mais recente da fonte.`
+      )
+    ) {
+      return;
+    }
+
     setActionState({ busyAction: slug, message: null, error: null });
 
     try {
@@ -273,6 +321,12 @@ export function AdminDashboard() {
         error: null
       });
     } catch (error) {
+      if (isAdminAuthError(error)) {
+        setAuthState({ status: "unauthenticated" });
+        setPassword("");
+        void loadData(false);
+      }
+
       setActionState({
         busyAction: null,
         message: null,
@@ -291,6 +345,14 @@ export function AdminDashboard() {
       return;
     }
 
+    if (
+      !confirmAdminAction(
+        "Sincronizar todas as fontes agora? Isso pode consumir mais tempo e recursos."
+      )
+    ) {
+      return;
+    }
+
     setActionState({ busyAction: "all", message: null, error: null });
 
     try {
@@ -302,6 +364,12 @@ export function AdminDashboard() {
         error: null
       });
     } catch (error) {
+      if (isAdminAuthError(error)) {
+        setAuthState({ status: "unauthenticated" });
+        setPassword("");
+        void loadData(false);
+      }
+
       setActionState({
         busyAction: null,
         message: null,
@@ -368,6 +436,12 @@ export function AdminDashboard() {
         error: null
       });
     } catch (error) {
+      if (isAdminAuthError(error)) {
+        setAuthState({ status: "unauthenticated" });
+        setPassword("");
+        void loadData(false);
+      }
+
       setActionState({
         busyAction: null,
         message: null,
@@ -789,6 +863,7 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
             <th className="px-4 py-3 font-semibold">Acao</th>
             <th className="px-4 py-3 font-semibold">Status</th>
             <th className="px-4 py-3 font-semibold">Origem</th>
+            <th className="px-4 py-3 font-semibold">User-Agent</th>
             <th className="px-4 py-3 font-semibold">Detalhes</th>
           </tr>
         </thead>
@@ -801,6 +876,7 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
                 <JobStatus status={log.status} />
               </td>
               <td className="px-4 py-3 text-slate-700">{log.ipAddress ?? "-"}</td>
+              <td className="max-w-md px-4 py-3 text-slate-700">{log.userAgent ?? "-"}</td>
               <td className="max-w-lg px-4 py-3 text-slate-700">
                 {formatAuditMetadata(log.metadata)}
               </td>
@@ -816,6 +892,7 @@ function formatAuditAction(action: string) {
   const labels: Record<string, string> = {
     admin_login: "Login",
     admin_logout: "Logout",
+    admin_request_blocked: "Bloqueio",
     admin_export_csv: "Exportacao CSV",
     admin_sync_source: "Sincronizacao de fonte",
     admin_sync_all: "Sincronizacao geral"
@@ -839,6 +916,10 @@ function formatAuditMetadata(metadata: Record<string, unknown> | null) {
 
   if (typeof metadata.totalSources === "number") {
     return `${formatNumber(metadata.totalSources)} fontes`;
+  }
+
+  if (typeof metadata.reason === "string") {
+    return metadata.reason;
   }
 
   if (typeof metadata.message === "string") {

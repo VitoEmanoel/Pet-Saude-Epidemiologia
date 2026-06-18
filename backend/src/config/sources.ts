@@ -78,10 +78,10 @@ export const allowedSources: readonly AllowedSource[] = [
     name: "Casos de Sífilis Gestacional",
     system: "SINAN",
     category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "unknown",
-    sourceUrl: null,
-    active: false,
-    syncEnabled: false,
+    municipalityFilterStatus: "available",
+    sourceUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/sifilisgestantepi.def",
+    active: true,
+    syncEnabled: true,
     kind: "primary"
   },
   {

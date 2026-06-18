@@ -52,6 +52,7 @@ Entregas:
 
 - Visao geral.
 - Pagina da fonte piloto.
+- Paginas de tuberculose, hanseniase, sifilis, dengue, arboviroses e sifilis gestacional.
 - Cards de indicadores.
 - Graficos de evolucao anual.
 - Tabela paginada.

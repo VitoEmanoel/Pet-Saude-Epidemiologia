@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, BarChart3, Clock3, Database, MapPinned } from "lucide-react";
+import { Activity, BarChart3, Database, MapPinned } from "lucide-react";
 
 type AppShellProps = {
   active:
@@ -42,19 +42,19 @@ const navItems = [
     href: "/dengue",
     label: "Dengue",
     active: "dengue",
-    icon: Clock3
+    icon: Activity
   },
   {
     href: "/arboviroses",
     label: "Arboviroses",
     active: "arboviroses",
-    icon: Clock3
+    icon: Activity
   },
   {
     href: "/sifilis-gestacional",
     label: "Sifilis gestacional",
     active: "sifilis-gestacional",
-    icon: Clock3
+    icon: Activity
   }
 ] as const;
 

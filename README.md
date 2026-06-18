@@ -41,6 +41,7 @@ hanseniase_sinan
 sifilis_congenita_sinan
 dengue_sinan
 arboviroses_sinan
+sifilis_gestacional_sinan
 ```
 
 ### Fontes sincronizadas hoje pelo backend
@@ -52,13 +53,13 @@ tuberculose_sinan
 hanseniase_sinan
 sifilis_congenita_sinan
 dengue_sinan
+sifilis_gestacional_sinan
 zika_sinan
 ```
 
 Observacao:
 
 - `arboviroses_sinan` e uma fonte derivada, composta por `dengue_sinan` e `zika_sinan`.
-- `sifilis_gestacional_sinan` existe no codigo, mas hoje esta inativa e nao entra na sincronizacao.
 
 ## Stack Do Projeto
 

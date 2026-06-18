@@ -4,6 +4,8 @@ export type ApiErrorCode =
   | "not_found"
   | "invalid_query"
   | "unauthorized"
+  | "forbidden"
+  | "rate_limited"
   | "admin_not_configured"
   | "sync_already_running"
   | "not_implemented"

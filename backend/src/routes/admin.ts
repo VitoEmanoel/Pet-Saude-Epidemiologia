@@ -3,10 +3,15 @@ import { ALLOWED_CITY } from "../config/city";
 import { activeSources, getSourceBySlug, syncableSources } from "../config/sources";
 import { getAdminAuditLogs, recordAdminAudit } from "../modules/admin/admin-audit.service";
 import {
-  assertAdminCredentialConfigured,
+  assertAdminSecurityConfigured,
+  clearAdminLoginAttempts,
   clearAdminSessionCookie,
+  getAdminLoginRateLimit,
+  isAllowedAdminOrigin,
   isValidAdminPassword,
   requireAdminAuth,
+  registerFailedAdminLogin,
+  setAdminSecurityHeaders,
   setAdminSessionCookie
 } from "../middleware/admin-auth";
 import { prisma } from "../database/prisma";
@@ -22,21 +27,68 @@ import { validateRecordsQuery } from "./records-query";
 
 export const adminRouter = Router();
 
+adminRouter.use((request, response, next) => {
+  setAdminSecurityHeaders(response);
+
+  if (request.method !== "GET" && !isAllowedAdminOrigin(request)) {
+    void recordAdminAudit({
+      request,
+      action: "admin_request_blocked",
+      status: "FAILED",
+      metadata: {
+        reason: "origin_not_allowed",
+        method: request.method,
+        path: request.path
+      }
+    });
+    return sendError(response, 403, "forbidden", "Origem administrativa nao permitida.");
+  }
+
+  return next();
+});
+
 adminRouter.post("/auth/login", async (request, response) => {
-  if (!assertAdminCredentialConfigured(response)) {
+  if (!assertAdminSecurityConfigured(response)) {
     return;
   }
 
-  if (!isValidAdminPassword(request.body?.password)) {
+  const rateLimit = getAdminLoginRateLimit(request);
+
+  if (rateLimit.limited) {
+    response.setHeader("retry-after", String(rateLimit.retryAfterSeconds));
     await recordAdminAudit({
       request,
       action: "admin_login",
-      status: "FAILED"
+      status: "FAILED",
+      metadata: {
+        reason: "rate_limited",
+        code: "rate_limited",
+        retryAfterSeconds: rateLimit.retryAfterSeconds
+      }
+    });
+    return sendError(
+      response,
+      429,
+      "rate_limited",
+      "Muitas tentativas de acesso. Tente novamente mais tarde."
+    );
+  }
+
+  if (!isValidAdminPassword(request.body?.password)) {
+    registerFailedAdminLogin(request);
+    await recordAdminAudit({
+      request,
+      action: "admin_login",
+      status: "FAILED",
+      metadata: {
+        reason: "invalid_credentials"
+      }
     });
     return sendError(response, 401, "unauthorized", "Credencial administrativa invalida.");
   }
 
   setAdminSessionCookie(response);
+  clearAdminLoginAttempts(request);
   await recordAdminAudit({
     request,
     action: "admin_login",
@@ -97,6 +149,7 @@ adminRouter.get("/records/export.csv", async (request, response) => {
       action: "admin_export_csv",
       status: "FAILED",
       metadata: {
+        reason: "export_error",
         message: error instanceof Error ? error.message : "Erro desconhecido."
       }
     });
@@ -147,6 +200,7 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
         status: "FAILED",
         metadata: {
           source: source.slug,
+          reason: "sync_already_running",
           code: "sync_already_running",
           message: error.message
         }
@@ -161,6 +215,7 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
       status: "FAILED",
       metadata: {
         source: source.slug,
+        reason: "sync_error",
         message: error instanceof Error ? error.message : "Erro desconhecido."
       }
     });
@@ -208,6 +263,16 @@ adminRouter.post("/sync-all", async (request, response) => {
       }
 
       console.error(error);
+      await recordAdminAudit({
+        request,
+        action: "admin_sync_all",
+        status: "FAILED",
+        metadata: {
+          reason: "sync_error",
+          source: source.slug,
+          message: error instanceof Error ? error.message : "Erro desconhecido."
+        }
+      });
       return sendError(response, 500, "internal_error", "Erro ao executar sincronizacao geral.");
     }
   }

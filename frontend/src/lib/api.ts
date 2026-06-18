@@ -17,6 +17,18 @@ import type {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
+export class ApiRequestError extends Error {
+  status: number;
+  code: string | null;
+
+  constructor(status: number, message: string, code: string | null = null) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     cache: "no-store"
@@ -45,7 +57,7 @@ async function fetchAdminJson<T>(path: string, options: RequestInit = {}): Promi
       typeof body?.error?.message === "string"
         ? body.error.message
         : `API request failed: ${response.status}`;
-    throw new Error(message);
+    throw new ApiRequestError(response.status, message, body?.error?.code ?? null);
   }
 
   return response.json() as Promise<T>;
@@ -173,7 +185,7 @@ async function fetchAdminResponse(
       typeof body?.error?.message === "string"
         ? body.error.message
         : `API request failed: ${response.status}`;
-    throw new Error(message);
+    throw new ApiRequestError(response.status, message, body?.error?.code ?? null);
   }
 
   return response;

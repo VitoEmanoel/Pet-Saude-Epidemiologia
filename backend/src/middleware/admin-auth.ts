@@ -4,9 +4,18 @@ import { sendError } from "../utils/api-response";
 
 const ADMIN_SESSION_COOKIE = "painel_admin_session";
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
+const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const ADMIN_LOGIN_MAX_ATTEMPTS = 5;
+
+type LoginAttemptState = {
+  count: number;
+  resetAt: number;
+};
+
+const failedLoginAttempts = new Map<string, LoginAttemptState>();
 
 export function requireAdminAuth(request: Request, response: Response, next: NextFunction) {
-  if (!getAdminCredential()) {
+  if (!isAdminSecurityConfigured()) {
     return sendAdminNotConfigured(response);
   }
 
@@ -17,8 +26,8 @@ export function requireAdminAuth(request: Request, response: Response, next: Nex
   return sendError(response, 401, "unauthorized", "Sessao administrativa invalida ou ausente.");
 }
 
-export function assertAdminCredentialConfigured(response: Response) {
-  if (getAdminCredential()) {
+export function assertAdminSecurityConfigured(response: Response) {
+  if (isAdminSecurityConfigured()) {
     return true;
   }
 
@@ -34,6 +43,59 @@ export function isValidAdminPassword(password: unknown) {
     typeof configuredCredential === "string" &&
     safeEqual(password, configuredCredential)
   );
+}
+
+export function isAllowedAdminOrigin(request: Request) {
+  const origin = request.header("origin");
+
+  if (!origin) {
+    return true;
+  }
+
+  const allowedOrigins = getAllowedAdminOrigins();
+
+  return allowedOrigins.length === 0 || allowedOrigins.includes(origin);
+}
+
+export function getAdminLoginRateLimit(request: Request) {
+  const key = getLoginAttemptKey(request);
+  const state = getOrCreateLoginAttemptState(key);
+
+  if (state.count < ADMIN_LOGIN_MAX_ATTEMPTS) {
+    return {
+      limited: false,
+      retryAfterSeconds: 0
+    };
+  }
+
+  const retryAfterSeconds = Math.max(1, Math.ceil((state.resetAt - Date.now()) / 1000));
+
+  return {
+    limited: true,
+    retryAfterSeconds
+  };
+}
+
+export function registerFailedAdminLogin(request: Request) {
+  const key = getLoginAttemptKey(request);
+  const state = getOrCreateLoginAttemptState(key);
+
+  state.count += 1;
+  state.resetAt = Date.now() + ADMIN_LOGIN_WINDOW_MS;
+  failedLoginAttempts.set(key, state);
+}
+
+export function clearAdminLoginAttempts(request: Request) {
+  failedLoginAttempts.delete(getLoginAttemptKey(request));
+}
+
+export function setAdminSecurityHeaders(response: Response) {
+  response.setHeader("cache-control", "no-store, private, max-age=0, must-revalidate");
+  response.setHeader("pragma", "no-cache");
+  response.setHeader("expires", "0");
+  response.setHeader("x-content-type-options", "nosniff");
+  response.setHeader("x-frame-options", "DENY");
+  response.setHeader("referrer-policy", "no-referrer");
 }
 
 export function setAdminSessionCookie(response: Response) {
@@ -121,13 +183,17 @@ function getAdminCredential() {
 }
 
 function getAdminSessionSecret() {
-  const fallbackSecret = getAdminCredential();
+  const secret = process.env.ADMIN_SESSION_SECRET;
 
-  if (!fallbackSecret) {
-    throw new Error("Credencial administrativa nao configurada.");
+  if (!secret) {
+    throw new Error("ADMIN_SESSION_SECRET nao foi configurado no backend.");
   }
 
-  return process.env.ADMIN_SESSION_SECRET ?? fallbackSecret;
+  return secret;
+}
+
+function isAdminSecurityConfigured() {
+  return Boolean(getAdminCredential() && process.env.ADMIN_SESSION_SECRET);
 }
 
 function safeEqual(left: string, right: string) {
@@ -141,11 +207,44 @@ function safeEqual(left: string, right: string) {
   return timingSafeEqual(leftBuffer, rightBuffer);
 }
 
+function getAllowedAdminOrigins() {
+  const rawOrigins = process.env.CORS_ORIGIN ?? process.env.FRONTEND_URL ?? "";
+
+  return rawOrigins
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+}
+
+function getLoginAttemptKey(request: Request) {
+  return request.ip || request.socket.remoteAddress || "unknown";
+}
+
+function getOrCreateLoginAttemptState(key: string): LoginAttemptState {
+  const currentState = failedLoginAttempts.get(key);
+
+  if (currentState && currentState.resetAt > Date.now()) {
+    return currentState;
+  }
+
+  const freshState = {
+    count: 0,
+    resetAt: Date.now() + ADMIN_LOGIN_WINDOW_MS
+  };
+
+  failedLoginAttempts.set(key, freshState);
+  return freshState;
+}
+
 function sendAdminNotConfigured(response: Response) {
   return sendError(
     response,
     503,
     "admin_not_configured",
-    "ADMIN_PASSWORD ou ADMIN_TOKEN nao foi configurado no backend."
+    "ADMIN_PASSWORD, ADMIN_TOKEN ou ADMIN_SESSION_SECRET nao foi configurado no backend."
   );
+}
+
+export function resetAdminSecurityState() {
+  failedLoginAttempts.clear();
 }

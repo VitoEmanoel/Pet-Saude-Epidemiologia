@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import type { Server } from "node:http";
 import { after, before, test } from "node:test";
 import { prisma } from "../database/prisma";
+import { resetAdminSecurityState } from "../middleware/admin-auth";
 import { createServer } from "../server";
 
 let server: Server;
@@ -9,11 +10,14 @@ let baseUrl: string;
 const previousAdminToken = process.env.ADMIN_TOKEN;
 const previousAdminPassword = process.env.ADMIN_PASSWORD;
 const previousAdminSessionSecret = process.env.ADMIN_SESSION_SECRET;
+const previousCorsOrigin = process.env.CORS_ORIGIN;
 
 before(async () => {
   process.env.ADMIN_TOKEN = "test-admin-token";
   process.env.ADMIN_PASSWORD = "test-admin-password";
   process.env.ADMIN_SESSION_SECRET = "test-admin-session-secret";
+  process.env.CORS_ORIGIN = "http://localhost:3000";
+  resetAdminSecurityState();
 
   const app = createServer();
 
@@ -47,6 +51,12 @@ after(async () => {
     delete process.env.ADMIN_SESSION_SECRET;
   } else {
     process.env.ADMIN_SESSION_SECRET = previousAdminSessionSecret;
+  }
+
+  if (previousCorsOrigin === undefined) {
+    delete process.env.CORS_ORIGIN;
+  } else {
+    process.env.CORS_ORIGIN = previousCorsOrigin;
   }
 
   await new Promise<void>((resolve, reject) => {
@@ -120,6 +130,8 @@ test("GET /api/admin/records/export.csv exige autenticacao administrativa", asyn
 });
 
 test("POST /api/admin/auth/login rejeita senha invalida", async () => {
+  resetAdminSecurityState();
+
   const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
     method: "POST",
     headers: {
@@ -133,7 +145,54 @@ test("POST /api/admin/auth/login rejeita senha invalida", async () => {
   assert.equal(body.error.code, "unauthorized");
 });
 
+test("POST /api/admin/auth/login rejeita origem fora da lista permitida", async () => {
+  resetAdminSecurityState();
+
+  const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "http://evil.example"
+    },
+    body: JSON.stringify({ password: "test-admin-password" })
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 403);
+  assert.equal(body.error.code, "forbidden");
+});
+
+test("POST /api/admin/auth/login aplica limite de tentativas", async () => {
+  resetAdminSecurityState();
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ password: `senha-errada-${attempt}` })
+    });
+
+    assert.equal(response.status, 401);
+  }
+
+  const blockedResponse = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ password: "senha-errada-final" })
+  });
+  const blockedBody = await blockedResponse.json();
+
+  assert.equal(blockedResponse.status, 429);
+  assert.equal(blockedBody.error.code, "rate_limited");
+});
+
 test("POST /api/admin/auth/login cria sessao administrativa", async () => {
+  resetAdminSecurityState();
+
   const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
     method: "POST",
     headers: {
@@ -149,6 +208,8 @@ test("POST /api/admin/auth/login cria sessao administrativa", async () => {
 });
 
 test("GET /api/admin/auth/me aceita sessao administrativa", async () => {
+  resetAdminSecurityState();
+
   const loginResponse = await fetch(`${baseUrl}/api/admin/auth/login`, {
     method: "POST",
     headers: {

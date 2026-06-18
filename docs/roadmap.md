@@ -1,6 +1,6 @@
 # Roadmap Do Projeto
 
-Atualizado em: 2026-06-16
+Atualizado em: 2026-06-17
 
 Este arquivo define a ordem recomendada para evoluir o sistema a partir do estado atual.
 
@@ -24,12 +24,13 @@ O sistema opera hoje com escopo reduzido para:
 - sifilis_congenita_sinan
 - dengue_sinan
 - arboviroses_sinan
+- sifilis_gestacional_sinan
 
 Observacoes do estado atual:
 
 - `dengue_sinan` ja tem coletor validado no DATASUS/TABNET.
 - `arboviroses_sinan` esta operacional como visao agregada baseada em dengue e zika.
-- `sifilis_gestacional_sinan` continua pendente de validacao da fonte oficial.
+- `sifilis_gestacional_sinan` ja tem coletor validado no DATASUS/TABNET.
 
 O restante do roadmap abaixo trata de transparencia, ampliacao das fontes e deploy futuro.
 
@@ -46,8 +47,9 @@ O restante do roadmap abaixo trata de transparencia, ampliacao das fontes e depl
 - [x] Coleta real do DATASUS/TABNET para hanseniase.
 - [x] Coleta real do DATASUS/TABNET para sifilis congenita.
 - [x] Coleta real do DATASUS/TABNET para dengue.
+- [x] Coleta real do DATASUS/TABNET para sifilis gestacional.
 - [x] Paginas de tuberculose, hanseniase e sifilis.
-- [x] Catalogo com 6 casos, incluindo 3 em validacao tecnica.
+- [x] Catalogo com 6 casos, todos operacionais ou derivados no escopo atual.
 - [x] Visao operacional de arboviroses em geral agregando dengue e zika.
 - [x] Graficos, indicadores, filtros e tabela paginada no site publico.
 - [x] Exportacao CSV movida para a area administrativa.
@@ -92,16 +94,16 @@ O restante do roadmap abaixo trata de transparencia, ampliacao das fontes e depl
 
 - [x] Validar fonte oficial para casos de dengue.
 - [x] Validar fonte oficial base para arboviroses em geral no recorte atual do produto.
-- [ ] Validar fonte oficial para sifilis gestacional.
-- [ ] Confirmar se cada fonte permite filtro por municipio de residencia.
+- [x] Validar fonte oficial para sifilis gestacional.
+- [x] Confirmar se cada fonte permite filtro por municipio de residencia.
 - [x] Mapear parametros TABNET para dengue.
-- [ ] Mapear parametros oficiais restantes para chikungunya e sifilis gestacional.
+- [x] Mapear parametros oficiais restantes para chikungunya e sifilis gestacional.
 - [x] Criar coletor para dengue.
 - [x] Criar visao derivada para arboviroses em geral.
-- [ ] Criar coletor para sifilis gestacional.
+- [x] Criar coletor para sifilis gestacional.
 - [ ] Criar integracao de chikungunya para completar arboviroses em geral.
 - [x] Criar paginas e graficos para cada nova fonte ja operacional.
-- [ ] Documentar limitacoes de cada fonte.
+- [x] Documentar limitacoes de cada fonte.
 
 ## 5. Preparacao Para Deploy
 
@@ -125,4 +127,4 @@ O proximo bloco recomendado e:
 2. Novas Fontes
 ```
 
-Esses dois blocos deixam o sistema mais controlavel antes de concluir chikungunya dentro de arboviroses e sifilis gestacional.
+Esses dois blocos deixam o sistema mais controlavel antes de concluir chikungunya dentro de arboviroses.
