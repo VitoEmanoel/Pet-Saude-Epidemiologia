@@ -21,6 +21,7 @@ type ChartPanelProps =
 
 export function ChartPanel(props: ChartPanelProps) {
   const option = props.type === "line" ? lineOption(props.data) : barOption(props.data, props.horizontal);
+  const empty = props.data.length === 0;
 
   return (
     <section className="min-w-0 rounded border border-slate-200 bg-white">
@@ -28,7 +29,16 @@ export function ChartPanel(props: ChartPanelProps) {
         <h2 className="text-sm font-semibold text-slate-950">{props.title}</h2>
       </div>
       <div className="p-3">
-        <EChart option={option} height={props.height ?? 300} />
+        {empty ? (
+          <div
+            style={{ height: props.height ?? 300 }}
+            className="flex min-w-0 items-center justify-center rounded bg-slate-50 px-4 text-center text-sm text-slate-500"
+          >
+            Sem dados para os filtros selecionados.
+          </div>
+        ) : (
+          <EChart option={option} height={props.height ?? 300} />
+        )}
       </div>
     </section>
   );

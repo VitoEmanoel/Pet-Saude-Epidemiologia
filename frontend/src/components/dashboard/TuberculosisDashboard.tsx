@@ -7,7 +7,8 @@ import {
   ChevronRight,
   Database,
   Filter,
-  RefreshCw
+  RefreshCw,
+  X
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
@@ -24,6 +25,7 @@ import { formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
 import type {
   CategoryPoint,
   ChartPoint,
+  RecordFilters,
   RecordsResponse,
   SourceFiltersResponse,
   SourceSummaryResponse
@@ -42,6 +44,13 @@ type PageState =
       status: "loaded";
       summary: SourceSummaryResponse;
       filters: SourceFiltersResponse;
+    }
+  | { status: "error"; message: string };
+
+type ChartsState =
+  | { status: "loading" }
+  | {
+      status: "loaded";
       yearly: ChartPoint[];
       bySex: CategoryPoint[];
       byAgeGroup: CategoryPoint[];
@@ -63,6 +72,7 @@ type DiseaseDashboardProps = {
 
 export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   const [state, setState] = useState<PageState>({ status: "loading" });
+  const [chartsState, setChartsState] = useState<ChartsState>({ status: "loading" });
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     year: "",
     sex: "",
@@ -81,22 +91,14 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
 
     Promise.all([
       getSourceSummary(source),
-      getSourceFilters(source),
-      getYearlyEvolution(source),
-      getChartBySex(source),
-      getChartByAgeGroup(source),
-      getChartByRaceColor(source)
+      getSourceFilters(source)
     ])
-      .then(([summary, filters, yearly, bySex, byAgeGroup, byRaceColor]) => {
+      .then(([summary, filters]) => {
         if (active) {
           setState({
             status: "loaded",
             summary,
-            filters,
-            yearly: yearly.series,
-            bySex: bySex.series,
-            byAgeGroup: byAgeGroup.series,
-            byRaceColor: byRaceColor.series
+            filters
           });
         }
       })
@@ -114,18 +116,60 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     };
   }, [source]);
 
-  const recordFilters = useMemo(
+  const activeFilters = useMemo<RecordFilters>(
     () => ({
-      source,
       year: selectedFilters.year ? Number(selectedFilters.year) : undefined,
       sex: selectedFilters.sex || undefined,
       ageGroup: selectedFilters.ageGroup || undefined,
-      raceColor: selectedFilters.raceColor || undefined,
+      raceColor: selectedFilters.raceColor || undefined
+    }),
+    [selectedFilters]
+  );
+
+  const recordFilters = useMemo(
+    () => ({
+      source,
+      ...activeFilters,
       page,
       pageSize: 12
     }),
-    [page, selectedFilters, source]
+    [activeFilters, page, source]
   );
+
+  useEffect(() => {
+    let active = true;
+    setChartsState({ status: "loading" });
+
+    Promise.all([
+      getYearlyEvolution(source, activeFilters),
+      getChartBySex(source, activeFilters),
+      getChartByAgeGroup(source, activeFilters),
+      getChartByRaceColor(source, activeFilters)
+    ])
+      .then(([yearly, bySex, byAgeGroup, byRaceColor]) => {
+        if (active) {
+          setChartsState({
+            status: "loaded",
+            yearly: yearly.series,
+            bySex: bySex.series,
+            byAgeGroup: byAgeGroup.series,
+            byRaceColor: byRaceColor.series
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setChartsState({
+            status: "error",
+            message: error instanceof Error ? error.message : "Falha ao carregar graficos."
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeFilters, source]);
 
   useEffect(() => {
     let active = true;
@@ -159,6 +203,16 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     setPage(1);
   }
 
+  function clearFilters() {
+    setSelectedFilters({
+      year: "",
+      sex: "",
+      ageGroup: "",
+      raceColor: ""
+    });
+    setPage(1);
+  }
+
   if (state.status === "loading") {
     return <LoadingBlocks />;
   }
@@ -174,21 +228,29 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   const sourceIsActive = state.summary.source.active;
   const isArboviroses = state.summary.source.slug === "arboviroses_sinan";
   const isSifilisGestacional = state.summary.source.slug === "sifilis_gestacional_sinan";
+  const hasSelectedFilters = Object.values(selectedFilters).some(Boolean);
+  const visibleYearly = chartsState.status === "loaded" ? chartsState.yearly : null;
+  const visibleTotalCases = visibleYearly
+    ? visibleYearly.reduce((total, point) => total + point.value, 0)
+    : state.summary.summary.totalCases;
+  const latestVisiblePoint = visibleYearly?.at(-1) ?? null;
+  const firstVisibleYear = visibleYearly?.[0]?.year ?? state.summary.summary.firstAvailableYear;
+  const lastVisibleYear = latestVisiblePoint?.year ?? state.summary.summary.lastAvailableYear;
 
   return (
     <div className="space-y-5">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <MetricCard
           label="Casos"
-          value={formatNumber(state.summary.summary.totalCases)}
-          detail={title}
+          value={formatNumber(visibleTotalCases)}
+          detail={hasSelectedFilters ? "Filtros aplicados" : title}
           icon={Activity}
           tone="green"
         />
         <MetricCard
           label="Ultimo ano"
-          value={state.summary.summary.latestYearValue ?? 0}
-          detail={String(state.summary.summary.latestYear ?? "")}
+          value={latestVisiblePoint?.value ?? state.summary.summary.latestYearValue ?? 0}
+          detail={String(latestVisiblePoint?.year ?? state.summary.summary.latestYear ?? "")}
           icon={CalendarDays}
           tone="blue"
         />
@@ -200,10 +262,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
         />
         <MetricCard
           label="Periodo"
-          value={formatYearRange(
-            state.summary.summary.firstAvailableYear,
-            state.summary.summary.lastAvailableYear
-          )}
+          value={formatYearRange(firstVisibleYear, lastVisibleYear)}
           detail="Anos disponiveis"
           icon={CalendarDays}
         />
@@ -241,26 +300,24 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
         </div>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,0.6fr)]">
-        <ChartPanel title="Evolucao anual" type="line" data={state.yearly} height={340} />
-        <ParnaibaMap />
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-3">
-        <ChartPanel title="Por sexo" type="bar" data={state.bySex} />
-        <ChartPanel title="Por raca/cor" type="bar" data={state.byRaceColor} />
-        <ChartPanel title="Por faixa etaria" type="bar" data={state.byAgeGroup} horizontal />
-      </div>
-
       <section className="rounded border border-slate-200 bg-white">
         <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2">
             <Filter size={17} className="text-slate-500" aria-hidden="true" />
-            <h2 className="text-sm font-semibold text-slate-950">Registros</h2>
+            <h2 className="text-sm font-semibold text-slate-950">Filtros do painel</h2>
           </div>
+          <button
+            type="button"
+            onClick={clearFilters}
+            disabled={!hasSelectedFilters}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <X size={16} aria-hidden="true" />
+            Limpar
+          </button>
         </div>
 
-        <div className="grid gap-3 border-b border-slate-200 p-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
           <FilterSelect
             label="Ano"
             value={selectedFilters.year}
@@ -285,6 +342,17 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
             onChange={(value) => updateFilter("raceColor", value)}
             options={state.filters.filters.raceColors}
           />
+        </div>
+      </section>
+
+      <DashboardCharts state={chartsState} />
+
+      <section className="rounded border border-slate-200 bg-white">
+        <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            <Filter size={17} className="text-slate-500" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-slate-950">Registros</h2>
+          </div>
         </div>
 
         <RecordsTable state={recordsState} page={page} setPage={setPage} />
@@ -327,6 +395,35 @@ function FilterSelect({
   );
 }
 
+function DashboardCharts({ state }: { state: ChartsState }) {
+  if (state.status === "loading") {
+    return <ChartLoadingBlocks />;
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        {state.message}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,0.6fr)]">
+        <ChartPanel title="Evolucao anual" type="line" data={state.yearly} height={340} />
+        <ParnaibaMap />
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-3">
+        <ChartPanel title="Por sexo" type="bar" data={state.bySex} />
+        <ChartPanel title="Por raca/cor" type="bar" data={state.byRaceColor} />
+        <ChartPanel title="Por faixa etaria" type="bar" data={state.byAgeGroup} horizontal />
+      </div>
+    </>
+  );
+}
+
 function RecordsTable({
   state,
   page,
@@ -349,6 +446,9 @@ function RecordsTable({
 
   return (
     <>
+      {state.data.records.length === 0 ? (
+        <div className="p-4 text-sm text-slate-600">Nenhum registro encontrado para os filtros.</div>
+      ) : null}
       <div className="divide-y divide-slate-100 md:hidden">
         {state.data.records.map((record) => (
           <article key={record.id} className="space-y-3 p-4">
@@ -429,19 +529,35 @@ function RecordsTable({
             <ChevronLeft size={17} aria-hidden="true" />
           </button>
           <span className="min-w-20 text-center text-sm text-slate-600 sm:min-w-24">
-            {state.data.pagination.page}/{state.data.pagination.totalPages}
+            {state.data.pagination.page}/{Math.max(1, state.data.pagination.totalPages)}
           </span>
           <button
             type="button"
             aria-label="Proxima pagina"
             title="Proxima pagina"
             disabled={page >= state.data.pagination.totalPages}
-            onClick={() => setPage(Math.min(state.data.pagination.totalPages, page + 1))}
+            onClick={() => setPage(Math.min(Math.max(1, state.data.pagination.totalPages), page + 1))}
             className="flex h-9 w-9 items-center justify-center rounded border border-slate-300 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronRight size={17} aria-hidden="true" />
           </button>
         </div>
+      </div>
+    </>
+  );
+}
+
+function ChartLoadingBlocks() {
+  return (
+    <>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,0.6fr)]">
+        <div className="h-[390px] animate-pulse rounded border border-slate-200 bg-white" />
+        <div className="h-[390px] animate-pulse rounded border border-slate-200 bg-white" />
+      </div>
+      <div className="grid gap-5 xl:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="h-[350px] animate-pulse rounded border border-slate-200 bg-white" />
+        ))}
       </div>
     </>
   );

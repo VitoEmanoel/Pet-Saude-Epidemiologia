@@ -1,7 +1,11 @@
 "use client";
 
 import {
+  Activity,
   AlertCircle,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   Clock3,
   Database,
@@ -13,7 +17,8 @@ import {
   LogOut,
   Play,
   RefreshCw,
-  Shield
+  Shield,
+  X
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -21,27 +26,36 @@ import {
   getAdminAuditLogs,
   getAdminSession,
   getAdminSyncHistory,
+  getChartByAgeGroup,
+  getChartByRaceColor,
+  getChartBySex,
   getSourceFilters,
   getSourceSummary,
   getSources,
+  getYearlyEvolution,
   loginAdmin,
   logoutAdmin,
   runAdminSyncAll,
   runAdminSyncSource
 } from "@/lib/api";
-import { formatDateTime, formatNumber } from "@/lib/format";
+import { formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
 import { ApiRequestError } from "@/lib/api";
 import type {
   AdminAuditLogsResponse,
   AdminSyncHistoryResponse,
+  CategoryPoint,
+  ChartPoint,
   DataSource,
   RecordFilters,
   SourceFiltersResponse,
   SourceSummaryResponse,
   SourcesResponse
 } from "@/types/api";
+import { ChartPanel } from "./ChartPanel";
 import { MetricCard } from "../ui/MetricCard";
 import { StatusPill } from "../ui/StatusPill";
+
+const ADMIN_TABLE_PAGE_SIZE = 12;
 
 type SourceWithSummary = {
   source: DataSource;
@@ -63,6 +77,33 @@ type LoadState =
 type ExportFiltersState =
   | { status: "loading" }
   | { status: "loaded"; filters: SourceFiltersResponse; sourceSlug: string }
+  | { status: "error"; message: string };
+
+type DashboardFilterValues = {
+  year: string;
+  sex: string;
+  ageGroup: string;
+  raceColor: string;
+};
+
+type AdminSourceDashboardState =
+  | { status: "loading" }
+  | {
+      status: "loaded";
+      summary: SourceSummaryResponse;
+      filters: SourceFiltersResponse;
+    }
+  | { status: "error"; message: string };
+
+type AdminChartsState =
+  | { status: "loading" }
+  | {
+      status: "loaded";
+      yearly: ChartPoint[];
+      bySex: CategoryPoint[];
+      byAgeGroup: CategoryPoint[];
+      byRaceColor: CategoryPoint[];
+    }
   | { status: "error"; message: string };
 
 type AuthState = { status: "checking" } | { status: "authenticated" } | { status: "unauthenticated" };
@@ -645,6 +686,8 @@ export function AdminDashboard() {
         <StatusMessages actionState={actionState} />
       </section>
 
+      <AdminSourceDashboard sources={state.sources.sources} />
+
       <section className="rounded border border-slate-200 bg-white">
         <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2">
@@ -980,6 +1023,348 @@ export function AdminDashboard() {
   );
 }
 
+function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
+  const [sourceSlug, setSourceSlug] = useState(sources[0]?.slug ?? "");
+  const [dashboardFilters, setDashboardFilters] = useState<DashboardFilterValues>({
+    year: "",
+    sex: "",
+    ageGroup: "",
+    raceColor: ""
+  });
+  const [sourceState, setSourceState] = useState<AdminSourceDashboardState>({ status: "loading" });
+  const [chartsState, setChartsState] = useState<AdminChartsState>({ status: "loading" });
+
+  useEffect(() => {
+    if (sources.length === 0) {
+      return;
+    }
+
+    if (!sourceSlug || !sources.some((source) => source.slug === sourceSlug)) {
+      setSourceSlug(sources[0].slug);
+    }
+  }, [sourceSlug, sources]);
+
+  const activeFilters = useMemo<RecordFilters>(
+    () => ({
+      year: dashboardFilters.year ? Number(dashboardFilters.year) : undefined,
+      sex: dashboardFilters.sex || undefined,
+      ageGroup: dashboardFilters.ageGroup || undefined,
+      raceColor: dashboardFilters.raceColor || undefined
+    }),
+    [dashboardFilters]
+  );
+
+  useEffect(() => {
+    if (!sourceSlug) {
+      return;
+    }
+
+    let active = true;
+    setSourceState({ status: "loading" });
+
+    Promise.all([getSourceSummary(sourceSlug), getSourceFilters(sourceSlug)])
+      .then(([summary, filters]) => {
+        if (active) {
+          setSourceState({
+            status: "loaded",
+            summary,
+            filters
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setSourceState({
+            status: "error",
+            message: error instanceof Error ? error.message : "Falha ao carregar dashboard da fonte."
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [sourceSlug]);
+
+  useEffect(() => {
+    if (!sourceSlug) {
+      return;
+    }
+
+    let active = true;
+    setChartsState({ status: "loading" });
+
+    Promise.all([
+      getYearlyEvolution(sourceSlug, activeFilters),
+      getChartBySex(sourceSlug, activeFilters),
+      getChartByAgeGroup(sourceSlug, activeFilters),
+      getChartByRaceColor(sourceSlug, activeFilters)
+    ])
+      .then(([yearly, bySex, byAgeGroup, byRaceColor]) => {
+        if (active) {
+          setChartsState({
+            status: "loaded",
+            yearly: yearly.series,
+            bySex: bySex.series,
+            byAgeGroup: byAgeGroup.series,
+            byRaceColor: byRaceColor.series
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setChartsState({
+            status: "error",
+            message: error instanceof Error ? error.message : "Falha ao carregar graficos."
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeFilters, sourceSlug]);
+
+  function updateDashboardFilter(key: keyof DashboardFilterValues, value: string) {
+    setDashboardFilters((current) => ({
+      ...current,
+      [key]: value
+    }));
+  }
+
+  function changeSource(nextSourceSlug: string) {
+    setSourceSlug(nextSourceSlug);
+    setDashboardFilters({
+      year: "",
+      sex: "",
+      ageGroup: "",
+      raceColor: ""
+    });
+  }
+
+  function clearDashboardFilters() {
+    setDashboardFilters({
+      year: "",
+      sex: "",
+      ageGroup: "",
+      raceColor: ""
+    });
+  }
+
+  const hasSelectedFilters = Object.values(dashboardFilters).some(Boolean);
+  const selectedSource = sources.find((source) => source.slug === sourceSlug) ?? sources[0] ?? null;
+  const availableFilters = sourceState.status === "loaded" ? sourceState.filters.filters : null;
+  const visibleYearly = chartsState.status === "loaded" ? chartsState.yearly : null;
+  const visibleTotalCases =
+    visibleYearly?.reduce((total, point) => total + point.value, 0) ??
+    (sourceState.status === "loaded" ? sourceState.summary.summary.totalCases : 0);
+  const latestVisiblePoint = visibleYearly ? visibleYearly[visibleYearly.length - 1] : null;
+  const firstVisibleYear =
+    visibleYearly?.[0]?.year ??
+    (sourceState.status === "loaded" ? sourceState.summary.summary.firstAvailableYear : null);
+  const lastVisibleYear =
+    latestVisiblePoint?.year ??
+    (sourceState.status === "loaded" ? sourceState.summary.summary.lastAvailableYear : null);
+
+  return (
+    <div className="space-y-5">
+      <section className="rounded border border-slate-200 bg-white">
+        <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            <Activity size={17} className="text-slate-500" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-slate-950">Dashboard da fonte</h2>
+          </div>
+          <button
+            type="button"
+            onClick={clearDashboardFilters}
+            disabled={!hasSelectedFilters}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <X size={16} aria-hidden="true" />
+            Limpar
+          </button>
+        </div>
+
+        <div className="grid gap-3 p-4 lg:grid-cols-2 xl:grid-cols-5">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Fonte</span>
+            <select
+              value={sourceSlug}
+              onChange={(event) => changeSource(event.target.value)}
+              disabled={sources.length === 0}
+              className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50 disabled:cursor-not-allowed disabled:bg-slate-100"
+            >
+              {sources.map((source) => (
+                <option key={source.slug} value={source.slug}>
+                  {source.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <DashboardFilterSelect
+            label="Ano"
+            value={dashboardFilters.year}
+            options={(availableFilters?.years ?? []).map(String)}
+            onChange={(value) => updateDashboardFilter("year", value)}
+            disabled={sourceState.status !== "loaded"}
+          />
+          <DashboardFilterSelect
+            label="Sexo"
+            value={dashboardFilters.sex}
+            options={availableFilters?.sex ?? []}
+            onChange={(value) => updateDashboardFilter("sex", value)}
+            disabled={sourceState.status !== "loaded"}
+          />
+          <DashboardFilterSelect
+            label="Faixa etaria"
+            value={dashboardFilters.ageGroup}
+            options={availableFilters?.ageGroups ?? []}
+            onChange={(value) => updateDashboardFilter("ageGroup", value)}
+            disabled={sourceState.status !== "loaded"}
+          />
+          <DashboardFilterSelect
+            label="Raca/cor"
+            value={dashboardFilters.raceColor}
+            options={availableFilters?.raceColors ?? []}
+            onChange={(value) => updateDashboardFilter("raceColor", value)}
+            disabled={sourceState.status !== "loaded"}
+          />
+        </div>
+
+        {sourceState.status === "error" ? (
+          <div className="border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {sourceState.message}
+          </div>
+        ) : null}
+      </section>
+
+      {sourceState.status === "loaded" ? (
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <MetricCard
+            label="Casos"
+            value={formatNumber(visibleTotalCases)}
+            detail={hasSelectedFilters ? "Filtros aplicados" : selectedSource?.name ?? "Fonte"}
+            icon={Activity}
+            tone="green"
+          />
+          <MetricCard
+            label="Ultimo ano"
+            value={latestVisiblePoint?.value ?? sourceState.summary.summary.latestYearValue ?? 0}
+            detail={String(latestVisiblePoint?.year ?? sourceState.summary.summary.latestYear ?? "")}
+            icon={CalendarDays}
+            tone="blue"
+          />
+          <MetricCard
+            label="Registros"
+            value={formatNumber(sourceState.summary.summary.totalRecords)}
+            detail="Normalizados"
+            icon={Database}
+          />
+          <MetricCard
+            label="Periodo"
+            value={formatYearRange(firstVisibleYear, lastVisibleYear)}
+            detail="Anos disponiveis"
+            icon={CalendarDays}
+          />
+          <MetricCard
+            label="Atualizacao"
+            value={sourceState.summary.summary.lastSyncStatus ?? "Sem status"}
+            detail={formatDateTime(sourceState.summary.summary.lastUpdate)}
+            icon={RefreshCw}
+            tone="amber"
+          />
+        </section>
+      ) : (
+        <AdminDashboardMetricSkeleton />
+      )}
+
+      <AdminDashboardCharts state={chartsState} />
+    </div>
+  );
+}
+
+function DashboardFilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+  disabled = false
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-medium uppercase text-slate-500">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+        className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+      >
+        <option value="">Todos</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function AdminDashboardCharts({ state }: { state: AdminChartsState }) {
+  if (state.status === "loading") {
+    return (
+      <div className="space-y-5">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+          <div className="h-[370px] animate-pulse rounded border border-slate-200 bg-white" />
+          <div className="h-[370px] animate-pulse rounded border border-slate-200 bg-white" />
+        </div>
+        <div className="grid gap-5 xl:grid-cols-2">
+          <div className="h-[340px] animate-pulse rounded border border-slate-200 bg-white" />
+          <div className="h-[340px] animate-pulse rounded border border-slate-200 bg-white" />
+        </div>
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        {state.message}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+        <ChartPanel title="Evolucao anual" type="line" data={state.yearly} height={320} />
+        <ChartPanel title="Por sexo" type="bar" data={state.bySex} height={320} />
+      </div>
+      <div className="grid gap-5 xl:grid-cols-2">
+        <ChartPanel title="Por raca/cor" type="bar" data={state.byRaceColor} />
+        <ChartPanel title="Por faixa etaria" type="bar" data={state.byAgeGroup} horizontal />
+      </div>
+    </div>
+  );
+}
+
+function AdminDashboardMetricSkeleton() {
+  return (
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="h-28 animate-pulse rounded border border-slate-200 bg-white" />
+      ))}
+    </section>
+  );
+}
+
 function JobStatus({ status }: { status: string | null }) {
   if (!status) {
     return <span className="text-sm text-slate-400">Sem status</span>;
@@ -1005,6 +1390,8 @@ function JobStatus({ status }: { status: string | null }) {
 }
 
 function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
+  const pagination = useClientPagination(history.syncJobs, ADMIN_TABLE_PAGE_SIZE);
+
   if (history.syncJobs.length === 0) {
     return <div className="p-4 text-sm text-slate-600">Nenhuma sincronizacao registrada.</div>;
   }
@@ -1012,7 +1399,7 @@ function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
   return (
     <>
       <div className="divide-y divide-slate-100 md:hidden">
-        {history.syncJobs.map((job) => (
+        {pagination.items.map((job) => (
           <article key={job.id} className="space-y-3 p-4">
             <div>
               <div className="font-medium text-slate-950">{job.source?.name ?? "-"}</div>
@@ -1046,7 +1433,7 @@ function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
                 <dd className="mt-1 text-slate-700">{job.errorMessage ?? "-"}</dd>
               </div>
             </dl>
-          </article>
+        </article>
         ))}
       </div>
       <div className="hidden overflow-x-auto md:block">
@@ -1063,7 +1450,7 @@ function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {history.syncJobs.map((job) => (
+          {pagination.items.map((job) => (
             <tr key={job.id}>
               <td className="px-4 py-3">
                 <div className="font-medium text-slate-950">{job.source?.name ?? "-"}</div>
@@ -1082,11 +1469,20 @@ function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
         </tbody>
       </table>
       </div>
+      <TablePagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        totalItems={history.syncJobs.length}
+        pageSize={ADMIN_TABLE_PAGE_SIZE}
+        onPageChange={pagination.setPage}
+      />
     </>
   );
 }
 
 function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
+  const pagination = useClientPagination(auditLogs.auditLogs, ADMIN_TABLE_PAGE_SIZE);
+
   if (auditLogs.auditLogs.length === 0) {
     return <div className="p-4 text-sm text-slate-600">Nenhum evento administrativo registrado.</div>;
   }
@@ -1094,7 +1490,7 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
   return (
     <>
       <div className="divide-y divide-slate-100 md:hidden">
-        {auditLogs.auditLogs.map((log) => (
+        {pagination.items.map((log) => (
           <article key={log.id} className="space-y-3 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -1133,7 +1529,7 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {auditLogs.auditLogs.map((log) => (
+          {pagination.items.map((log) => (
             <tr key={log.id}>
               <td className="px-4 py-3 text-slate-700">{formatDateTime(log.createdAt)}</td>
               <td className="px-4 py-3 text-slate-950">{formatAuditAction(log.action)}</td>
@@ -1150,7 +1546,84 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
         </tbody>
       </table>
       </div>
+      <TablePagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        totalItems={auditLogs.auditLogs.length}
+        pageSize={ADMIN_TABLE_PAGE_SIZE}
+        onPageChange={pagination.setPage}
+      />
     </>
+  );
+}
+
+function useClientPagination<T>(items: T[], pageSize: number) {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  return {
+    page: safePage,
+    totalPages,
+    items: items.slice(start, start + pageSize),
+    setPage
+  };
+}
+
+function TablePagination({
+  page,
+  totalPages,
+  totalItems,
+  pageSize,
+  onPageChange
+}: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}) {
+  const firstItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const lastItem = Math.min(totalItems, page * pageSize);
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-slate-600">
+        {firstItem}-{lastItem} de {formatNumber(totalItems)} registros
+      </p>
+      <div className="flex items-center justify-between gap-2 sm:justify-start">
+        <button
+          type="button"
+          aria-label="Pagina anterior"
+          title="Pagina anterior"
+          disabled={page <= 1}
+          onClick={() => onPageChange(Math.max(1, page - 1))}
+          className="flex h-9 w-9 items-center justify-center rounded border border-slate-300 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronLeft size={17} aria-hidden="true" />
+        </button>
+        <span className="min-w-20 text-center text-sm text-slate-600 sm:min-w-24">
+          {page}/{totalPages}
+        </span>
+        <button
+          type="button"
+          aria-label="Proxima pagina"
+          title="Proxima pagina"
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+          className="flex h-9 w-9 items-center justify-center rounded border border-slate-300 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronRight size={17} aria-hidden="true" />
+        </button>
+      </div>
+    </div>
   );
 }
 

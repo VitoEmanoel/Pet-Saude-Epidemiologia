@@ -6,8 +6,10 @@ import {
   getChartByAgeGroup,
   getChartByRaceColor,
   getChartBySex,
-  getYearlyEvolution
+  getYearlyEvolution,
+  parseFilters
 } from "../modules/public/public-data.service";
+import { validateRecordsQuery } from "./records-query";
 import { sendError } from "../utils/api-response";
 
 export const chartsRouter = Router();
@@ -29,6 +31,12 @@ function resolveSource(response: Response, sourceSlug: unknown) {
 }
 
 chartsRouter.get("/yearly-evolution", async (request, response) => {
+  const validationError = validateRecordsQuery(request.query, false);
+
+  if (validationError) {
+    return validationError(response);
+  }
+
   const source = resolveSource(response, request.query.source);
 
   if (!source) {
@@ -36,10 +44,12 @@ chartsRouter.get("/yearly-evolution", async (request, response) => {
   }
 
   try {
+    const filters = parseFilters(request.query);
+
     return response.json({
       city: ALLOWED_CITY,
       source,
-      series: await getYearlyEvolution(source.slug)
+      series: await getYearlyEvolution(source.slug, filters)
     });
   } catch (error) {
     console.error(error);
@@ -48,6 +58,12 @@ chartsRouter.get("/yearly-evolution", async (request, response) => {
 });
 
 chartsRouter.get("/by-sex", async (request, response) => {
+  const validationError = validateRecordsQuery(request.query, false);
+
+  if (validationError) {
+    return validationError(response);
+  }
+
   const source = resolveSource(response, request.query.source);
 
   if (!source) {
@@ -55,10 +71,12 @@ chartsRouter.get("/by-sex", async (request, response) => {
   }
 
   try {
+    const filters = parseFilters(request.query);
+
     return response.json({
       city: ALLOWED_CITY,
       source,
-      series: await getChartBySex(source.slug)
+      series: await getChartBySex(source.slug, filters)
     });
   } catch (error) {
     console.error(error);
@@ -67,6 +85,12 @@ chartsRouter.get("/by-sex", async (request, response) => {
 });
 
 chartsRouter.get("/by-age-group", async (request, response) => {
+  const validationError = validateRecordsQuery(request.query, false);
+
+  if (validationError) {
+    return validationError(response);
+  }
+
   const source = resolveSource(response, request.query.source);
 
   if (!source) {
@@ -74,10 +98,12 @@ chartsRouter.get("/by-age-group", async (request, response) => {
   }
 
   try {
+    const filters = parseFilters(request.query);
+
     return response.json({
       city: ALLOWED_CITY,
       source,
-      series: await getChartByAgeGroup(source.slug)
+      series: await getChartByAgeGroup(source.slug, filters)
     });
   } catch (error) {
     console.error(error);
@@ -86,6 +112,12 @@ chartsRouter.get("/by-age-group", async (request, response) => {
 });
 
 chartsRouter.get("/by-race-color", async (request, response) => {
+  const validationError = validateRecordsQuery(request.query, false);
+
+  if (validationError) {
+    return validationError(response);
+  }
+
   const source = resolveSource(response, request.query.source);
 
   if (!source) {
@@ -93,10 +125,12 @@ chartsRouter.get("/by-race-color", async (request, response) => {
   }
 
   try {
+    const filters = parseFilters(request.query);
+
     return response.json({
       city: ALLOWED_CITY,
       source,
-      series: await getChartByRaceColor(source.slug)
+      series: await getChartByRaceColor(source.slug, filters)
     });
   } catch (error) {
     console.error(error);

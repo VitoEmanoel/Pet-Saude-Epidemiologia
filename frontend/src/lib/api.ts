@@ -80,20 +80,28 @@ export function getSourceFilters(slug: string) {
   return fetchJson<SourceFiltersResponse>(`/api/sources/${slug}/filters`);
 }
 
-export function getYearlyEvolution(slug: string) {
-  return fetchJson<ChartResponse<ChartPoint>>(`/api/charts/yearly-evolution?source=${slug}`);
+export function getYearlyEvolution(slug: string, filters: RecordFilters = {}) {
+  return fetchJson<ChartResponse<ChartPoint>>(
+    `/api/charts/yearly-evolution?${buildSearchParams({ ...filters, source: slug })}`
+  );
 }
 
-export function getChartBySex(slug: string) {
-  return fetchJson<ChartResponse<CategoryPoint>>(`/api/charts/by-sex?source=${slug}`);
+export function getChartBySex(slug: string, filters: RecordFilters = {}) {
+  return fetchJson<ChartResponse<CategoryPoint>>(
+    `/api/charts/by-sex?${buildSearchParams({ ...filters, source: slug })}`
+  );
 }
 
-export function getChartByAgeGroup(slug: string) {
-  return fetchJson<ChartResponse<CategoryPoint>>(`/api/charts/by-age-group?source=${slug}`);
+export function getChartByAgeGroup(slug: string, filters: RecordFilters = {}) {
+  return fetchJson<ChartResponse<CategoryPoint>>(
+    `/api/charts/by-age-group?${buildSearchParams({ ...filters, source: slug })}`
+  );
 }
 
-export function getChartByRaceColor(slug: string) {
-  return fetchJson<ChartResponse<CategoryPoint>>(`/api/charts/by-race-color?source=${slug}`);
+export function getChartByRaceColor(slug: string, filters: RecordFilters = {}) {
+  return fetchJson<ChartResponse<CategoryPoint>>(
+    `/api/charts/by-race-color?${buildSearchParams({ ...filters, source: slug })}`
+  );
 }
 
 export function getRecords(filters: RecordFilters) {

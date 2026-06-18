@@ -352,8 +352,8 @@ export async function getRecordsForExport(filters: PublicFilters) {
   return records.map(serializeRecord);
 }
 
-export async function getYearlyEvolution(sourceSlug?: string) {
-  const where = await buildChartWhere(sourceSlug, YEARLY_SOURCE_TABLE_FRAGMENT);
+export async function getYearlyEvolution(sourceSlug?: string, filters: PublicFilters = {}) {
+  const where = await buildChartWhere(sourceSlug, getYearlyChartSourceTableFragment(filters), filters);
 
   const rows = await prisma.epidemiologicalRecord.groupBy({
     by: ["year"],
@@ -374,8 +374,8 @@ export async function getYearlyEvolution(sourceSlug?: string) {
     }));
 }
 
-export async function getChartBySex(sourceSlug: string) {
-  const where = await buildChartWhere(sourceSlug, SEX_SOURCE_TABLE_FRAGMENT);
+export async function getChartBySex(sourceSlug: string, filters: PublicFilters = {}) {
+  const where = await buildChartWhere(sourceSlug, SEX_SOURCE_TABLE_FRAGMENT, filters);
 
   const rows = await prisma.epidemiologicalRecord.groupBy({
     by: ["sex"],
@@ -396,8 +396,8 @@ export async function getChartBySex(sourceSlug: string) {
     }));
 }
 
-export async function getChartByAgeGroup(sourceSlug: string) {
-  const where = await buildChartWhere(sourceSlug, AGE_GROUP_SOURCE_TABLE_FRAGMENT);
+export async function getChartByAgeGroup(sourceSlug: string, filters: PublicFilters = {}) {
+  const where = await buildChartWhere(sourceSlug, AGE_GROUP_SOURCE_TABLE_FRAGMENT, filters);
 
   const rows = await prisma.epidemiologicalRecord.groupBy({
     by: ["ageGroup"],
@@ -416,8 +416,8 @@ export async function getChartByAgeGroup(sourceSlug: string) {
     .sort((a, b) => compareAgeGroups(a.label, b.label));
 }
 
-export async function getChartByRaceColor(sourceSlug: string) {
-  const where = await buildChartWhere(sourceSlug, RACE_COLOR_SOURCE_TABLE_FRAGMENT);
+export async function getChartByRaceColor(sourceSlug: string, filters: PublicFilters = {}) {
+  const where = await buildChartWhere(sourceSlug, RACE_COLOR_SOURCE_TABLE_FRAGMENT, filters);
 
   const rows = await prisma.epidemiologicalRecord.groupBy({
     by: ["raceColor"],
@@ -534,7 +534,8 @@ async function buildRecordWhere(filters: PublicFilters): Promise<Prisma.Epidemio
 
 async function buildChartWhere(
   sourceSlug: string | undefined,
-  sourceTableFragment: string
+  sourceTableFragment: string,
+  filters: PublicFilters = {}
 ): Promise<Prisma.EpidemiologicalRecordWhereInput> {
   const where: Prisma.EpidemiologicalRecordWhereInput = {
     ...baseCityRecordWhere(),
@@ -551,7 +552,47 @@ async function buildChartWhere(
     where.sourceId = sourceIds.length > 0 ? { in: sourceIds } : -1;
   }
 
+  if (filters.year !== undefined) {
+    where.year = filters.year;
+  }
+
+  if (filters.month !== undefined) {
+    where.month = filters.month;
+  }
+
+  if (filters.sex) {
+    where.sex = filters.sex;
+  }
+
+  if (filters.ageGroup) {
+    where.ageGroup = filters.ageGroup;
+  }
+
+  if (filters.raceColor) {
+    where.raceColor = filters.raceColor;
+  }
+
+  if (filters.condition) {
+    where.diseaseOrCondition = filters.condition;
+  }
+
   return where;
+}
+
+function getYearlyChartSourceTableFragment(filters: PublicFilters): string {
+  if (filters.sex) {
+    return SEX_SOURCE_TABLE_FRAGMENT;
+  }
+
+  if (filters.ageGroup) {
+    return AGE_GROUP_SOURCE_TABLE_FRAGMENT;
+  }
+
+  if (filters.raceColor) {
+    return RACE_COLOR_SOURCE_TABLE_FRAGMENT;
+  }
+
+  return YEARLY_SOURCE_TABLE_FRAGMENT;
 }
 
 function cityWhere(): Prisma.EpidemiologicalRecordWhereInput {
