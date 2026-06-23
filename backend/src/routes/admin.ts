@@ -16,12 +16,25 @@ import {
 } from "../middleware/admin-auth";
 import { prisma } from "../database/prisma";
 import {
+  dashboardExportFilename,
+  toDashboardHtml
+} from "../modules/admin/dashboard-export.service";
+import {
   SourceNotAllowedError,
   SyncAlreadyRunningError,
   UnsupportedCollectorError,
   syncSource
 } from "../modules/sync/sync.service";
-import { getRecordsForExport, parseFilters, toRecordsCsv } from "../modules/public/public-data.service";
+import {
+  getChartByAgeGroup,
+  getChartByRaceColor,
+  getChartBySex,
+  getRecordsForExport,
+  getSourceSummary,
+  getYearlyEvolution,
+  parseFilters,
+  toRecordsCsv
+} from "../modules/public/public-data.service";
 import { sendError } from "../utils/api-response";
 import { validateRecordsQuery } from "./records-query";
 
@@ -155,6 +168,81 @@ adminRouter.get("/records/export.csv", async (request, response) => {
       }
     });
     return sendError(response, 500, "internal_error", "Erro ao exportar registros.");
+  }
+});
+
+adminRouter.get("/dashboard/export.html", async (request, response) => {
+  const validationError = validateRecordsQuery(request.query, false);
+
+  if (validationError) {
+    return validationError(response);
+  }
+
+  const sourceSlug = typeof request.query.source === "string" ? request.query.source : "";
+
+  if (!sourceSlug) {
+    return sendError(response, 400, "invalid_query", "Selecione uma fonte para exportar.");
+  }
+
+  try {
+    const filters = parseFilters(request.query);
+    const sourceSummary = await getSourceSummary(sourceSlug);
+
+    if (!sourceSummary) {
+      return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+    }
+
+    const [yearly, bySex, byAgeGroup, byRaceColor] = await Promise.all([
+      getYearlyEvolution(sourceSlug, filters),
+      getChartBySex(sourceSlug, filters),
+      getChartByAgeGroup(sourceSlug, filters),
+      getChartByRaceColor(sourceSlug, filters)
+    ]);
+
+    const html = toDashboardHtml({
+      generatedAt: new Date(),
+      city: ALLOWED_CITY,
+      source: sourceSummary.source,
+      filters,
+      summary: sourceSummary.summary,
+      charts: {
+        yearly,
+        bySex,
+        byAgeGroup,
+        byRaceColor
+      }
+    });
+
+    await recordAdminAudit({
+      request,
+      action: "admin_export_dashboard",
+      status: "SUCCESS",
+      metadata: {
+        filters,
+        source: sourceSlug
+      }
+    });
+
+    response.setHeader("content-type", "text/html; charset=utf-8");
+    response.setHeader(
+      "content-disposition",
+      `attachment; filename="${dashboardExportFilename(sourceSlug)}"`
+    );
+
+    return response.send(html);
+  } catch (error) {
+    console.error(error);
+    await recordAdminAudit({
+      request,
+      action: "admin_export_dashboard",
+      status: "FAILED",
+      metadata: {
+        source: sourceSlug,
+        reason: "export_error",
+        message: error instanceof Error ? error.message : "Erro desconhecido."
+      }
+    });
+    return sendError(response, 500, "internal_error", "Erro ao exportar dashboard.");
   }
 });
 

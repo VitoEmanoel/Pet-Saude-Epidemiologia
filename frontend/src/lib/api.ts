@@ -163,6 +163,21 @@ export async function downloadAdminRecordsCsv(filters: RecordFilters) {
   };
 }
 
+export async function downloadAdminDashboardHtml(filters: RecordFilters) {
+  const response = await fetchAdminResponse(
+    `/api/admin/dashboard/export.html?${buildSearchParams(filters)}`
+  );
+
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get("content-disposition") ?? "";
+  const match = contentDisposition.match(/filename=\"?([^\";]+)\"?/i);
+
+  return {
+    blob,
+    filename: match?.[1] ?? "dashboard-epidemiologico-parnaiba.html"
+  };
+}
+
 function buildSearchParams(filters: RecordFilters) {
   const params = new URLSearchParams();
 

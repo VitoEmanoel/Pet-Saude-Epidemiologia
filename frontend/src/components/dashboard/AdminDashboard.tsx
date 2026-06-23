@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
+  downloadAdminDashboardHtml,
   downloadAdminRecordsCsv,
   getAdminAuditLogs,
   getAdminSession,
@@ -107,6 +108,7 @@ type AdminChartsState =
   | { status: "error"; message: string };
 
 type AuthState = { status: "checking" } | { status: "authenticated" } | { status: "unauthenticated" };
+type ExportFormat = "records_csv" | "dashboard_html";
 
 function isAdminAuthError(error: unknown) {
   return error instanceof ApiRequestError && (error.status === 401 || error.status === 403);
@@ -122,6 +124,17 @@ function confirmAdminAction(message: string) {
   }
 
   return window.confirm(message);
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 }
 
 function getSourceReferenceUrl(sourceUrl: string | null) {
@@ -141,6 +154,7 @@ export function AdminDashboard() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [state, setState] = useState<LoadState>({ status: "idle" });
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("records_csv");
   const [exportSourceSlug, setExportSourceSlug] = useState("");
   const [exportFiltersState, setExportFiltersState] = useState<ExportFiltersState>({
     status: "loading"
@@ -459,7 +473,7 @@ export function AdminDashboard() {
     }));
   }
 
-  async function exportCsv() {
+  async function exportSelectedFile() {
     if (authState.status !== "authenticated") {
       setActionState({
         busyAction: null,
@@ -481,29 +495,27 @@ export function AdminDashboard() {
     setActionState({ busyAction: "export", message: null, error: null });
 
     try {
-      const { blob, filename } = await downloadAdminRecordsCsv(
-        {
-          source: exportSourceSlug,
-          year: exportFilters.year,
-          sex: exportFilters.sex,
-          ageGroup: exportFilters.ageGroup,
-          raceColor: exportFilters.raceColor,
-          condition: exportFilters.condition
-        }
-      );
+      const filters = {
+        source: exportSourceSlug,
+        year: exportFilters.year,
+        sex: exportFilters.sex,
+        ageGroup: exportFilters.ageGroup,
+        raceColor: exportFilters.raceColor,
+        condition: exportFilters.condition
+      };
+      const { blob, filename } =
+        exportFormat === "dashboard_html"
+          ? await downloadAdminDashboardHtml(filters)
+          : await downloadAdminRecordsCsv(filters);
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      downloadBlob(blob, filename);
 
       setActionState({
         busyAction: null,
-        message: "CSV exportado com sucesso.",
+        message:
+          exportFormat === "dashboard_html"
+            ? "Dashboard exportado com sucesso."
+            : "CSV exportado com sucesso.",
         error: null
       });
     } catch (error) {
@@ -516,7 +528,7 @@ export function AdminDashboard() {
       setActionState({
         busyAction: null,
         message: null,
-        error: error instanceof Error ? error.message : "Falha ao exportar CSV."
+        error: error instanceof Error ? error.message : "Falha ao exportar arquivo."
       });
     }
   }
@@ -692,20 +704,32 @@ export function AdminDashboard() {
         <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2">
             <Filter size={17} className="text-slate-500" aria-hidden="true" />
-            <h2 className="text-sm font-semibold text-slate-950">Exportacao CSV</h2>
+            <h2 className="text-sm font-semibold text-slate-950">Exportacao</h2>
           </div>
           <button
             type="button"
-            onClick={() => void exportCsv()}
+            onClick={() => void exportSelectedFile()}
             disabled={actionState.busyAction !== null || exportFiltersState.status !== "loaded"}
             className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Download size={16} aria-hidden="true" />
-            Baixar CSV
+            {exportFormat === "dashboard_html" ? "Baixar dashboard" : "Baixar CSV"}
           </button>
         </div>
 
-        <div className="grid gap-3 p-4 lg:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 p-4 lg:grid-cols-2 xl:grid-cols-6">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Tipo</span>
+            <select
+              value={exportFormat}
+              onChange={(event) => setExportFormat(event.target.value as ExportFormat)}
+              className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+            >
+              <option value="records_csv">Tabela CSV</option>
+              <option value="dashboard_html">Dashboard HTML</option>
+            </select>
+          </label>
+
           <label className="block">
             <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Fonte</span>
             <select
@@ -1658,6 +1682,7 @@ function formatAuditAction(action: string) {
     admin_logout: "Logout",
     admin_request_blocked: "Bloqueio",
     admin_export_csv: "Exportacao CSV",
+    admin_export_dashboard: "Exportacao Dashboard",
     admin_sync_source: "Sincronizacao de fonte",
     admin_sync_all: "Sincronizacao geral"
   };
