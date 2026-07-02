@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Painel Epidemiologico de Parnaiba - PI",
-  description: "Dados publicos do DATASUS/TABNET para Parnaiba - PI."
+  title: "Painel Epidemiológico PET-Saúde — Parnaíba",
+  description: "Informação e Saúde Digital com dados públicos do DATASUS/TABNET para Parnaíba - PI."
 };
 
 export default function RootLayout({

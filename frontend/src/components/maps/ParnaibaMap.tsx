@@ -24,7 +24,7 @@ export function ParnaibaMap() {
           <CircleMarker
             center={PARNAIBA_POSITION}
             radius={10}
-            pathOptions={{ color: "#126a45", fillColor: "#178354", fillOpacity: 0.75 }}
+            pathOptions={{ color: "#143A60", fillColor: "#E8531E", fillOpacity: 0.85 }}
           >
             <Popup>Parnaiba - PI</Popup>
           </CircleMarker>

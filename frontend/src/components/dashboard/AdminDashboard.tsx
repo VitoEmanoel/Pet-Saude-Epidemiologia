@@ -578,7 +578,7 @@ export function AdminDashboard() {
             type="button"
             onClick={() => void login()}
             disabled={actionState.busyAction !== null}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded bg-health-700 px-4 text-sm font-medium text-white hover:bg-health-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded bg-pet-mid px-4 text-sm font-medium text-white hover:bg-pet-light disabled:cursor-not-allowed disabled:opacity-50"
           >
             <LogIn size={16} aria-hidden="true" />
             Entrar no painel
@@ -591,7 +591,7 @@ export function AdminDashboard() {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
         API indisponivel: {state.message}
       </div>
     );
@@ -654,7 +654,7 @@ export function AdminDashboard() {
               type="button"
               onClick={() => void syncAll()}
               disabled={actionState.busyAction !== null}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-9 items-center justify-center gap-2 rounded bg-pet-orange px-3 text-sm font-medium text-white hover:bg-pet-dark disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Play size={16} aria-hidden="true" />
               Ativas
@@ -823,7 +823,7 @@ export function AdminDashboard() {
         </div>
 
         {exportFiltersState.status === "error" ? (
-          <div className="border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="border-t border-pet-red/30 bg-pet-red/5 px-4 py-3 text-sm text-pet-red">
             {exportFiltersState.message}
           </div>
         ) : null}
@@ -910,7 +910,7 @@ export function AdminDashboard() {
                   type="button"
                   onClick={() => void syncSource(source.slug)}
                   disabled={busy || !authenticated || !sourceCanSync}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-pet-orange px-3 text-sm font-medium text-pet-orange hover:bg-pet-orange hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Play size={16} aria-hidden="true" />
                   {sourceCanSync ? "Sincronizar fonte" : sourceIsActive ? "Fonte derivada" : "Fonte prevista"}
@@ -921,7 +921,7 @@ export function AdminDashboard() {
         </div>
         <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="bg-pet-dark text-xs uppercase text-white">
               <tr>
                 <th className="px-4 py-3 font-semibold">Fonte</th>
                 <th className="px-4 py-3 font-semibold">Status municipal</th>
@@ -1000,7 +1000,7 @@ export function AdminDashboard() {
                         type="button"
                         onClick={() => void syncSource(source.slug)}
                         disabled={busy || !authenticated || !sourceCanSync}
-                        className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex h-9 items-center justify-center gap-2 rounded border border-pet-orange px-3 text-sm font-medium text-pet-orange hover:bg-pet-orange hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <Play size={16} aria-hidden="true" />
                         {sourceCanSync ? "Fonte" : sourceIsActive ? "Derivada" : "Prevista"}
@@ -1257,7 +1257,7 @@ function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
         </div>
 
         {sourceState.status === "error" ? (
-          <div className="border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="border-t border-pet-red/30 bg-pet-red/5 px-4 py-3 text-sm text-pet-red">
             {sourceState.message}
           </div>
         ) : null}
@@ -1359,7 +1359,7 @@ function AdminDashboardCharts({ state }: { state: AdminChartsState }) {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
         {state.message}
       </div>
     );
@@ -1401,9 +1401,9 @@ function JobStatus({ status }: { status: string | null }) {
     <span
       className={`inline-flex items-center gap-2 rounded border px-2 py-1 text-xs font-medium ${
         success
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+            ? "border-pet-light bg-pet-light/15 text-pet-dark"
           : failed
-            ? "border-amber-200 bg-amber-50 text-amber-800"
+            ? "border-pet-red/30 bg-pet-red/5 text-pet-red"
             : "border-slate-200 bg-slate-50 text-slate-700"
       }`}
     >
@@ -1462,7 +1462,7 @@ function HistoryTable({ history }: { history: AdminSyncHistoryResponse }) {
       </div>
       <div className="hidden overflow-x-auto md:block">
       <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+        <thead className="bg-pet-dark text-xs uppercase text-white">
           <tr>
             <th className="px-4 py-3 font-semibold">Fonte</th>
             <th className="px-4 py-3 font-semibold">Status</th>
@@ -1542,7 +1542,7 @@ function AuditTable({ auditLogs }: { auditLogs: AdminAuditLogsResponse }) {
       </div>
       <div className="hidden overflow-x-auto md:block">
       <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+        <thead className="bg-pet-dark text-xs uppercase text-white">
           <tr>
             <th className="px-4 py-3 font-semibold">Data</th>
             <th className="px-4 py-3 font-semibold">Acao</th>
@@ -1663,12 +1663,12 @@ function StatusMessages({
   return (
     <>
       {actionState.message ? (
-        <div className="border-t border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="border-t border-pet-mid/30 bg-pet-light/15 px-4 py-3 text-sm text-pet-dark">
           {actionState.message}
         </div>
       ) : null}
       {actionState.error ? (
-        <div className="border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="border-t border-pet-red/30 bg-pet-red/5 px-4 py-3 text-sm text-pet-red">
           {actionState.error}
         </div>
       ) : null}

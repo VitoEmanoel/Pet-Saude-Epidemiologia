@@ -56,7 +56,7 @@ export function OverviewDashboard() {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
         API indisponivel: {state.message}
       </div>
     );
@@ -166,7 +166,7 @@ export function OverviewDashboard() {
         </div>
         <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="bg-pet-dark text-xs uppercase text-white">
               <tr>
                 <th className="px-4 py-3 font-semibold">Fonte</th>
                 <th className="px-4 py-3 font-semibold">Sistema</th>
@@ -180,7 +180,7 @@ export function OverviewDashboard() {
                 const pageLabel = source.active ? "Abrir" : "Em validacao";
 
                 return (
-                  <tr key={source.slug}>
+                  <tr key={source.slug} className="hover:bg-pet-light/10">
                     <td className="px-4 py-3 font-medium text-slate-950">{source.name}</td>
                     <td className="px-4 py-3 text-slate-700">{source.system}</td>
                     <td className="px-4 py-3">

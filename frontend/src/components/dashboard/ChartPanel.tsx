@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { EChartsOption } from "echarts";
 import type { CategoryPoint, ChartPoint } from "@/types/api";
 import { EChart } from "./EChart";
@@ -20,7 +21,23 @@ type ChartPanelProps =
     };
 
 export function ChartPanel(props: ChartPanelProps) {
-  const option = props.type === "line" ? lineOption(props.data) : barOption(props.data, props.horizontal);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const updateTheme = () => setDarkMode(root.classList.contains("dark"));
+    const observer = new MutationObserver(updateTheme);
+
+    updateTheme();
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const option =
+    props.type === "line"
+      ? lineOption(props.data, darkMode)
+      : barOption(props.data, props.horizontal, darkMode);
   const empty = props.data.length === 0;
 
   return (
@@ -44,20 +61,23 @@ export function ChartPanel(props: ChartPanelProps) {
   );
 }
 
-function lineOption(data: ChartPoint[]): EChartsOption {
+function lineOption(data: ChartPoint[], darkMode: boolean): EChartsOption {
+  const labelColor = darkMode ? "#E2E0E0" : "#143A60";
+  const gridColor = darkMode ? "#459CD7" : "#E2E0E0";
+
   return {
     grid: { left: 44, right: 16, top: 24, bottom: 32 },
     tooltip: { trigger: "axis" },
     xAxis: {
       type: "category",
       data: data.map((point) => String(point.year)),
-      axisLabel: { color: "#475569" },
-      axisLine: { lineStyle: { color: "#cbd5e1" } }
+      axisLabel: { color: labelColor },
+      axisLine: { lineStyle: { color: gridColor } }
     },
     yAxis: {
       type: "value",
-      axisLabel: { color: "#475569" },
-      splitLine: { lineStyle: { color: "#e2e8f0" } }
+      axisLabel: { color: labelColor },
+      splitLine: { lineStyle: { color: gridColor, opacity: darkMode ? 0.35 : 1 } }
     },
     series: [
       {
@@ -65,17 +85,19 @@ function lineOption(data: ChartPoint[]): EChartsOption {
         data: data.map((point) => point.value),
         smooth: true,
         symbolSize: 7,
-        lineStyle: { width: 3, color: "#178354" },
-        itemStyle: { color: "#178354" },
-        areaStyle: { color: "rgba(23, 131, 84, 0.12)" }
+        lineStyle: { width: 3, color: "#066F9B" },
+        itemStyle: { color: "#E8531E" },
+        areaStyle: { color: "rgba(69, 156, 215, 0.18)" }
       }
     ]
   };
 }
 
-function barOption(data: CategoryPoint[], horizontal = false): EChartsOption {
+function barOption(data: CategoryPoint[], horizontal = false, darkMode = false): EChartsOption {
   const labels = data.map((point) => point.label);
   const values = data.map((point) => point.value);
+  const labelColor = darkMode ? "#E2E0E0" : "#143A60";
+  const gridColor = darkMode ? "#459CD7" : "#E2E0E0";
 
   return {
     grid: { left: horizontal ? 112 : 44, right: 16, top: 24, bottom: horizontal ? 24 : 56 },
@@ -83,33 +105,33 @@ function barOption(data: CategoryPoint[], horizontal = false): EChartsOption {
     xAxis: horizontal
       ? {
           type: "value",
-          axisLabel: { color: "#475569" },
-          splitLine: { lineStyle: { color: "#e2e8f0" } }
+          axisLabel: { color: labelColor },
+          splitLine: { lineStyle: { color: gridColor, opacity: darkMode ? 0.35 : 1 } }
         }
       : {
           type: "category",
           data: labels,
-          axisLabel: { color: "#475569", rotate: labels.some((label) => label.length > 8) ? 28 : 0 },
-          axisLine: { lineStyle: { color: "#cbd5e1" } }
+          axisLabel: { color: labelColor, rotate: labels.some((label) => label.length > 8) ? 28 : 0 },
+          axisLine: { lineStyle: { color: gridColor } }
         },
     yAxis: horizontal
       ? {
           type: "category",
           data: labels,
-          axisLabel: { color: "#475569" },
-          axisLine: { lineStyle: { color: "#cbd5e1" } }
+          axisLabel: { color: labelColor },
+          axisLine: { lineStyle: { color: gridColor } }
         }
       : {
           type: "value",
-          axisLabel: { color: "#475569" },
-          splitLine: { lineStyle: { color: "#e2e8f0" } }
+          axisLabel: { color: labelColor },
+          splitLine: { lineStyle: { color: gridColor, opacity: darkMode ? 0.35 : 1 } }
         },
     series: [
       {
         type: "bar",
         data: values,
         barMaxWidth: 34,
-        itemStyle: { color: "#2563eb", borderRadius: horizontal ? [0, 3, 3, 0] : [3, 3, 0, 0] }
+        itemStyle: { color: "#066F9B", borderRadius: horizontal ? [0, 3, 3, 0] : [3, 3, 0, 0] }
       }
     ]
   };

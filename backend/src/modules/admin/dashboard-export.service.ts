@@ -58,19 +58,19 @@ export function toDashboardHtml(input: DashboardExportInput): string {
   <style>
     :root {
       color-scheme: light;
-      --ink: #0f172a;
-      --muted: #64748b;
-      --line: #dbe3ea;
+      --ink: #000000;
+      --muted: #143A60;
+      --line: #E2E0E0;
       --panel: #ffffff;
-      --soft: #f5f7fa;
-      --green: #047857;
-      --blue: #0369a1;
-      --amber: #b45309;
+      --soft: #E2E0E0;
+      --green: #066F9B;
+      --blue: #143A60;
+      --amber: #E8531E;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: #eef3f7;
+      background: #E2E0E0;
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
       line-height: 1.45;
@@ -85,10 +85,14 @@ export function toDashboardHtml(input: DashboardExportInput): string {
       justify-content: space-between;
       gap: 24px;
       align-items: flex-start;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 20px;
+      background: #143A60;
+      color: #ffffff;
+      border-bottom: 4px solid #E8531E;
+      padding: 20px;
       margin-bottom: 24px;
     }
+    header p { color: #ffffff; opacity: 0.82; }
+    header a { color: #ffffff; }
     h1 {
       margin: 0;
       font-size: 30px;
@@ -107,9 +111,9 @@ export function toDashboardHtml(input: DashboardExportInput): string {
     }
     a { color: var(--blue); }
     .print-button {
-      border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--ink);
+      border: 1px solid #459CD7;
+      background: #066F9B;
+      color: #ffffff;
       height: 38px;
       padding: 0 14px;
       font-size: 14px;
@@ -149,6 +153,7 @@ export function toDashboardHtml(input: DashboardExportInput): string {
     .card {
       padding: 14px;
       min-height: 102px;
+      border-top: 4px solid #066F9B;
     }
     .card strong {
       display: block;
@@ -280,21 +285,21 @@ function lineChart(points: ChartPoint[]): string {
   const labelIndexes = getLabelIndexes(points.length);
 
   return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Grafico de evolucao anual">
-    <line x1="${paddingLeft}" y1="${paddingTop}" x2="${paddingLeft}" y2="${paddingTop + chartHeight}" stroke="#dbe3ea" />
-    <line x1="${paddingLeft}" y1="${paddingTop + chartHeight}" x2="${paddingLeft + chartWidth}" y2="${paddingTop + chartHeight}" stroke="#dbe3ea" />
-    <text x="0" y="${paddingTop + 4}" font-size="12" fill="#64748b">${escapeHtml(formatNumber(maxValue))}</text>
-    <text x="0" y="${paddingTop + chartHeight}" font-size="12" fill="#64748b">0</text>
-    <polyline points="${path}" fill="none" stroke="#047857" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+    <line x1="${paddingLeft}" y1="${paddingTop}" x2="${paddingLeft}" y2="${paddingTop + chartHeight}" stroke="#E2E0E0" />
+    <line x1="${paddingLeft}" y1="${paddingTop + chartHeight}" x2="${paddingLeft + chartWidth}" y2="${paddingTop + chartHeight}" stroke="#E2E0E0" />
+    <text x="0" y="${paddingTop + 4}" font-size="12" fill="#143A60">${escapeHtml(formatNumber(maxValue))}</text>
+    <text x="0" y="${paddingTop + chartHeight}" font-size="12" fill="#143A60">0</text>
+    <polyline points="${path}" fill="none" stroke="#066F9B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
     ${coordinates
       .map(
         (point) =>
-          `<circle cx="${point.x}" cy="${point.y}" r="4" fill="#047857"><title>${point.year}: ${formatNumber(point.value)}</title></circle>`
+          `<circle cx="${point.x}" cy="${point.y}" r="4" fill="#E8531E"><title>${point.year}: ${formatNumber(point.value)}</title></circle>`
       )
       .join("")}
     ${labelIndexes
       .map((index) => {
         const point = coordinates[index];
-        return `<text x="${point.x}" y="${height - 14}" font-size="12" text-anchor="middle" fill="#64748b">${point.year}</text>`;
+        return `<text x="${point.x}" y="${height - 14}" font-size="12" text-anchor="middle" fill="#143A60">${point.year}</text>`;
       })
       .join("")}
   </svg>`;
@@ -322,10 +327,10 @@ function barChart(points: CategoryPoint[]): string {
         const visibleBarWidth = Math.max(2, (point.value / maxValue) * barWidth);
 
         return `<g>
-          <text x="0" y="${y + 20}" font-size="12" fill="#334155">${escapeHtml(point.label)}</text>
-          <rect x="${labelWidth}" y="${y + 6}" width="${barWidth}" height="16" fill="#eef3f7" />
-          <rect x="${labelWidth}" y="${y + 6}" width="${visibleBarWidth}" height="16" fill="#0369a1" />
-          <text x="${labelWidth + barWidth + 12}" y="${y + 20}" font-size="12" fill="#0f172a">${escapeHtml(formatNumber(point.value))}</text>
+          <text x="0" y="${y + 20}" font-size="12" fill="#143A60">${escapeHtml(point.label)}</text>
+          <rect x="${labelWidth}" y="${y + 6}" width="${barWidth}" height="16" fill="#E2E0E0" />
+          <rect x="${labelWidth}" y="${y + 6}" width="${visibleBarWidth}" height="16" fill="#066F9B" />
+          <text x="${labelWidth + barWidth + 12}" y="${y + 20}" font-size="12" fill="#000000">${escapeHtml(formatNumber(point.value))}</text>
         </g>`;
       })
       .join("")}

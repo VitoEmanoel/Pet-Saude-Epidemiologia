@@ -219,7 +219,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
         API indisponivel: {state.message}
       </div>
     );
@@ -310,7 +310,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
             type="button"
             onClick={clearFilters}
             disabled={!hasSelectedFilters}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded border border-pet-orange px-3 text-sm font-medium text-pet-orange hover:bg-pet-orange hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
             <X size={16} aria-hidden="true" />
             Limpar
@@ -402,7 +402,7 @@ function DashboardCharts({ state }: { state: ChartsState }) {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
         {state.message}
       </div>
     );
@@ -441,7 +441,7 @@ function RecordsTable({
   }
 
   if (state.status === "error") {
-    return <div className="p-4 text-sm text-amber-800">{state.message}</div>;
+    return <div className="border-l-4 border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">{state.message}</div>;
   }
 
   return (
@@ -487,7 +487,7 @@ function RecordsTable({
       </div>
       <div className="hidden overflow-x-auto md:block">
         <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <thead className="bg-pet-dark text-xs uppercase text-white">
             <tr>
               <th className="px-4 py-3 font-semibold">Ano</th>
               <th className="px-4 py-3 font-semibold">Condicao</th>
@@ -500,7 +500,7 @@ function RecordsTable({
           </thead>
           <tbody className="divide-y divide-slate-100">
             {state.data.records.map((record) => (
-              <tr key={record.id}>
+              <tr key={record.id} className="hover:bg-pet-light/10">
                 <td className="px-4 py-3 text-slate-900">{record.year}</td>
                 <td className="px-4 py-3 font-medium text-slate-950">{record.diseaseOrCondition}</td>
                 <td className="px-4 py-3 text-slate-900">{formatNumber(record.value)}</td>
