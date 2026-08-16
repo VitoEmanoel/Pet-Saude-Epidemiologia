@@ -25,6 +25,23 @@ export type ChartPoint = {
   value: number;
 };
 
+export type DengueIndicatorPoint = {
+  year: number;
+  population: number | null;
+  probableCases: number;
+  alarmCases: number;
+  severeCases: number;
+  incidencePer100k: number | null;
+  alarmProportion: number | null;
+  severeProportion: number | null;
+};
+
+export type DengueIndicatorsResponse = {
+  city: City;
+  source: string;
+  series: DengueIndicatorPoint[];
+};
+
 export type CategoryPoint = {
   label: string;
   value: number;

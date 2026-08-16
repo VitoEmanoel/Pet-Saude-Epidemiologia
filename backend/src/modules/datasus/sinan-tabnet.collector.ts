@@ -5,6 +5,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { ALLOWED_CITY } from "../../config/city";
 import { postTabnetPrn } from "./tabnet-client";
 import { parsePrnTable } from "./tabnet-prn";
+import { syncIbgePopulationEstimates } from "../ibge/population.collector";
 
 const TABNET_CITY_CODE = "220770";
 const TABNET_CITY_OPTION_VALUE = "827";
@@ -18,6 +19,8 @@ type QueryDefinition = {
   columnLabel: string;
   sourceTable: string;
   aggregationType: "yearly" | "by_sex" | "by_age_group" | "by_race_color";
+  metric?: string;
+  classificationFinal?: string;
 };
 
 type SinanTabnetCollectorConfig = {
@@ -153,11 +156,15 @@ export async function collectSinanTabnetSource(
 
   let recordsImported = 0;
   let rawImportsCreated = 0;
+  const dengueYears = new Set<number>();
 
   for (const queryDefinition of buildQueryDefinitions(config)) {
     const encodedFormBody = buildEncodedFormBody(config, queryDefinition);
     const tabnetResponse = await postTabnetPrn(config.tabnetQueryUrl, encodedFormBody);
     const normalizedRecords = parseSinanRecords(config, queryDefinition, tabnetResponse.html);
+    if (config.sourceSlug === "dengue_sinan" && queryDefinition.aggregationType === "yearly") {
+      normalizedRecords.forEach((record) => dengueYears.add(record.year));
+    }
     const storedPath = await storeRawImport(config.sourceSlug, queryDefinition.name, tabnetResponse.html);
 
     await prisma.rawImport.create({
@@ -199,7 +206,7 @@ export async function collectSinanTabnetSource(
           year: record.year,
           month: null,
           diseaseOrCondition: config.diseaseOrCondition,
-          metric: config.metric,
+          metric: queryDefinition.metric ?? config.metric,
           value: record.value,
           sex: record.sex,
           ageGroup: record.ageGroup,
@@ -214,6 +221,10 @@ export async function collectSinanTabnetSource(
     }
   }
 
+  if (config.sourceSlug === "dengue_sinan") {
+    await syncIbgePopulationEstimates(prisma, sourceId, syncJobId, [...dengueYears]);
+  }
+
   return {
     recordsImported,
     rawImportsCreated
@@ -221,7 +232,7 @@ export async function collectSinanTabnetSource(
 }
 
 function buildQueryDefinitions(config: SinanTabnetCollectorConfig): QueryDefinition[] {
-  return [
+  const base: QueryDefinition[] = [
     {
       name: "yearly",
       columnEncoded: "--N%E3o-Ativa--",
@@ -251,6 +262,25 @@ function buildQueryDefinitions(config: SinanTabnetCollectorConfig): QueryDefinit
       aggregationType: "by_race_color"
     }
   ];
+
+  if (config.sourceSlug !== "dengue_sinan") return base;
+
+  return [
+    { metric: "casos_provaveis", classificationFinal: undefined },
+    { metric: "dengue_sinais_alarme", classificationFinal: "9" },
+    { metric: "dengue_grave", classificationFinal: "10" }
+  ].flatMap((indicator) =>
+    base.map((definition) => ({
+      ...definition,
+      metric: indicator.metric,
+      classificationFinal: indicator.classificationFinal,
+      name: `${indicator.metric}_${definition.name}`,
+      sourceTable:
+        indicator.metric === "casos_provaveis"
+          ? definition.sourceTable
+          : `${definition.sourceTable}_${indicator.metric}`
+    }))
+  );
 }
 
 function buildEncodedFormBody(
@@ -266,6 +296,7 @@ function buildEncodedFormBody(
     `Incremento=${config.incrementEncoded}`,
     ...config.periodFiles.map((file) => `Arquivos=${file}`),
     `${config.municipalityResidenceFilterEncoded ?? DEFAULT_MUNICIPALITY_RESIDENCE_FILTER}=${municipalityOptionValue}`,
+    ...(queryDefinition.classificationFinal ? [`SClass._Final=${queryDefinition.classificationFinal}`] : []),
     "formato=prn",
     "mostre=Mostra"
   ].join("&");
@@ -292,7 +323,9 @@ function buildRequestParams(
       city: ALLOWED_CITY.name,
       uf: ALLOWED_CITY.uf
     },
-    format: "prn"
+    format: "prn",
+    metric: queryDefinition.metric ?? config.metric,
+    classificationFinal: queryDefinition.classificationFinal ?? "todas"
   };
 }
 

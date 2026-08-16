@@ -152,3 +152,17 @@ model EpidemiologicalRecord {
   @@index([importedAt])
   @@map("epidemiological_records")
 }
+
+model PopulationEstimate {
+  id           Int      @id @default(autoincrement())
+  cityIbgeCode String   @map("city_ibge_code") @db.VarChar(20)
+  year         Int
+  population   Int
+  sourceUrl    String   @map("source_url")
+  sourceKind   String   @default("estimativa") @map("source_kind") @db.VarChar(50)
+  referenceYear Int    @map("reference_year")
+  importedAt   DateTime @default(now()) @map("imported_at")
+
+  @@unique([cityIbgeCode, year])
+  @@map("population_estimates")
+}

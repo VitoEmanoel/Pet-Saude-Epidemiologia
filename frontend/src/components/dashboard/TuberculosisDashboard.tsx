@@ -16,6 +16,7 @@ import {
   getChartByAgeGroup,
   getChartByRaceColor,
   getChartBySex,
+  getDengueIndicators,
   getRecords,
   getSourceFilters,
   getSourceSummary,
@@ -25,6 +26,7 @@ import { formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
 import type {
   CategoryPoint,
   ChartPoint,
+  DengueIndicatorsResponse,
   RecordFilters,
   RecordsResponse,
   SourceFiltersResponse,
@@ -65,6 +67,8 @@ type SelectedFilters = {
   raceColor: string;
 };
 
+type DengueIndicator = "incidence" | "alarm" | "severe";
+
 type DiseaseDashboardProps = {
   source: string;
   title: string;
@@ -80,6 +84,8 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     raceColor: ""
   });
   const [page, setPage] = useState(1);
+  const [dengueIndicator, setDengueIndicator] = useState<DengueIndicator>("incidence");
+  const [dengueIndicators, setDengueIndicators] = useState<DengueIndicatorsResponse | null>(null);
   const [recordsState, setRecordsState] = useState<
     | { status: "loading" }
     | { status: "loaded"; data: RecordsResponse }
@@ -114,6 +120,14 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     return () => {
       active = false;
     };
+  }, [source]);
+
+  useEffect(() => {
+    if (source !== "dengue_sinan") {
+      setDengueIndicators(null);
+      return;
+    }
+    getDengueIndicators().then(setDengueIndicators).catch(() => setDengueIndicators(null));
   }, [source]);
 
   const activeFilters = useMemo<RecordFilters>(
@@ -226,7 +240,6 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   }
 
   const sourceIsActive = state.summary.source.active;
-  const isArboviroses = state.summary.source.slug === "arboviroses_sinan";
   const isSifilisGestacional = state.summary.source.slug === "sifilis_gestacional_sinan";
   const hasSelectedFilters = Object.values(selectedFilters).some(Boolean);
   const visibleYearly = chartsState.status === "loaded" ? chartsState.yearly : null;
@@ -236,6 +249,14 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   const latestVisiblePoint = visibleYearly?.at(-1) ?? null;
   const firstVisibleYear = visibleYearly?.[0]?.year ?? state.summary.summary.firstAvailableYear;
   const lastVisibleYear = latestVisiblePoint?.year ?? state.summary.summary.lastAvailableYear;
+  const selectedDenguePoint = dengueIndicators?.series.find((point) => point.year === Number(selectedFilters.year))
+    ?? dengueIndicators?.series.at(-1)
+    ?? null;
+  const dengueIndicatorDetails: Record<DengueIndicator, { label: string; value: number | null; suffix: string; description: string }> = selectedDenguePoint ? {
+    incidence: { label: "Incidência de dengue", value: selectedDenguePoint.incidencePer100k, suffix: " por 100 mil hab.", description: `${selectedDenguePoint.probableCases} casos prováveis; população IBGE: ${formatNumber(selectedDenguePoint.population)}` },
+    alarm: { label: "Dengue com sinais de alarme", value: selectedDenguePoint.alarmProportion, suffix: "%", description: `${selectedDenguePoint.alarmCases} casos entre ${selectedDenguePoint.probableCases} casos prováveis` },
+    severe: { label: "Dengue grave", value: selectedDenguePoint.severeProportion, suffix: "%", description: `${selectedDenguePoint.severeCases} casos entre ${selectedDenguePoint.probableCases} casos prováveis` }
+  } : {} as Record<DengueIndicator, { label: string; value: number | null; suffix: string; description: string }>;
 
   return (
     <div className="space-y-5">
@@ -287,17 +308,24 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
         </div>
       ) : null}
 
-      {isArboviroses ? (
-        <div className="rounded border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-          Esta visao agrega as fontes oficiais atualmente integradas para arboviroses no painel:
-          dengue e zika. Chikungunya continua pendente de validacao tecnica da rota oficial.
-        </div>
-      ) : null}
-
       {state.summary.summary.lastSyncStatus && state.summary.summary.lastSyncStatus !== "SUCCESS" ? (
         <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Nao foi possivel atualizar esta fonte no momento. Os dados exibidos correspondem a ultima coleta realizada com sucesso.
         </div>
+      ) : null}
+
+      {source === "dengue_sinan" ? (
+        <section className="rounded border border-sky-200 bg-sky-50 p-4">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px] md:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">Indicador de dengue</p>
+              <h2 className="mt-1 text-lg font-semibold text-slate-950">{dengueIndicatorDetails[dengueIndicator]?.label ?? "Aguardando sincronização"}</h2>
+              <p className="mt-2 text-3xl font-bold text-sky-950">{dengueIndicatorDetails[dengueIndicator]?.value === null || dengueIndicatorDetails[dengueIndicator]?.value === undefined ? "—" : `${dengueIndicatorDetails[dengueIndicator].value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}${dengueIndicatorDetails[dengueIndicator].suffix}`}</p>
+              <p className="mt-1 text-sm text-sky-900">{selectedDenguePoint ? `Ano ${selectedDenguePoint.year}. ${dengueIndicatorDetails[dengueIndicator].description}` : "Sincronize Dengue para carregar os indicadores e população do IBGE."}</p>
+            </div>
+            <FilterSelect label="Indicador" value={dengueIndicator} onChange={(value) => setDengueIndicator(value as DengueIndicator)} options={["incidence", "alarm", "severe"]} labels={{ incidence: "Coeficiente de incidência", alarm: "Proporção com sinais de alarme", severe: "Proporção de dengue grave" }} />
+          </div>
+        </section>
       ) : null}
 
       <section className="rounded border border-slate-200 bg-white">
@@ -369,11 +397,13 @@ function FilterSelect({
   label,
   value,
   options,
+  labels,
   onChange
 }: {
   label: string;
   value: string;
   options: string[];
+  labels?: Record<string, string>;
   onChange: (value: string) => void;
 }) {
   return (
@@ -387,7 +417,7 @@ function FilterSelect({
         <option value="">Todos</option>
         {options.map((option) => (
           <option key={option} value={option}>
-            {option}
+            {labels?.[option] ?? option}
           </option>
         ))}
       </select>

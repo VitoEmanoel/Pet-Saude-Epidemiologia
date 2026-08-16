@@ -4,6 +4,7 @@ import { ALLOWED_CITY, ALLOWED_DATASUS_CATEGORY } from "./config/city";
 import { adminRouter } from "./routes/admin";
 import { chartsRouter } from "./routes/charts";
 import { dashboardRouter } from "./routes/dashboard";
+import { dengueRouter } from "./routes/dengue";
 import { recordsRouter } from "./routes/records";
 import { sourcesRouter } from "./routes/sources";
 import { sendError } from "./utils/api-response";
@@ -29,6 +30,7 @@ export function createServer() {
 
   app.use("/api/sources", sourcesRouter);
   app.use("/api/dashboard", dashboardRouter);
+  app.use("/api/dengue", dengueRouter);
   app.use("/api/records", recordsRouter);
   app.use("/api/charts", chartsRouter);
   app.use("/api/admin", adminRouter);

@@ -15,6 +15,7 @@
     "seed:prod": "node dist/prisma/seed.js",
     "prisma:studio": "prisma studio",
     "sync:data": "tsx src/scripts/sync-data.ts",
+    "sync:data:prod": "node dist/scripts/sync-data.js",
     "sync:tuberculose": "tsx src/scripts/sync-data.ts tuberculose_sinan",
     "sync:hanseniase": "tsx src/scripts/sync-data.ts hanseniase_sinan",
     "sync:sifilis": "tsx src/scripts/sync-data.ts sifilis_congenita_sinan",

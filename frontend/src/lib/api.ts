@@ -8,6 +8,7 @@ import type {
   CategoryPoint,
   ChartPoint,
   ChartResponse,
+  DengueIndicatorsResponse,
   DashboardOverviewResponse,
   RecordFilters,
   RecordsResponse,
@@ -70,6 +71,10 @@ export function getSources() {
 
 export function getDashboardOverview() {
   return fetchJson<DashboardOverviewResponse>("/api/dashboard/overview");
+}
+
+export function getDengueIndicators() {
+  return fetchJson<DengueIndicatorsResponse>("/api/dengue/indicators");
 }
 
 export function getSourceSummary(slug: string) {

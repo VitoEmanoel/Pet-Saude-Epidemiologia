@@ -12,7 +12,6 @@ type AppShellProps = {
     | "hanseniase"
     | "sifilis"
     | "dengue"
-    | "arboviroses"
     | "sifilis-gestacional";
   children: React.ReactNode;
 };
@@ -46,12 +45,6 @@ const navItems = [
     href: "/dengue",
     label: "Dengue",
     active: "dengue",
-    icon: Activity
-  },
-  {
-    href: "/arboviroses",
-    label: "Arboviroses",
-    active: "arboviroses",
     icon: Activity
   },
   {

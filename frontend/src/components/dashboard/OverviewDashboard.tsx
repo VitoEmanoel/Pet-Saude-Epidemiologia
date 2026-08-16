@@ -20,7 +20,6 @@ const sourcePages: Record<string, string> = {
   hanseniase_sinan: "/hanseniase",
   sifilis_congenita_sinan: "/sifilis",
   dengue_sinan: "/dengue",
-  arboviroses_sinan: "/arboviroses",
   sifilis_gestacional_sinan: "/sifilis-gestacional"
 };
 

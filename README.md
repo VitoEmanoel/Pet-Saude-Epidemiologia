@@ -90,20 +90,7 @@ docker-compose.yml    Definicao dos servicos
 
 ### Ambiente recomendado
 
-O fluxo oficial deste projeto foi pensado para Linux.
-
-Se voce estiver em Windows, o recomendado e usar uma destas opcoes:
-
-1. WSL2 com Ubuntu.
-2. Uma maquina Linux.
-
-Motivo:
-
-- Os comandos principais do projeto usam scripts `bash`.
-- O script `npm run doctor` depende do comando `ss`.
-- O uso via Windows nativo pode falhar mesmo com Node e Docker instalados.
-
-Se o colaborador usa Windows e quer evitar problemas, a melhor decisao e rodar tudo no WSL2.
+O sistema funciona em Windows 10/11, Linux e macOS. No Windows, use Docker Desktop e execute os comandos pelo PowerShell ou Prompt de Comando; WSL2 e opcional. Em qualquer sistema, use Node.js 20 ou superior e Docker Compose v2.
 
 ### Programas obrigatorios
 
@@ -207,15 +194,19 @@ Depois faca logout/login ou reinicie a maquina.
 
 ### Windows
 
-Para Windows, use WSL2 com Ubuntu e execute o projeto dentro do ambiente Linux.
+O projeto pode ser executado nativamente no Windows 10/11 com PowerShell ou Prompt de Comando. Instale o Docker Desktop, mantenha-o aberto e instale Node.js 20 ou superior. WSL2 continua sendo uma opcao, mas nao e obrigatorio.
 
-Resumo do caminho recomendado:
+No PowerShell, dentro da pasta do projeto:
 
-1. Instalar WSL2.
-2. Instalar Ubuntu no WSL.
-3. Instalar Docker Desktop com integracao ao WSL habilitada.
-4. Abrir o projeto dentro do Ubuntu.
-5. Seguir o restante deste README como se estivesse em Linux.
+```powershell
+npm ci
+Copy-Item .env.example .env
+# Edite .env e altere ADMIN_PASSWORD e ADMIN_SESSION_SECRET
+npm run doctor
+npm run start
+```
+
+Os comandos `npm run start`, `doctor`, `stop`, `restart`, `logs`, `sync:data` e `db:reset` sao multiplataforma. Para recuperar o Docker no Windows, reinicie-o pelo Docker Desktop em **Troubleshoot > Restart** e execute novamente o comando indicado.
 
 ## Clonar O Projeto
 
@@ -233,7 +224,7 @@ Esta e a sequencia correta para um colaborador novo.
 Na raiz do projeto:
 
 ```bash
-npm install
+npm ci
 ```
 
 Esse comando instala as dependencias do projeto raiz, do backend e do frontend.

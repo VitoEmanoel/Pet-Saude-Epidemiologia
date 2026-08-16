@@ -62,18 +62,6 @@ export const allowedSources: readonly AllowedSource[] = [
     kind: "primary"
   },
   {
-    slug: "arboviroses_sinan",
-    name: "Arboviroses em geral",
-    system: "SINAN",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "available",
-    sourceUrl: null,
-    active: true,
-    syncEnabled: false,
-    kind: "derived",
-    composedOf: ["dengue_sinan", "zika_sinan"]
-  },
-  {
     slug: "sifilis_gestacional_sinan",
     name: "Casos de Sífilis Gestacional",
     system: "SINAN",
