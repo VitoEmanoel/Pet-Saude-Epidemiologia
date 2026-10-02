@@ -25,13 +25,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
-| 2B | Achados dos testes de segurança | 8 | 5 |
+| 2B | Achados dos testes de segurança | 8 | 6 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **56** | **20** |
+| | **Total** | **56** | **21** |
 
 ---
 
@@ -142,7 +142,7 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
 - [x] **S17** Limite de requisições por IP na API pública (02/10/2026, branch `fix/s17-limite-de-requisicoes`): `express-rate-limit`, `RATE_LIMIT_PER_MINUTE` (padrão 600/min por IP; 0 desliga), 429 em JSON com cabeçalho `RateLimit`; IPs privados isentos (uso local, testes e proxy sem `TRUST_PROXY`, que de outra forma bloquearia todos os visitantes juntos). Defesa contra ataque distribuído fica para o proxy/provedor (Fase 6)
 - [x] **S15** `start.sh` recusa `POSTGRES_PASSWORD` padrão no perfil `servidor` (02/10/2026, branch `fix/s15-senha-banco`): recusa também `ADMIN_PASSWORD` < 12 e `ADMIN_SESSION_SECRET` < 32 caracteres; o backend avisa no log (`getWeakConfigWarnings`) quando a origem não é localhost; docs/02 §2.8 explica como trocar a senha do banco existente
 - [x] **S12** `/api/records` aceita só fontes públicas (02/10/2026, branch `fix/s12-fonte-interna`): validação com `getPublicSourceBySlug`; achado extra durante a correção: **sem `source`, a listagem também trazia a zika** (90 registros na 1ª página); agora restrita às primárias públicas
-- [ ] **S14** Filtros inválidos devolvem 400
+- [x] **S14** Filtros inválidos devolvem 400 (02/10/2026, branch `fix/s14-validacao-filtros`): `year` com 4 dígitos, `month` 1–12, `page`/`pageSize` inteiros ≥ 1, sem parâmetro repetido ou objeto; vazio = sem filtro; `pageSize` > 500 continua reduzido a 500. Vale para registros, gráficos e exportações do admin
 - [ ] **S16** Comparação de credenciais e token sem vazar tamanho (hash + `timingSafeEqual`)
 - [ ] **S18** COOP/CORP no site; `HEALTHCHECK` nas imagens (ou no Compose)
 

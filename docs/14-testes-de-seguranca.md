@@ -78,8 +78,8 @@ Como repetir: `npm run test:security` (suíte, segundos) e `npm run test:securit
 | Arquivos internos (`.env`, `.git`, `package.json`, `Dockerfile`) | Preta | **Protegido** |
 | Source maps do frontend | Preta | **Não publicados** |
 | Paginação abusiva (`pageSize=1000000`, página negativa) | Preta | **Protegido** (teto de 500) |
-| Parâmetro repetido (`year=2020&year=2021`) | Preta | Usa o primeiro; sem erro |
-| Valores inválidos (`year=abc`) | Preta | **Achado S14**: ignorados em silêncio |
+| Parâmetro repetido (`year=2020&year=2021`) | Preta | Usava o primeiro; desde o S14, 400 |
+| Valores inválidos (`year=abc`) | Preta | **Achado S14**, corrigido: 400 com o nome do parâmetro inválido |
 | 3 sincronizações simultâneas da mesma fonte | Cinza | **Protegido**: 1 roda, 2 recebem 409, nada duplica |
 | `.env` e chaves fora do git; segredos no histórico | Branca + Trivy | **Correto** (só exemplos da documentação no histórico) |
 | Containers sem root; banco só em `127.0.0.1` | Branca | **Correto** |

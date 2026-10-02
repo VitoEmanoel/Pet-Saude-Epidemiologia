@@ -20,6 +20,30 @@ const ALLOWED_RECORD_QUERY_PARAMS = new Set([
   "pageSize"
 ]);
 
+// Formato aceito para os parâmetros numéricos; vazio significa "sem filtro" (S14).
+const NUMERIC_QUERY_FORMATS: Record<string, RegExp> = {
+  year: /^\d{4}$/,
+  month: /^(0?[1-9]|1[0-2])$/,
+  page: /^[1-9]\d{0,5}$/,
+  pageSize: /^[1-9]\d{0,5}$/
+};
+const QUERY_VALUE_RULES_DESCRIPTION =
+  "Cada parametro aparece uma vez, como texto. year: 4 digitos; month: 1 a 12; page e pageSize: inteiros a partir de 1.";
+
+/** Parâmetros repetidos, em formato de objeto ou numéricos fora do formato. */
+function getInvalidQueryValues(query: Record<string, unknown>) {
+  return Object.entries(query)
+    .filter(([name, value]) => {
+      if (typeof value !== "string") {
+        return true;
+      }
+
+      const format = NUMERIC_QUERY_FORMATS[name];
+      return Boolean(format) && value !== "" && !format.test(value);
+    })
+    .map(([name]) => name);
+}
+
 export function validateRecordsQuery(
   query: Record<string, unknown>,
   allowPagination: boolean
@@ -52,6 +76,16 @@ export function validateRecordsQuery(
       sendError(response, 400, "invalid_query", "Parametro de consulta nao permitido.", {
         invalidParams,
         allowedParams: [...allowedParams]
+      });
+  }
+
+  const invalidValues = getInvalidQueryValues(query);
+
+  if (invalidValues.length > 0) {
+    return (response) =>
+      sendError(response, 400, "invalid_query", "Valor de parametro invalido.", {
+        invalidValues,
+        rules: QUERY_VALUE_RULES_DESCRIPTION
       });
   }
 

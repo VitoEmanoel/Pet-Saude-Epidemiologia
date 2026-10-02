@@ -201,8 +201,9 @@ describe("Validação de entrada", () => {
     assert.equal(r.json.error.code, "not_found");
   });
 
-  test("Ano não numérico é ignorado sem erro", async () => {
-    assert.equal((await api("/api/records?source=dengue_sinan&year=abc")).status, 200);
+  test("S14: ano não numérico é recusado (400); ano vazio vale como sem filtro", async () => {
+    assert.equal((await api("/api/records?source=dengue_sinan&year=abc")).status, 400);
+    assert.equal((await api("/api/records?source=dengue_sinan&year=")).status, 200);
   });
 });
 

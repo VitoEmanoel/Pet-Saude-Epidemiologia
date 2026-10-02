@@ -58,7 +58,7 @@ Os erros são tratados no fim de [`server.ts`](../backend/src/server.ts). O trat
 
 A zika (`zika_sinan`) é **interna**: nenhuma rota pública a aceita (404); ela só aparece somada em `arboviroses_sinan`. Sem `source`, a tabela traz só as fontes primárias públicas.
 
-Qualquer outro parâmetro devolve **400**. Na tabela e no CSV, também devolvem 400: `aggregation` inválido, visão que não combina com o filtro (ex.: `sex=Masculino&aggregation=age_group`) e mais de um filtro demográfico (o DATASUS não fornece dados cruzados). Os parâmetros `city`, `cidade`, `municipality`, `municipio`, `ibgeCode`, `ibge_code`, `cityIbgeCode`, `city_ibge_code`, `uf`, `state`, `estado` são bloqueados de propósito.
+Qualquer outro parâmetro devolve **400**. Também devolvem 400: parâmetro repetido (`year=2020&year=2021`) ou em formato de objeto (`sex[$ne]=`), `year` sem 4 dígitos, `month` fora de 1–12, `page`/`pageSize` que não sejam inteiros a partir de 1 (detalhes em `error.details.invalidValues`). Valor vazio (`year=`) vale como sem filtro; `pageSize` acima de 500 é reduzido para 500. Na tabela e no CSV, também devolvem 400: `aggregation` inválido, visão que não combina com o filtro (ex.: `sex=Masculino&aggregation=age_group`) e mais de um filtro demográfico (o DATASUS não fornece dados cruzados). Os parâmetros `city`, `cidade`, `municipality`, `municipio`, `ibgeCode`, `ibge_code`, `cityIbgeCode`, `city_ibge_code`, `uf`, `state`, `estado` são bloqueados de propósito.
 
 Como os filtros funcionam nos gráficos:
 

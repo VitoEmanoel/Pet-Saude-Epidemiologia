@@ -74,7 +74,7 @@ describe("A03 Injeção", () => {
     }
   });
 
-  test("[preta] Operadores NoSQL e objetos na query string são ignorados", async () => {
+  test("[preta] Operadores NoSQL e objetos na query string não viram filtro", async () => {
     for (const query of ["source[$ne]=x", "source[$gt]=", "source=tuberculose_sinan&sex[$ne]=x", "source=tuberculose_sinan&year[$gt]=0"]) {
       const r = await api(`/api/records?${query}`);
       assert.ok([200, 400, 404].includes(r.status), `${query}: ${r.status}`);
@@ -114,6 +114,10 @@ describe("A03 Injeção", () => {
     const payload = `"><script>alert(1)</script><img src=x onerror=alert(2)>`;
     for (const param of ["sex", "ageGroup", "raceColor", "condition", "year"]) {
       const r = await admin(`/api/admin/dashboard/export.html?source=tuberculose_sinan&${param}=${encodeURIComponent(payload)}`);
+      if (param === "year") {
+        assert.equal(r.status, 400, "ano com texto deve ser recusado antes de chegar ao HTML (S14)");
+        continue;
+      }
       assert.equal(r.status, 200);
       assert.doesNotMatch(r.text, /<script>alert|<img src=x/i, `${param} refletido sem escape`);
       assert.match(r.headers.get("content-disposition") ?? "", /^attachment/);
@@ -330,15 +334,15 @@ describe("A05 Configuração e A04 lógica de negócio", () => {
   });
 
   test("[preta] Paginação tem limites (sem página negativa nem lote gigante)", async () => {
-    const huge = await api("/api/records?source=tuberculose_sinan&pageSize=1000000");
+    const huge = await api("/api/records?source=tuberculose_sinan&pageSize=100000");
     assert.equal(huge.json.pagination.pageSize, 500);
-    const negative = await api("/api/records?source=tuberculose_sinan&page=-5&pageSize=-5");
-    assert.equal(negative.json.pagination.page, 1);
-    assert.ok(negative.json.pagination.pageSize >= 1);
+    for (const query of ["page=-5", "pageSize=-5", "page=0", "pageSize=0", "pageSize=1000000000"]) {
+      assert.equal((await api(`/api/records?source=tuberculose_sinan&${query}`)).status, 400, query);
+    }
   });
 
-  test("S14 [preta] Valores inválidos de filtro são recusados (não ignorados em silêncio)", { todo: "S14" }, async () => {
-    for (const query of ["year=abc", "year=1e308", "page=abc", "aggregation=yearly&pageSize=abc"]) {
+  test("S14 [preta] Valores inválidos de filtro são recusados (não ignorados em silêncio)", async () => {
+    for (const query of ["year=abc", "year=1e308", "page=abc", "aggregation=yearly&pageSize=abc", "month=13", "year=2020&year=2021", "sex[$ne]=x"]) {
       assert.equal((await api(`/api/records?source=tuberculose_sinan&${query}`)).status, 400, query);
     }
   });
