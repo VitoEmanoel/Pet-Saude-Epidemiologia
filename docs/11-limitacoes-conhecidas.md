@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 4 | 3 | 7 |
+| Segurança (S) | 0 | 3 | 3 | 6 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **12** | **13** | **25** |
+| **Total** | **0** | **11** | **13** | **24** |
 
 ---
 
@@ -50,9 +50,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ---
 
 ## S. Segurança
-
-### S3. Containers rodam como `root`. **Média**
-- Backend e frontend com `uid=0`. **Correção:** `USER node` no `Dockerfile`.
 
 ### S4. IP da auditoria falsificável. **Média**
 - **Evidência:** login com `X-Forwarded-For: 8.8.8.8` → auditoria grava `8.8.8.8` (`getRequestIp` em `admin-audit.service.ts`).

@@ -24,13 +24,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
-| 2 | Segurança mínima para publicar | 7 | 3 |
+| 2 | Segurança mínima para publicar | 7 | 4 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **48** | **11** |
+| | **Total** | **48** | **12** |
 
 ---
 
@@ -108,9 +108,10 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] Express: `helmet` na API (CSP `default-src 'none'`, `X-Frame-Options: DENY`, HSTS sem `includeSubDomains`)
   - [x] Conferir que mapa (tiles OpenStreetMap) e gráficos continuam funcionando com a CSP: Chromium, Firefox e WebKit, e também em `npm run dev`
   - [x] Teste de segurança dos cabeçalhos passando (+3 testes novos: diretivas da CSP, cabeçalhos da API, CORS); o teste de interface agora falha se a CSP bloquear qualquer recurso
-- [ ] **S3** Containers sem root
-  - [ ] `USER node` nos estágios finais do `Dockerfile`; ajustar permissões de `backend/storage`
-  - [ ] `docker compose exec backend id` ≠ `uid=0`
+- [x] **S3** Containers sem root (02/10/2026, branch `fix/s3-containers-sem-root`)
+  - [x] `USER node` nos estágios finais do `Dockerfile`; `backend/storage` e `frontend/.next/cache` com dono `node`
+  - [x] `docker compose exec backend id` ≠ `uid=0`: backend e frontend com `uid=1000(node)`; teste automático no `test:e2e`
+  - [x] Conferido sem root: migrations, seed, sincronização (`npm run sync:data` e serviço `sync-data`) gravando os arquivos brutos
 - [ ] **S4 + S5** Proxy, IP real e bloqueio de login
   - [ ] `app.set("trust proxy", ...)` configurável por variável de ambiente
   - [ ] Auditoria usa só `request.ip`
@@ -127,6 +128,7 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 
 - [ ] **O2** Volume Docker para `backend/storage`
   - [ ] Teste: recriar o container mantém os HTMLs brutos
+  - [ ] Usar volume nomeado (herda o dono `node` da imagem); se for pasta do servidor, `chown 1000:1000` (ver S3)
 - [ ] **O3 + O4** Coleta segura
   - [ ] Trava de sincronização no banco (`pg_advisory_lock`)
   - [ ] Gravação dos registros em lote dentro de transação

@@ -16,7 +16,8 @@ npm run logs -- backend     # Ctrl+C para sair
 | `failed to add the host <=> sandbox pair interfaces: operation not supported` | O **kernel foi atualizado e a máquina não foi reiniciada**: os módulos do kernel em uso (ex.: `veth`) não existem mais em `/lib/modules` | **Reinicie a máquina.** Para confirmar: `uname -r` não aparece em `ls /lib/modules` |
 | `cannot stop container` / container travado | Daemon Docker em mau estado | `npm run docker:recover` e depois `npm run start` |
 | `docker:recover` pede senha / falha com `sudo` | O script reinicia o Docker com `sudo systemctl restart docker` | Rode-o num terminal interativo |
-| Porta em uso (3000, 3333, 5433, 6379) | Outro programa usando a porta | Pare o programa ou mude a porta no `.env` |
+| `EACCES: permission denied` ao sincronizar, gravando em `backend/storage` | Os containers rodam como o usuário `node` (uid 1000), e a pasta montada pertence a outro usuário (ex.: pasta do servidor montada no lugar de `backend/storage`) | Na máquina hospedeira: `sudo chown -R 1000:1000 <pasta montada>`. Volumes nomeados do Docker herdam o dono certo da imagem |
+| Porta em uso (3000, 3333, 5433) | Outro programa usando a porta | Pare o programa ou mude a porta no `.env` |
 
 ## 10.2 Configuração
 

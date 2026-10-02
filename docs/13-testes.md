@@ -62,12 +62,12 @@ Para ver os `todo` e se estão falhando:
 cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs | grep "# TODO"
 ```
 
-## 13.4 Resultado de referência (02/10/2026, após o S2)
+## 13.4 Resultado de referência (02/10/2026, após o S3)
 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
 | `test:backend` | 13 | 0 | 0 | 0 |
-| `test:e2e` | 86 | 0 | 3 (TABNET ×2, bloqueio) | 3 |
+| `test:e2e` | 88 | 0 | 3 (TABNET ×2, bloqueio) | 3 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 50 | 0 | 0 | 2 |
 | `test:resilience` | 6/6 | | | |
@@ -76,6 +76,7 @@ Carga (16 núcleos): `/health` ~6.000 req/s (era ~8.800 antes do S2: custo fixo 
 
 ## 13.5 Cuidados
 
+- Os testes `S3` (containers sem root) usam `docker compose exec` na pasta do projeto; se o Docker não estiver acessível (ex.: testando um servidor remoto), eles são pulados.
 - A suíte e2e faz **no máximo 4 logins errados** e termina com um login correto (5 errados trancariam o admin). Mantenha essa regra ao criar testes.
 - `npm run test:backend` grava logins de teste na auditoria do banco configurado (item S10). Nunca rode contra produção.
 - Nenhum teste de interface clica em "Sincronizar"; só a suíte e2e com `QA_TABNET=1` dispara coleta.

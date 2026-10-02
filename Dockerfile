@@ -51,6 +51,12 @@ COPY --from=backend-deps /app/node_modules ./node_modules
 COPY --from=backend-build /app/backend/dist ./backend/dist
 COPY --from=backend-build /app/backend/prisma ./backend/prisma
 
+# Roda sem root (usuário "node" da imagem oficial). O código fica somente leitura;
+# só backend/storage (arquivos brutos das coletas) pertence ao usuário.
+RUN mkdir -p backend/storage/raw-imports && chown -R node:node backend/storage
+
+USER node
+
 EXPOSE 3333
 
 WORKDIR /app
@@ -74,6 +80,11 @@ ENV PORT=3000
 
 COPY --from=frontend /app/frontend/.next/standalone ./
 COPY --from=frontend /app/frontend/.next/static ./frontend/.next/static
+
+# Roda sem root. O Next.js só precisa escrever no próprio cache (.next/cache).
+RUN mkdir -p frontend/.next/cache && chown -R node:node frontend/.next/cache
+
+USER node
 
 EXPOSE 3000
 

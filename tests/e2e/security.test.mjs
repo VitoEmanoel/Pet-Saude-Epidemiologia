@@ -2,6 +2,7 @@
 // Atenção: 5 logins errados bloqueiam o admin por 15 min. Este arquivo faz no máximo
 // 4 tentativas erradas e termina com um login correto, que zera o contador.
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHmac } from "node:crypto";
 import { after, before, describe, test } from "node:test";
 import {
@@ -10,6 +11,7 @@ import {
   ADMIN_USERNAME,
   API,
   ORIGIN,
+  ROOT,
   RUN_LOCKOUT,
   WEB,
   adminApi,
@@ -236,3 +238,29 @@ describe("Cabeçalhos de segurança", () => {
     assert.equal(r.headers.get("access-control-allow-origin"), ORIGIN);
   });
 });
+
+describe("Containers", () => {
+  // Só roda quando o sistema está no Docker desta máquina (pula em servidor remoto).
+  const containerUid = (service) => {
+    try {
+      return execFileSync("docker", ["compose", "--env-file", ".env", "exec", "-T", service, "id", "-u"], {
+        cwd: ROOT,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"]
+      }).trim();
+    } catch {
+      return null;
+    }
+  };
+
+  for (const service of ["backend", "frontend"]) {
+    test(`S3: ${service} não roda como root`, (t) => {
+      const uid = containerUid(service);
+      if (uid === null) {
+        return t.skip("container não acessível pelo docker compose");
+      }
+      assert.notEqual(uid, "0");
+    });
+  }
+});
+
