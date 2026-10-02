@@ -702,6 +702,9 @@ async function buildRecordWhere(filters: PublicFilters): Promise<Prisma.Epidemio
   if (filters.source) {
     const sourceIds = await getResolvedSourceIds(filters.source);
     where.sourceId = sourceIds.length > 0 ? { in: sourceIds } : -1;
+  } else {
+    // Sem fonte: só as primárias públicas (como a visão geral); a zika é interna (S12).
+    where.source = { slug: { in: overviewSourceSlugs } };
   }
 
   if (filters.year !== undefined) {

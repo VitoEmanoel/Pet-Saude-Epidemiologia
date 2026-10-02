@@ -1,5 +1,5 @@
 import { BLOCKED_MUNICIPALITY_QUERY_PARAMS } from "../config/city";
-import { getSourceBySlug } from "../config/sources";
+import { getPublicSourceBySlug } from "../config/sources";
 import {
   RECORD_AGGREGATIONS,
   getAggregationConflict,
@@ -57,7 +57,8 @@ export function validateRecordsQuery(
 
   const sourceSlug = String(query.source ?? "");
 
-  if (sourceSlug && !getSourceBySlug(sourceSlug)) {
+  // Só fontes públicas: a zika (interna) não pode ser consultada diretamente (S12).
+  if (sourceSlug && !getPublicSourceBySlug(sourceSlug)) {
     return (response) =>
       sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
   }

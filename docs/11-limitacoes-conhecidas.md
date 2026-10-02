@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 0 | 6 | 6 |
+| Segurança (S) | 0 | 0 | 5 | 5 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **8** | **16** | **24** |
+| **Total** | **0** | **8** | **15** | **23** |
 
 ---
 
@@ -52,9 +52,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ## S. Segurança
 
 Achados S11–S18 vêm da campanha de testes de segurança de 02/10/2026 ([14](14-testes-de-seguranca.md)).
-
-### S12. Fonte interna (zika) visível em `/api/records`. **Baixa**
-- `/api/sources/zika_sinan`, `/summary` e os gráficos devolvem 404, mas `/api/records?source=zika_sinan` devolve os registros: `validateRecordsQuery` usa `getSourceBySlug` (todas) em vez de `getPublicSourceBySlug`.
 
 ### S14. Filtros inválidos ignorados em silêncio. **Baixa**
 - `year=abc`, `year=1e308`, `page=abc` viram "sem filtro" ou valor padrão; o usuário pode achar que filtrou.

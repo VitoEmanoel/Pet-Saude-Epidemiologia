@@ -57,7 +57,7 @@ Como repetir: `npm run test:security` (suíte, segundos) e `npm run test:securit
 | CSRF: POST do admin vindo de outro site, com sessão válida | Cinza | **Protegido** (403 + cookie `SameSite=Strict`) |
 | Ações do admin por GET (mudança de estado por link) | Cinza | **Protegido** (404) |
 | Código: alguma rota do admin antes da checagem de sessão | Branca | Só o login, como esperado |
-| Fonte interna (zika) pelas rotas públicas | Preta | **Achado S12**: bloqueada em 3 rotas, mas visível em `/api/records?source=zika_sinan` |
+| Fonte interna (zika) pelas rotas públicas | Preta | **Achado S12**, corrigido: visível em `/api/records?source=zika_sinan` e também na listagem sem `source`; agora 404 e fora da listagem |
 
 ### A07 Autenticação e sessão
 

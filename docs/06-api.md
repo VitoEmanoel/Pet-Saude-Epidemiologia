@@ -56,6 +56,8 @@ Os erros são tratados no fim de [`server.ts`](../backend/src/server.ts). O trat
 | `page` | número | Só em `/api/records` (padrão 1) |
 | `pageSize` | número | Só em `/api/records` (padrão 50, máx. 500) |
 
+A zika (`zika_sinan`) é **interna**: nenhuma rota pública a aceita (404); ela só aparece somada em `arboviroses_sinan`. Sem `source`, a tabela traz só as fontes primárias públicas.
+
 Qualquer outro parâmetro devolve **400**. Na tabela e no CSV, também devolvem 400: `aggregation` inválido, visão que não combina com o filtro (ex.: `sex=Masculino&aggregation=age_group`) e mais de um filtro demográfico (o DATASUS não fornece dados cruzados). Os parâmetros `city`, `cidade`, `municipality`, `municipio`, `ibgeCode`, `ibge_code`, `cityIbgeCode`, `city_ibge_code`, `uf`, `state`, `estado` são bloqueados de propósito.
 
 Como os filtros funcionam nos gráficos:

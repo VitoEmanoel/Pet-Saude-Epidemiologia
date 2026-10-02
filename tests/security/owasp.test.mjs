@@ -199,7 +199,16 @@ describe("A01 Controle de acesso", () => {
     }
   });
 
-  test("S12 [preta] Fonte interna (zika) não é exposta em nenhuma rota pública", { todo: "S12" }, async () => {
+  test("S12 [preta] Listagem sem fonte não traz registros da fonte interna", async () => {
+    const r = await api("/api/records?aggregation=all&pageSize=500&page=1");
+    assert.equal(r.status, 200);
+    for (let page = 1; page <= r.json.pagination.totalPages; page += 1) {
+      const records = page === 1 ? r.json.records : (await api(`/api/records?aggregation=all&pageSize=500&page=${page}`)).json.records;
+      assert.ok(!records.some((record) => record.source.slug === "zika_sinan"), `zika na página ${page}`);
+    }
+  });
+
+  test("S12 [preta] Fonte interna (zika) não é exposta em nenhuma rota pública", async () => {
     for (const path of [
       "/api/sources/zika_sinan",
       "/api/sources/zika_sinan/summary",
