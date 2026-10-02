@@ -222,6 +222,30 @@ for (const profile of Object.keys(PROFILES)) {
   });
 }
 
+describe(`Mapa e cabeçalho (${BROWSER})`, () => {
+  for (const profile of Object.keys(PROFILES)) {
+    test(`${profile}: ao rolar, o mapa passa por baixo do cabeçalho fixo`, async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      try {
+        // As imagens do Leaflet têm pointer-events: none; sem isto o elementFromPoint as atravessaria.
+        await page.addStyleTag({ content: "* { pointer-events: auto !important; }" });
+        const onTop = await page.evaluate(() => {
+          const header = document.querySelector("header");
+          const map = document.querySelector(".leaflet-container");
+          window.scrollBy(0, map.getBoundingClientRect().top - header.getBoundingClientRect().height / 2);
+          const h = header.getBoundingClientRect();
+          const m = map.getBoundingClientRect();
+          const element = document.elementFromPoint(m.left + m.width / 2, Math.max(m.top, h.top) + 3);
+          return element?.closest("header") ? "cabeçalho" : element?.closest(".leaflet-container") ? "mapa" : element?.tagName;
+        });
+        assert.equal(onTop, "cabeçalho");
+      } finally {
+        await context.close();
+      }
+    });
+  }
+});
+
 describe(`Área administrativa (${BROWSER})`, () => {
   test("Senha errada mostra mensagem; login abre o painel; sessão persiste; CSV baixa; Sair volta ao login", async () => {
     const { context, page } = await openPage("desktop", "/admin");

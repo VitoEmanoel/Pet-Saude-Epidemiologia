@@ -27,7 +27,7 @@ Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda 
 | `dashboard/TuberculosisDashboard.tsx` | `DiseaseDashboard`: filtros, cartões, 4 gráficos, mapa e tabela paginada. Só um filtro demográfico por vez: escolher sexo limpa faixa etária e raça/cor (e vice-versa); os gráficos das outras dimensões mostram um aviso ("Mostrando todos os sexos: o DATASUS não separa…"), montado por `lib/demographics.ts`. A tabela tem o seletor **Detalhar por** (total do ano, sexo, faixa etária, raça/cor); com filtro demográfico ele fica travado na mesma dimensão |
 | `dashboard/AdminDashboard.tsx` | Tudo do admin: login, fontes, sincronização, exportação, histórico, auditoria, pré-visualização |
 | `dashboard/ChartPanel.tsx` / `EChart.tsx` | Gráficos (linha/barra) com ECharts |
-| `maps/ParnaibaMap.tsx` | Mapa Leaflet centrado em Parnaíba (`[-2.905, -41.776]`), carregado só no navegador |
+| `maps/ParnaibaMap.tsx` | Mapa Leaflet centrado em Parnaíba (`[-2.905, -41.776]`), carregado só no navegador. O bloco tem a classe `isolate`: sem ela, as camadas do Leaflet (`z-index` 400–1000) passam por cima do cabeçalho fixo (`z-20`) ao rolar. Qualquer outro mapa ou componente com `z-index` alto precisa do mesmo cuidado |
 | `ui/MetricCard.tsx`, `StatusPill.tsx`, `ThemeToggle.tsx` | Cartão de indicador, selo de status, alternância claro/escuro |
 
 ## 7.3 Identidade visual e tema
