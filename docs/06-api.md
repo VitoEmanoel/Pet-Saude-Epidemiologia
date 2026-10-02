@@ -52,8 +52,9 @@ Qualquer outro parâmetro devolve **400**. Na tabela e no CSV, também devolvem 
 
 Como os filtros funcionam nos gráficos:
 
+- **só um filtro demográfico por vez** (sexo, faixa etária ou raça/cor): dois ou mais devolvem 400, porque o DATASUS não fornece dados cruzados (ver [04-banco-de-dados.md](04-banco-de-dados.md#42-ponto-essencial-as-4-agregações-convivem-na-mesma-tabela));
 - o gráfico **anual** usa a fatia anual; com filtro de sexo, usa a fatia por sexo (e o mesmo para faixa etária e raça/cor);
-- cada gráfico por dimensão só tem dados da própria dimensão; por isso, **com filtro de sexo, os gráficos de faixa etária e raça/cor ficam vazios** (ver [04-banco-de-dados.md](04-banco-de-dados.md#42-ponto-essencial-as-4-agregações-convivem-na-mesma-tabela)).
+- cada gráfico por dimensão aplica só o filtro da **própria** dimensão (mais o ano). Ex.: com `sex=Masculino`, o gráfico por faixa etária mostra todas as pessoas daquele ano e a resposta traz `"ignoredFilters": ["sex"]`, para a interface avisar.
 
 Exemplos:
 

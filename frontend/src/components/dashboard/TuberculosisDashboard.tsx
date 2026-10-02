@@ -37,6 +37,7 @@ import type {
   SourceFiltersResponse,
   SourceSummaryResponse
 } from "@/types/api";
+import { ignoredFiltersNote, withSingleDemographic } from "@/lib/demographics";
 import { ChartPanel } from "./ChartPanel";
 import { MetricCard } from "../ui/MetricCard";
 
@@ -62,6 +63,7 @@ type ChartsState =
       bySex: CategoryPoint[];
       byAgeGroup: CategoryPoint[];
       byRaceColor: CategoryPoint[];
+      notes: { bySex?: string; byAgeGroup?: string; byRaceColor?: string };
     }
   | { status: "error"; message: string };
 
@@ -191,7 +193,12 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
             yearly: yearly.series,
             bySex: bySex.series,
             byAgeGroup: byAgeGroup.series,
-            byRaceColor: byRaceColor.series
+            byRaceColor: byRaceColor.series,
+            notes: {
+              bySex: ignoredFiltersNote("sex", bySex.ignoredFilters),
+              byAgeGroup: ignoredFiltersNote("ageGroup", byAgeGroup.ignoredFilters),
+              byRaceColor: ignoredFiltersNote("raceColor", byRaceColor.ignoredFilters)
+            }
           });
         }
       })
@@ -234,10 +241,8 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   }, [recordFilters]);
 
   function updateFilter(key: keyof SelectedFilters, value: string) {
-    setSelectedFilters((current) => ({
-      ...current,
-      [key]: value
-    }));
+    // Só um filtro demográfico por vez: o DATASUS não cruza sexo, faixa etária e raça/cor
+    setSelectedFilters((current) => withSingleDemographic(current, key, value));
     setPage(1);
   }
 
@@ -478,9 +483,15 @@ function DashboardCharts({ state }: { state: ChartsState }) {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-3">
-        <ChartPanel title="Por sexo" type="bar" data={state.bySex} />
-        <ChartPanel title="Por raca/cor" type="bar" data={state.byRaceColor} />
-        <ChartPanel title="Por faixa etaria" type="bar" data={state.byAgeGroup} horizontal />
+        <ChartPanel title="Por sexo" type="bar" data={state.bySex} note={state.notes.bySex} />
+        <ChartPanel title="Por raca/cor" type="bar" data={state.byRaceColor} note={state.notes.byRaceColor} />
+        <ChartPanel
+          title="Por faixa etaria"
+          type="bar"
+          data={state.byAgeGroup}
+          horizontal
+          note={state.notes.byAgeGroup}
+        />
       </div>
     </>
   );

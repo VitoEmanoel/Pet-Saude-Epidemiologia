@@ -181,14 +181,31 @@ for (const profile of Object.keys(PROFILES)) {
       }
     });
 
-    test("D2: com filtro de sexo, nenhum gráfico fica vazio", { todo: "D2 — Fase 1" }, async () => {
+    test("D2: com filtro de sexo, nenhum gráfico fica vazio e os outros gráficos avisam", async () => {
       const { context, page } = await openPage(profile, "/tuberculose");
       try {
         const sexOptions = await page.locator("select").nth(1).locator("option").evaluateAll((o) => o.map((x) => x.value).filter(Boolean));
         await page.locator("select").nth(1).selectOption(sexOptions[0]);
         await page.waitForLoadState("networkidle");
         await page.waitForTimeout(600);
-        assert.doesNotMatch(await page.innerText("main"), /Sem dados para os filtros/i);
+        const text = await page.innerText("main");
+        assert.doesNotMatch(text, /Sem dados para os filtros/i);
+        assert.match(text, /o DATASUS não separa faixa etária por sexo/);
+        assert.match(text, /o DATASUS não separa raça\/cor por sexo/);
+      } finally {
+        await context.close();
+      }
+    });
+
+    test("D2: escolher faixa etária limpa o filtro de sexo (um filtro demográfico por vez)", async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      try {
+        const options = async (index) => page.locator("select").nth(index).locator("option").evaluateAll((o) => o.map((x) => x.value).filter(Boolean));
+        await page.locator("select").nth(1).selectOption((await options(1))[0]);
+        await page.locator("select").nth(2).selectOption((await options(2))[0]);
+        await page.waitForLoadState("networkidle");
+        assert.equal(await page.locator("select").nth(1).inputValue(), "");
+        assert.notEqual(await page.locator("select").nth(2).inputValue(), "");
       } finally {
         await context.close();
       }

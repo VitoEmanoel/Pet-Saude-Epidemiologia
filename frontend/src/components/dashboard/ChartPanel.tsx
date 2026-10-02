@@ -11,6 +11,7 @@ type ChartPanelProps =
       type: "line";
       data: ChartPoint[];
       height?: number;
+      note?: string;
     }
   | {
       title: string;
@@ -18,6 +19,7 @@ type ChartPanelProps =
       data: CategoryPoint[];
       height?: number;
       horizontal?: boolean;
+      note?: string;
     };
 
 export function ChartPanel(props: ChartPanelProps) {
@@ -44,6 +46,7 @@ export function ChartPanel(props: ChartPanelProps) {
     <section className="min-w-0 rounded border border-slate-200 bg-white">
       <div className="border-b border-slate-200 px-4 py-3">
         <h2 className="text-sm font-semibold text-slate-950">{props.title}</h2>
+        {props.note ? <p className="mt-1 text-xs text-slate-600">{props.note}</p> : null}
       </div>
       <div className="p-3">
         {empty ? (

@@ -113,6 +113,26 @@ describe("Integração: dados sincronizados", () => {
     assert.equal((await api("/api/records?source=tuberculose_sinan&sex=Masculino&ageGroup=20-39")).status, 400);
   });
 
+  test("D2: com filtro de sexo, os gráficos das outras dimensões não ficam vazios e avisam", async () => {
+    const q = "source=tuberculose_sinan&sex=Masculino";
+    const [yearly, bySex, byAge, byRace] = await Promise.all(
+      ["yearly-evolution", "by-sex", "by-age-group", "by-race-color"].map((chart) => api(`/api/charts/${chart}?${q}`).then((r) => r.json))
+    );
+    assert.ok(byAge.series.length > 0, "faixa etária não pode ficar vazia");
+    assert.ok(byRace.series.length > 0, "raça/cor não pode ficar vazia");
+    assert.deepEqual(byAge.ignoredFilters, ["sex"]);
+    assert.deepEqual(byRace.ignoredFilters, ["sex"]);
+    assert.deepEqual(bySex.ignoredFilters, []);
+    assert.deepEqual(bySex.series.map((p) => p.label), ["Masculino"]);
+    assert.equal(sum(yearly.series), sum(bySex.series), "evolução anual com filtro de sexo = total masculino");
+  });
+
+  test("D2: gráficos com dois filtros demográficos: 400 (o DATASUS não cruza dimensões)", async () => {
+    for (const chart of ["yearly-evolution", "by-sex", "by-age-group", "by-race-color"]) {
+      assert.equal((await api(`/api/charts/${chart}?source=tuberculose_sinan&sex=Masculino&ageGroup=20-39`)).status, 400, chart);
+    }
+  });
+
   test("Paginação: páginas não se repetem e respeitam pageSize", async () => {
     const p1 = (await api("/api/records?source=tuberculose_sinan&page=1&pageSize=10")).json;
     const p2 = (await api("/api/records?source=tuberculose_sinan&page=2&pageSize=10")).json;
@@ -264,12 +284,6 @@ describe("Defeitos conhecidos", () => {
     const s = (await api("/api/sources/dengue_sinan/summary")).json.summary;
     assert.ok(s.lastAvailableYear > 2013, `último ano = ${s.lastAvailableYear}`);
   });
-
-  test("D2: com filtro de sexo, o gráfico por faixa etária não fica vazio", { todo: "D2 — Fase 1" }, async () => {
-    const s = (await api("/api/charts/by-age-group?source=tuberculose_sinan&sex=Masculino")).json.series;
-    assert.ok(s.length > 0, "gráfico vazio");
-  });
-
 
   test("D4: total geral não inclui a zika (fonte interna)", { todo: "D4 — Fase 1" }, async () => {
     const overall = (await api("/api/dashboard/overview")).json.summary.totalCases;

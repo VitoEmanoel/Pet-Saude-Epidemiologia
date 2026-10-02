@@ -6,12 +6,12 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 | Tema | Alta | Média | Baixa | Total |
 |---|---|---|---|---|
-| Dados exibidos (D) | 2 | 2 | 1 | 5 |
+| Dados exibidos (D) | 1 | 2 | 1 | 4 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
 | Segurança (S) | 2 | 4 | 4 | 10 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **4** | **13** | **14** | **31** |
+| **Total** | **3** | **13** | **14** | **30** |
 
 ---
 
@@ -22,12 +22,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 - **Causa:** `periodFiles: numberedFiles("dengbr", 7, 13)` em `backend/src/modules/datasus/sinan-tabnet.collector.ts`. Os dados de 2014+ ficam em outra tabela TABNET, nunca configurada.
 - **Evidência:** `GET /api/sources/dengue_sinan/summary` → `lastAvailableYear: 2013`.
 - **Correção:** localizar no TABNET o `.def` de dengue 2014+, validar e configurar (provavelmente como fonte nova que também compõe `dengue_sinan`/arboviroses).
-
-### D2. Filtros cruzados zeram gráficos. **Alta**
-- **Sintoma:** com filtro de sexo, os gráficos de faixa etária e raça/cor mostram "Sem dados"; com sexo + faixa etária, todos ficam vazios.
-- **Causa:** o TABNET só fornece totais de uma dimensão por vez ([04 §4.2](04-banco-de-dados.md#42-ponto-essencial-as-4-agregações-convivem-na-mesma-tabela)); `buildChartWhere` em `public-data.service.ts` aplica todos os filtros a todos os gráficos.
-- **Evidência:** `GET /api/charts/by-age-group?source=tuberculose_sinan&sex=Masculino` → `series: []`; visto na tela em 3 navegadores.
-- **Correção:** cada gráfico aplica só o filtro da própria dimensão (+ ano), ou a interface permite um filtro demográfico por vez, com aviso.
 
 ### D4. "Total de casos" da página inicial não tem significado. **Média**
 - **Sintoma:** 6.476 = soma de doenças diferentes, métricas diferentes (confirmados + prováveis + frequência) e **187 casos de zika** (fonte interna, não exibida).
@@ -140,7 +134,7 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ### Q2. Sem lint, formatação padrão e CI. **Baixa**
 
 ### Q3. Código difícil de manter. **Baixa**
-- `AdminDashboard.tsx` com ~1.700 linhas; `TuberculosisDashboard.tsx` exporta `DiseaseDashboard`; `charts.ts` repete o mesmo handler 4 vezes.
+- `AdminDashboard.tsx` com ~1.700 linhas; `TuberculosisDashboard.tsx` exporta `DiseaseDashboard`.
 
 ### Q4. Sem cache. **Baixa**
 - Backend é o gargalo (1.440% CPU vs 95% do banco) e satura ~2.000 conexões simultâneas. Capacidade atual é suficiente; um cache (Redis já disponível) multiplicaria a folga.

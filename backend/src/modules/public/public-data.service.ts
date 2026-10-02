@@ -390,7 +390,7 @@ export async function getYearlyEvolution(sourceSlug?: string, filters: PublicFil
 }
 
 export async function getChartBySex(sourceSlug: string, filters: PublicFilters = {}) {
-  const where = await buildChartWhere(sourceSlug, SEX_SOURCE_TABLE_FRAGMENT, filters);
+  const where = await buildChartWhere(sourceSlug, SEX_SOURCE_TABLE_FRAGMENT, onlyOwnDimension("sex", filters));
 
   const rows = await prisma.epidemiologicalRecord.groupBy({
     by: ["sex"],
@@ -412,7 +412,7 @@ export async function getChartBySex(sourceSlug: string, filters: PublicFilters =
 }
 
 export async function getChartByAgeGroup(sourceSlug: string, filters: PublicFilters = {}) {
-  const where = await buildChartWhere(sourceSlug, AGE_GROUP_SOURCE_TABLE_FRAGMENT, filters);
+  const where = await buildChartWhere(sourceSlug, AGE_GROUP_SOURCE_TABLE_FRAGMENT, onlyOwnDimension("ageGroup", filters));
 
   const rows = await prisma.epidemiologicalRecord.groupBy({
     by: ["ageGroup"],
@@ -432,7 +432,7 @@ export async function getChartByAgeGroup(sourceSlug: string, filters: PublicFilt
 }
 
 export async function getChartByRaceColor(sourceSlug: string, filters: PublicFilters = {}) {
-  const where = await buildChartWhere(sourceSlug, RACE_COLOR_SOURCE_TABLE_FRAGMENT, filters);
+  const where = await buildChartWhere(sourceSlug, RACE_COLOR_SOURCE_TABLE_FRAGMENT, onlyOwnDimension("raceColor", filters));
 
   const rows = await prisma.epidemiologicalRecord.groupBy({
     by: ["raceColor"],
@@ -490,10 +490,10 @@ export function resolveRecordAggregation(filters: PublicFilters): RecordAggregat
  * (ex.: filtro de sexo com visão por faixa etária, que sempre viria vazio).
  */
 export function getAggregationConflict(filters: PublicFilters): string | null {
-  const demographicFilters = [filters.sex, filters.ageGroup, filters.raceColor].filter(Boolean);
+  const demographicConflict = getDemographicFilterConflict(filters);
 
-  if (demographicFilters.length > 1) {
-    return "O DATASUS nao fornece dados cruzados: filtre por apenas uma dimensao (sexo, faixa etaria ou raca/cor).";
+  if (demographicConflict) {
+    return demographicConflict;
   }
 
   const demographic = getDemographicAggregation(filters);
@@ -503,6 +503,42 @@ export function getAggregationConflict(filters: PublicFilters): string | null {
   }
 
   return null;
+}
+
+/** O DATASUS fornece totais de uma dimensão por vez: sexo, faixa etária e raça/cor nunca se cruzam. */
+export function getDemographicFilterConflict(filters: PublicFilters): string | null {
+  const demographicFilters = [filters.sex, filters.ageGroup, filters.raceColor].filter(Boolean);
+
+  if (demographicFilters.length > 1) {
+    return "O DATASUS nao fornece dados cruzados: filtre por apenas uma dimensao (sexo, faixa etaria ou raca/cor).";
+  }
+
+  return null;
+}
+
+export type DemographicFilterKey = "sex" | "ageGroup" | "raceColor";
+
+/**
+ * Filtros demográficos que um gráfico de dimensão não consegue aplicar. Ex.: o gráfico por
+ * faixa etária não tem os casos separados por sexo, então ignora o filtro de sexo e mostra
+ * a distribuição de todas as pessoas (a interface avisa).
+ */
+export function getIgnoredChartFilters(
+  chartDimension: DemographicFilterKey,
+  filters: PublicFilters
+): DemographicFilterKey[] {
+  return (["sex", "ageGroup", "raceColor"] as const).filter(
+    (key) => key !== chartDimension && Boolean(filters[key])
+  );
+}
+
+function onlyOwnDimension(chartDimension: DemographicFilterKey, filters: PublicFilters): PublicFilters {
+  return {
+    ...filters,
+    sex: chartDimension === "sex" ? filters.sex : undefined,
+    ageGroup: chartDimension === "ageGroup" ? filters.ageGroup : undefined,
+    raceColor: chartDimension === "raceColor" ? filters.raceColor : undefined
+  };
 }
 
 function getDemographicAggregation(filters: PublicFilters): ResolvedAggregation | null {

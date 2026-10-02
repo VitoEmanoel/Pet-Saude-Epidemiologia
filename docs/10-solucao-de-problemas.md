@@ -34,7 +34,8 @@ npm run logs -- backend     # Ctrl+C para sair
 | Site abre sem números | Dados nunca sincronizados | `npm run sync:data` |
 | "API indisponível: API request failed" no site | Backend fora do ar, ou `NEXT_PUBLIC_API_URL` errado | `curl <API>/health`; confira a URL e refaça o build |
 | Erro de CORS no console do navegador | `CORS_ORIGIN` não contém a URL do site | Ajuste `CORS_ORIGIN` e reinicie |
-| Gráficos de faixa etária/raça somem ao filtrar por sexo | Limitação dos dados do TABNET (não há cruzamento) | Comportamento esperado hoje ([11](11-limitacoes-conhecidas.md)) |
+| Com filtro de sexo, o gráfico por faixa etária mostra "todos os sexos" | O DATASUS não fornece faixa etária separada por sexo | Comportamento esperado; o aviso no gráfico explica |
+| Ao escolher faixa etária, o filtro de sexo foi limpo | Só um filtro demográfico por vez (não há dados cruzados) | Comportamento esperado |
 | Soma do CSV dá 4× o total | O CSV foi exportado com a visão "Todas as visões" (`aggregation=all`) | Exporte uma visão por vez, ou some só as linhas com `aggregation = yearly` ([04 §4.2](04-banco-de-dados.md#42-ponto-essencial-as-4-agregações-convivem-na-mesma-tabela)) |
 | Erro 400 "A visao escolhida nao combina com o filtro" | Filtro de uma dimensão (ex.: sexo) com visão de outra | Use a visão da mesma dimensão do filtro, ou "Automática" |
 | Dengue sem dados depois de 2013 | Só os arquivos 2007–2013 estão configurados | Ver [11](11-limitacoes-conhecidas.md) |

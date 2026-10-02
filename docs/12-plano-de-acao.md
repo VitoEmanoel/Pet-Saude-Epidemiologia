@@ -23,14 +23,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | Fase | Objetivo | Itens | Concluídos |
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
-| 1 | Dados corretos | 4 | 1 |
+| 1 | Dados corretos | 4 | 2 |
 | 2 | Segurança mínima para publicar | 7 | 0 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 7 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **5** |
+| | **Total** | **47** | **6** |
 
 ---
 
@@ -71,12 +71,13 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] Teste: soma da tabela de tuberculose 2024 = 86 (e soma de cada visão = total)
   - [x] Atualizar docs 04, 06, 07 e 10
 
-- [ ] **D2** Filtros cruzados zeram gráficos
-  - [ ] Decidir a abordagem: (a) cada gráfico ignora filtros de outras dimensões, ou (b) só um filtro demográfico por vez
-  - [ ] Implementar em `buildChartWhere` (`public-data.service.ts`) e/ou no `DiseaseDashboard`
-  - [ ] Aviso na interface explicando que o DATASUS não fornece dados cruzados
-  - [ ] Teste: com `sex=Masculino`, os gráficos de faixa etária e raça/cor não ficam vazios (ou o filtro fica desabilitado)
-  - [ ] Atualizar docs 04, 06 e 07
+- [x] **D2** Filtros cruzados zeram gráficos (02/10/2026, branch `fix/d2-filtros-cruzados`)
+  - [x] Decidir a abordagem: combinação de (a) e (b). Um filtro demográfico por vez, e cada gráfico de dimensão aplica só o próprio filtro, avisando o que não pôde aplicar
+  - [x] Backend: `onlyOwnDimension` nos gráficos, `ignoredFilters` na resposta, 400 com dois filtros demográficos (gráficos e exportação HTML)
+  - [x] Frontend: escolher um filtro demográfico limpa os outros (público, pré-visualização e exportação do admin); aviso nos gráficos (`lib/demographics.ts`)
+  - [x] Teste: com `sex=Masculino`, os gráficos de faixa etária e raça/cor não ficam vazios e trazem `ignoredFilters`
+  - [x] Atualizar docs 06, 07 e 10
+
 - [ ] **D4** "Total de casos" da página inicial
   - [ ] Excluir fontes `internal` (zika) de `baseSourceSlugs`/visão geral
   - [ ] Substituir o número único por casos por doença (ou remover o indicador)
@@ -163,7 +164,7 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 - [ ] **Q3** Refatorações
   - [ ] Dividir `AdminDashboard.tsx` em componentes
   - [ ] Renomear `TuberculosisDashboard.tsx` → `DiseaseDashboard.tsx`
-  - [ ] Unificar os 4 handlers de `charts.ts`
+  - [x] Unificar os 4 handlers de `charts.ts` (feito junto com o D2)
 - [ ] **O6** Remover o que não é usado: coletor antigo, `zod` (ou passar a usá-lo para validar entradas), `VITE_API_URL`, Redis (ou usá-lo no Q4)
 - [ ] **Q4** Cache das respostas públicas (invalidado ao fim de cada sincronização)
 - [ ] **S7** Exigir `Origin`/`Referer` em POST administrativos

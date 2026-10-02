@@ -84,10 +84,14 @@ export type SourceFiltersResponse = {
   };
 };
 
+export type DemographicFilterKey = "sex" | "ageGroup" | "raceColor";
+
 export type ChartResponse<TPoint> = {
   city: City;
   source: DataSource;
   series: TPoint[];
+  // Filtros de outras dimensões que o gráfico não consegue aplicar (o DATASUS não cruza dimensões)
+  ignoredFilters?: DemographicFilterKey[];
 };
 
 export type EpidemiologicalRecord = {

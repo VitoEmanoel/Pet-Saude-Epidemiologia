@@ -24,7 +24,7 @@ Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda 
 | `layout/AppShell.tsx` | Cabeçalho, **menu lateral** (lista `navItems`) e menu mobile do site público |
 | `layout/AdminShell.tsx` | Layout da área administrativa |
 | `dashboard/OverviewDashboard.tsx` | Página inicial |
-| `dashboard/TuberculosisDashboard.tsx` | `DiseaseDashboard`: filtros, cartões, 4 gráficos, mapa e tabela paginada. A tabela tem o seletor **Detalhar por** (total do ano, sexo, faixa etária, raça/cor); com filtro demográfico ele fica travado na mesma dimensão |
+| `dashboard/TuberculosisDashboard.tsx` | `DiseaseDashboard`: filtros, cartões, 4 gráficos, mapa e tabela paginada. Só um filtro demográfico por vez: escolher sexo limpa faixa etária e raça/cor (e vice-versa); os gráficos das outras dimensões mostram um aviso ("Mostrando todos os sexos: o DATASUS não separa…"), montado por `lib/demographics.ts`. A tabela tem o seletor **Detalhar por** (total do ano, sexo, faixa etária, raça/cor); com filtro demográfico ele fica travado na mesma dimensão |
 | `dashboard/AdminDashboard.tsx` | Tudo do admin: login, fontes, sincronização, exportação, histórico, auditoria, pré-visualização |
 | `dashboard/ChartPanel.tsx` / `EChart.tsx` | Gráficos (linha/barra) com ECharts |
 | `maps/ParnaibaMap.tsx` | Mapa Leaflet centrado em Parnaíba (`[-2.905, -41.776]`), carregado só no navegador |

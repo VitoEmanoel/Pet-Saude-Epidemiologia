@@ -39,6 +39,7 @@ import {
   runAdminSyncAll,
   runAdminSyncSource
 } from "@/lib/api";
+import { ignoredFiltersNote, withSingleDemographic } from "@/lib/demographics";
 import { AGGREGATION_LABELS, formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
 import { ApiRequestError } from "@/lib/api";
 import type {
@@ -104,6 +105,7 @@ type AdminChartsState =
       bySex: CategoryPoint[];
       byAgeGroup: CategoryPoint[];
       byRaceColor: CategoryPoint[];
+      notes: { bySex?: string; byAgeGroup?: string; byRaceColor?: string };
     }
   | { status: "error"; message: string };
 
@@ -467,10 +469,9 @@ export function AdminDashboard() {
     key: keyof Omit<RecordFilters, "source" | "page" | "pageSize">,
     value: string | number | undefined
   ) {
-    setExportFilters((current) => ({
-      ...current,
-      [key]: value === "" ? undefined : value
-    }));
+    setExportFilters((current) =>
+      withSingleDemographic(current, key, value === "" ? undefined : value)
+    );
   }
 
   async function exportSelectedFile() {
@@ -1150,7 +1151,12 @@ function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
             yearly: yearly.series,
             bySex: bySex.series,
             byAgeGroup: byAgeGroup.series,
-            byRaceColor: byRaceColor.series
+            byRaceColor: byRaceColor.series,
+            notes: {
+              bySex: ignoredFiltersNote("sex", bySex.ignoredFilters),
+              byAgeGroup: ignoredFiltersNote("ageGroup", byAgeGroup.ignoredFilters),
+              byRaceColor: ignoredFiltersNote("raceColor", byRaceColor.ignoredFilters)
+            }
           });
         }
       })
@@ -1169,10 +1175,7 @@ function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
   }, [activeFilters, sourceSlug]);
 
   function updateDashboardFilter(key: keyof DashboardFilterValues, value: string) {
-    setDashboardFilters((current) => ({
-      ...current,
-      [key]: value
-    }));
+    setDashboardFilters((current) => withSingleDemographic(current, key, value));
   }
 
   function changeSource(nextSourceSlug: string) {
@@ -1388,11 +1391,17 @@ function AdminDashboardCharts({ state }: { state: AdminChartsState }) {
     <div className="space-y-5">
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
         <ChartPanel title="Evolucao anual" type="line" data={state.yearly} height={320} />
-        <ChartPanel title="Por sexo" type="bar" data={state.bySex} height={320} />
+        <ChartPanel title="Por sexo" type="bar" data={state.bySex} height={320} note={state.notes.bySex} />
       </div>
       <div className="grid gap-5 xl:grid-cols-2">
-        <ChartPanel title="Por raca/cor" type="bar" data={state.byRaceColor} />
-        <ChartPanel title="Por faixa etaria" type="bar" data={state.byAgeGroup} horizontal />
+        <ChartPanel title="Por raca/cor" type="bar" data={state.byRaceColor} note={state.notes.byRaceColor} />
+        <ChartPanel
+          title="Por faixa etaria"
+          type="bar"
+          data={state.byAgeGroup}
+          horizontal
+          note={state.notes.byAgeGroup}
+        />
       </div>
     </div>
   );

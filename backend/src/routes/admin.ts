@@ -173,7 +173,8 @@ adminRouter.get("/records/export.csv", async (request, response) => {
 });
 
 adminRouter.get("/dashboard/export.html", async (request, response) => {
-  const validationError = validateRecordsQuery(request.query, false);
+  const validationError =
+    validateRecordsQuery(request.query, false) ?? validateRecordsAggregation(request.query);
 
   if (validationError) {
     return validationError(response);
