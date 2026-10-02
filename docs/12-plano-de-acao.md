@@ -192,6 +192,8 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 - [ ] **6.8** Construir as imagens fora da VPS e só enviá-las ([02 §2.7](02-instalacao-e-execucao.md#27-servidor-pequeno-vps-e-imagens-construídas-fora-dele))
   - [ ] Script `npm run deploy:build` (build com `.env.producao` + `docker save`) e `scripts/deploy-vps.sh` (load + migrations + seed + up, sem build)
   - [ ] Ou: GitHub Actions publicando as imagens no GitHub Container Registry a cada push na `main`; na VPS, `docker compose pull`
+  - [ ] Conferir a arquitetura da VPS (`uname -m`); se for ARM, instalar `buildx` + QEMU na máquina que constrói (o Docker do Victor está sem `buildx` em 02/10/2026)
+  - [ ] Pastas do servidor montadas nos containers com dono `1000:1000` (containers rodam sem root desde o S3)
 
 ---
 

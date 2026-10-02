@@ -230,7 +230,9 @@ Medido em 02/10/2026 com dados reais (6 fontes, ~1.900 registros):
 
 **Atenção:** `NEXT_PUBLIC_API_URL` é embutida no build do frontend (e define a CSP, ver [07 §7.5](07-frontend.md#75-cabeçalhos-de-segurança)). A imagem precisa ser construída **com o endereço de produção**, não com `localhost`. Use um `.env` de produção (ex.: `.env.producao`, fora do git) com os endereços do servidor (§2.6).
 
-Também confira a arquitetura: a maioria das VPS é `amd64` (x86), como a maioria dos computadores. Se a VPS for ARM, construa com `DOCKER_DEFAULT_PLATFORM=linux/arm64`.
+Também confira a arquitetura: a maioria das VPS é `amd64` (x86), como a maioria dos computadores (confira na VPS com `uname -m`: `x86_64` = amd64, `aarch64` = ARM). Se a VPS for ARM, construa com `DOCKER_DEFAULT_PLATFORM=linux/arm64`. Para isso o Docker do computador precisa do plugin **`buildx`** e do emulador QEMU: se o build mostrar `buildx Docker CLI plugin not found: falling back to the classic builder`, instale-o (Arch: `sudo pacman -S docker-buildx`; Ubuntu/Debian: `sudo apt install docker-buildx-plugin`) e rode `docker run --privileged --rm tonistiigi/binfmt --install arm64`. Para VPS amd64 nada disso é necessário.
+
+**Pastas do servidor e permissões.** Os containers rodam como o usuário `node` (uid 1000), não como root. Se você montar uma pasta do servidor dentro de um container (ex.: no lugar de `backend/storage`), ela precisa pertencer a esse usuário: `sudo chown -R 1000:1000 <pasta>`. Volumes nomeados do Docker já recebem o dono certo.
 
 **No seu computador:**
 
