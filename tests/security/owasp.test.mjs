@@ -204,24 +204,22 @@ describe("A01 Controle de acesso", () => {
     }
   });
 
-  test("S12 [preta] Listagem sem fonte não traz registros da fonte interna", async () => {
-    const r = await api("/api/records?aggregation=all&pageSize=500&page=1");
-    assert.equal(r.status, 200);
-    for (let page = 1; page <= r.json.pagination.totalPages; page += 1) {
-      const records = page === 1 ? r.json.records : (await api(`/api/records?aggregation=all&pageSize=500&page=${page}`)).json.records;
-      assert.ok(!records.some((record) => record.source.slug === "zika_sinan"), `zika na página ${page}`);
+  test("S12 [preta] Listagem sem fonte só traz fontes primárias públicas", async () => {
+    const sources = (await api("/api/sources")).json.sources;
+    const allowed = new Set(sources.filter((source) => source.kind === "primary").map((source) => source.slug));
+    assert.ok(!sources.some((source) => source.kind === "internal"), "fonte interna listada");
+    const first = await api("/api/records?aggregation=all&pageSize=500&page=1");
+    assert.equal(first.status, 200);
+    for (let page = 1; page <= first.json.pagination.totalPages; page += 1) {
+      const records = page === 1 ? first.json.records : (await api(`/api/records?aggregation=all&pageSize=500&page=${page}`)).json.records;
+      const outside = records.find((record) => !allowed.has(record.source.slug));
+      assert.equal(outside, undefined, `fonte fora da lista pública na página ${page}`);
     }
   });
 
-  test("S12 [preta] Fonte interna (zika) não é exposta em nenhuma rota pública", async () => {
-    for (const path of [
-      "/api/sources/zika_sinan",
-      "/api/sources/zika_sinan/summary",
-      "/api/charts/yearly-evolution?source=zika_sinan",
-      "/api/records?source=zika_sinan"
-    ]) {
-      assert.equal((await api(path)).status, 404, path);
-    }
+  test("S12 [branca] Rotas públicas usam só fontes públicas (getPublicSourceBySlug)", () => {
+    assert.match(read("backend/src/routes/records-query.ts"), /getPublicSourceBySlug\(sourceSlug\)/);
+    assert.match(read("backend/src/config/sources.ts"), /publicSources = allowedSources\.filter\(\(source\) => source\.kind !== "internal"\)/);
   });
 
   test("[cinza] CORS não libera origem estranha nem com credenciais", async () => {

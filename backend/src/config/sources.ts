@@ -62,6 +62,17 @@ export const allowedSources: readonly AllowedSource[] = [
     kind: "primary"
   },
   {
+    slug: "zika_sinan",
+    name: "Casos de Zika",
+    system: "SINAN",
+    category: ALLOWED_DATASUS_CATEGORY,
+    municipalityFilterStatus: "available",
+    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/zikabr.def",
+    active: true,
+    syncEnabled: true,
+    kind: "primary"
+  },
+  {
     slug: "arboviroses_sinan",
     name: "Arboviroses em geral",
     system: "SINAN",
@@ -83,17 +94,6 @@ export const allowedSources: readonly AllowedSource[] = [
     active: true,
     syncEnabled: true,
     kind: "primary"
-  },
-  {
-    slug: "zika_sinan",
-    name: "Casos de Zika",
-    system: "SINAN",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "available",
-    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/zikabr.def",
-    active: true,
-    syncEnabled: true,
-    kind: "internal"
   }
 ] as const;
 

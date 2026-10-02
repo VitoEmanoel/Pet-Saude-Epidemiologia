@@ -333,8 +333,8 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
 
       {isArboviroses ? (
         <div className="rounded border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-          Esta visao agrega as fontes oficiais atualmente integradas para arboviroses no painel:
-          dengue e zika. Chikungunya continua pendente de validacao tecnica da rota oficial.
+          Esta visão soma as arboviroses integradas ao painel, todas contadas como casos prováveis
+          (notificações exceto as descartadas): dengue e zika. A chikungunya entra em seguida.
         </div>
       ) : null}
 

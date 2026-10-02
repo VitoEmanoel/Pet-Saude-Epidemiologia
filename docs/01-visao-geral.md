@@ -41,13 +41,13 @@ A especificação original completa (com as 13 fontes previstas inicialmente) es
 | Hanseníase | `hanseniase_sinan` | primária | `sinannet/cnv/hanswbr.def` |
 | Sífilis congênita | `sifilis_congenita_sinan` | primária | `sinannet/cnv/sifilisbr.def` |
 | Dengue | `dengue_sinan` | primária | `sinannet/cnv/denguebr.def` (2007–2013) + `sinannet/cnv/denguebbr.def` (2014 em diante) |
+| Zika | `zika_sinan` | primária (casos prováveis: notificações exceto descartadas) | `sinannet/cnv/zikabr.def` |
 | Sífilis gestacional | `sifilis_gestacional_sinan` | primária | `sinannet/cnv/sifilisgestantepi.def` |
 | Arboviroses | `arboviroses_sinan` | **derivada** (soma dengue + zika) | — |
-| *(não aparece no menu)* | `zika_sinan` | **interna** (só alimenta arboviroses), contada como casos prováveis | `sinannet/cnv/zikabr.def` |
 
 - **primária**: coletada diretamente do TABNET e exibida no site.
 - **derivada**: não é coletada; é montada somando outras fontes.
-- **interna**: coletada, mas não aparece no catálogo público.
+- **interna**: coletada só para compor outra fonte, sem página própria (nenhuma hoje; a zika era interna até o A1).
 
 Pendente: incluir **chikungunya** em arboviroses (ver [12-plano-de-acao.md](12-plano-de-acao.md)).
 

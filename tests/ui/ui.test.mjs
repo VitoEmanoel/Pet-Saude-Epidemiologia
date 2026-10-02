@@ -12,7 +12,7 @@ const BROWSER = process.env.QA_BROWSER ?? "chromium";
 const SHOTS = `${OUTPUT}screenshots/${BROWSER}/`;
 const axeSource = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 
-const DISEASE_PAGES = ["/tuberculose", "/hanseniase", "/sifilis", "/dengue", "/arboviroses", "/sifilis-gestacional"];
+const DISEASE_PAGES = ["/tuberculose", "/hanseniase", "/sifilis", "/dengue", "/zika", "/arboviroses", "/sifilis-gestacional"];
 const PAGES = ["/", ...DISEASE_PAGES, "/admin"];
 const PROFILES = {
   desktop: { viewport: { width: 1440, height: 900 } },

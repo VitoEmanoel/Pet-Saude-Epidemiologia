@@ -31,13 +31,13 @@ describe("Funcional: catálogo e saúde", () => {
     assert.equal(r.json.city.ibgeCode, "2207702");
   });
 
-  test("GET /api/sources lista as 6 fontes públicas e esconde a zika", async () => {
+  test("GET /api/sources lista as 7 fontes públicas (zika incluída desde o A1)", async () => {
     const slugs = (await api("/api/sources")).json.sources.map((s) => s.slug).sort();
     assert.deepEqual(slugs, [...PUBLIC_SOURCES].sort());
   });
 
-  test("Fonte interna (zika) não é exposta: 404", async () => {
-    assert.equal((await api("/api/sources/zika_sinan")).status, 404);
+  test("Fonte inexistente: 404", async () => {
+    assert.equal((await api("/api/sources/chikungunya_inexistente")).status, 404);
   });
 
   for (const slug of PUBLIC_SOURCES) {
@@ -73,7 +73,7 @@ describe("Integração: dados sincronizados", () => {
     });
   }
 
-  test("D4: total geral = soma das fontes primárias públicas (sem zika, sem duplicar a dengue)", async () => {
+  test("D4: total geral = soma das fontes primárias públicas (sem duplicar a dengue em arboviroses)", async () => {
     const overview = (await api("/api/dashboard/overview")).json;
     let publicTotal = 0;
     for (const slug of PRIMARY_SOURCES) {
@@ -308,6 +308,7 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
     const arbo = (await api("/api/sources/arboviroses_sinan/summary")).json.summary.totalCases;
     const dengue = (await api("/api/sources/dengue_sinan/summary")).json.summary.totalCases;
     assert.equal(arbo - dengue, 33, "zika deveria somar 33 casos prováveis (187 com descartados)");
+    assert.equal((await api("/api/sources/zika_sinan/summary")).json.summary.totalCases, 33);
   });
 
   test("Tuberculose 2024 = 86 casos, também somando a tabela (D3)", async () => {

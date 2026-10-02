@@ -11,6 +11,7 @@ type AppShellProps = {
     | "hanseniase"
     | "sifilis"
     | "dengue"
+    | "zika"
     | "arboviroses"
     | "sifilis-gestacional";
   children: React.ReactNode;
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/hanseniase", label: "Hanseníase", active: "hanseniase", icon: Activity },
   { href: "/sifilis", label: "Sífilis congênita", active: "sifilis", icon: Activity },
   { href: "/dengue", label: "Dengue", active: "dengue", icon: Activity },
+  { href: "/zika", label: "Zika", active: "zika", icon: Activity },
   { href: "/arboviroses", label: "Arboviroses", active: "arboviroses", icon: Activity },
   { href: "/sifilis-gestacional", label: "Sífilis gestacional", active: "sifilis-gestacional", icon: Activity }
 ] as const;

@@ -11,6 +11,7 @@ Next.js 15 (App Router) + React 19 + Tailwind CSS. Todas as páginas buscam dado
 | `/hanseniase` | `app/hanseniase/page.tsx` | `DiseaseDashboard source="hanseniase_sinan"` |
 | `/sifilis` | `app/sifilis/page.tsx` | `DiseaseDashboard source="sifilis_congenita_sinan"` |
 | `/dengue` | `app/dengue/page.tsx` | `DiseaseDashboard source="dengue_sinan"` |
+| `/zika` | `app/zika/page.tsx` | `DiseaseDashboard source="zika_sinan"` |
 | `/arboviroses` | `app/arboviroses/page.tsx` | `DiseaseDashboard source="arboviroses_sinan"` |
 | `/sifilis-gestacional` | `app/sifilis-gestacional/page.tsx` | `DiseaseDashboard source="sifilis_gestacional_sinan"` |
 | `/admin` | `app/admin/page.tsx` | `AdminOverview`: indicadores gerais e dashboard da fonte com **Baixar CSV** e **Baixar dashboard** |

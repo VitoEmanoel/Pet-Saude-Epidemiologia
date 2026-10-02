@@ -91,7 +91,7 @@ export function validateRecordsQuery(
 
   const sourceSlug = String(query.source ?? "");
 
-  // Só fontes públicas: a zika (interna) não pode ser consultada diretamente (S12).
+  // Só fontes públicas: fontes internas (kind "internal") não podem ser consultadas diretamente (S12).
   if (sourceSlug && !getPublicSourceBySlug(sourceSlug)) {
     return (response) =>
       sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
