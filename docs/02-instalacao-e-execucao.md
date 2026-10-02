@@ -149,7 +149,8 @@ Use quando for **programar**: o backend e o frontend recarregam sozinhos ao salv
 | Comando de desenvolvimento | O que faz |
 |---|---|
 | `npm run dev` | Backend (`tsx watch`) e frontend (`next dev`) juntos |
-| `npm run test:backend` | Testes da API (veja o aviso em [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md)) |
+| `npm run test:backend` | Testes do backend (grava logins de teste na auditoria do banco configurado) |
+| `npm run test:e2e`, `test:ui`, ... | Suíte de QA contra o sistema no ar. Ver [13-testes.md](13-testes.md) |
 | `npm run build:backend` / `build:frontend` | Compila para produção |
 | `npm run prisma:migrate` | Cria uma migration nova a partir do `schema.prisma` |
 | `npm run sync:tuberculose` (e `sync:hanseniase`, `sync:sifilis`) | Sincroniza uma fonte |

@@ -13,7 +13,7 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 ### Definição de pronto (vale para todo item)
 
 - [ ] Código implementado
-- [ ] Testes automatizados passando (`npm run test:backend` + suíte da Fase 0, quando existir)
+- [ ] Testes automatizados passando: `npm run test:backend`, `npm run test:e2e` e `npm run test:ui` (ver [13-testes.md](13-testes.md)); remover o `todo` do teste do item corrigido
 - [ ] Verificado com o sistema rodando (`npm run start`), não só no código
 - [ ] Documentação atualizada (docs 01–10 afetados; remover o item de `11-limitacoes-conhecidas.md`)
 - [ ] Commit feito com mensagem clara citando o código do item (ex.: `fix(sync): use compiled script in Docker (O1)`)
@@ -22,7 +22,7 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 
 | Fase | Objetivo | Itens | Concluídos |
 |---|---|---|---|
-| 0 | Preparar o terreno | 4 | 3 |
+| 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 0 |
 | 2 | Segurança mínima para publicar | 7 | 0 |
 | 3 | Operação confiável | 6 | 0 |
@@ -30,7 +30,7 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 7 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **3** |
+| | **Total** | **47** | **4** |
 
 ---
 
@@ -46,14 +46,16 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] Testar `RUN_INITIAL_SYNC=true` no `.env` + `npm run start`
   - [x] Testar o serviço `sync-data` do Compose (`--profile manual`)
   - [ ] **Pronto quando:** o comando do README sincroniza as 6 fontes sem erro
-- [ ] **0.3** Trazer a suíte de testes de QA para dentro do projeto (hoje está fora do repositório)
-  - [ ] Criar `tests/e2e/` com os testes de API (funcional, integração, regressão, segurança)
-  - [ ] Criar `tests/ui/` com os testes de navegador (Playwright: Chromium, Firefox, WebKit)
-  - [ ] Criar `tests/load/` com os testes de carga (autocannon)
-  - [ ] Ler credenciais do `.env` sem copiá-lo; nenhum caminho absoluto
-  - [ ] Scripts no `package.json`: `test:e2e`, `test:ui`, `test:load`
-  - [ ] Manter os testes dos defeitos conhecidos (D1–D4, S6) marcados como "esperado falhar" até serem corrigidos
-  - [ ] **Pronto quando:** `npm run test:e2e` roda contra o sistema no ar e o resultado bate com o relatório de 01/10/2026 (42 passam, 5 falhas esperadas)
+- [x] **0.3** Trazer a suíte de testes de QA para dentro do projeto (01/10/2026, branch `feat/0.3-suite-de-testes`)
+  - [x] Criar `tests/e2e/` com os testes de API (funcional, integração, regressão, segurança)
+  - [x] Criar `tests/ui/` com os testes de navegador (Playwright: Chromium, Firefox, WebKit)
+  - [x] Criar `tests/load/` com os testes de carga (autocannon) e o teste longo
+  - [x] Criar `tests/resilience/` com a injeção de falhas do TABNET
+  - [x] Ler credenciais do `.env` sem copiá-lo; nenhum caminho absoluto
+  - [x] Scripts no `package.json`: `test:setup`, `test:e2e`, `test:ui`, `test:ui:webkit`, `test:load`, `test:soak`, `test:resilience`
+  - [x] Defeitos conhecidos marcados como `todo` com o código do item (D1–D4, D2 na UI, S2, S4, S6, S7, S8, U1, U2)
+  - [x] Documentar em `docs/13-testes.md`
+  - [x] **Resultado:** e2e 66 passam, 0 falham, 11 `todo`; UI 44/0/4 nos 3 navegadores; resiliência 6/6
 
 ---
 

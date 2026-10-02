@@ -98,10 +98,4 @@ Alternativa para scripts: defina `ADMIN_ALLOW_BEARER_TOKEN=true` e `ADMIN_TOKEN=
 
 ## 6.3 Testes automatizados
 
-[`backend/src/routes/public-api.test.ts`](../backend/src/routes/public-api.test.ts) (13 testes, `node:test`):
-
-```bash
-npm run test:backend
-```
-
-Cobrem: health, bloqueio de município, fonte inválida, exportação só no admin, login (senha errada, origem, limite de tentativas, sessão). Precisam de um `DATABASE_URL` válido e **gravam eventos na auditoria desse banco**. Rode-os contra um banco de desenvolvimento, nunca o de produção.
+Os testes do backend (`npm run test:backend`) e a suíte de QA que testa a API com o sistema no ar (`npm run test:e2e`) estão descritos em [13-testes.md](13-testes.md).

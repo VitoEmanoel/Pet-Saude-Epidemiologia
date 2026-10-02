@@ -15,9 +15,5 @@ memoria.md
 # Configuração local do Claude Code
 .claude/settings.local.json
 
-# Artefatos de testes de QA
-tests/qa/node_modules/
-tests/qa/shots*/
-tests/qa/*.json
-tests/qa/*.csv
-tests/qa/*.dump
+# Resultados dos testes de QA (capturas de tela, CSV do teste longo)
+tests/output/

@@ -11,6 +11,7 @@ Manual de manutenção do sistema. Foi escrito para alguém com conhecimento bá
 | Resolver um erro agora | [10. Solução de problemas](10-solucao-de-problemas.md) |
 | Fazer uma tarefa de manutenção (ano novo, fonte nova, senha, backup...) | [09. Guia de manutenção](09-guia-de-manutencao.md) |
 | Mexer no código | [03. Arquitetura](03-arquitetura.md), depois o documento da parte específica |
+| Testar se nada quebrou | [13. Testes](13-testes.md) |
 
 ## Índice
 
@@ -29,6 +30,7 @@ Manual de manutenção do sistema. Foi escrito para alguém com conhecimento bá
 | 10 | [Solução de problemas](10-solucao-de-problemas.md) | Sintoma → causa → solução |
 | 11 | [Problemas conhecidos](11-limitacoes-conhecidas.md) | Os problemas em aberto (D, O, S, U, Q), com causa, evidência e correção |
 | 12 | [Plano de ação](12-plano-de-acao.md) | Checklist do que fazer, do mais urgente ao menos urgente |
+| 13 | [Testes](13-testes.md) | Como rodar os testes (backend, API, segurança, interface, carga, resiliência) |
 
 ## Outras pastas
 

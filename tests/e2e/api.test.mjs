@@ -1,0 +1,254 @@
+// Testes funcionais, de integração e de regressão da API.
+// Rodam contra o sistema no ar (npm run start) com os dados já sincronizados.
+import assert from "node:assert/strict";
+import { before, describe, test } from "node:test";
+import {
+  API,
+  ORIGIN,
+  PRIMARY_SOURCES,
+  PUBLIC_SOURCES,
+  RUN_TABNET,
+  adminApi,
+  adminLogin,
+  api,
+  assertSystemUp,
+  sum
+} from "../support/env.mjs";
+
+let admin;
+
+before(async () => {
+  await assertSystemUp();
+  const login = await adminLogin();
+  assert.equal(login.status, 200, "login admin deve funcionar (confira ADMIN_PASSWORD no .env)");
+  admin = adminApi(login.cookie);
+});
+
+describe("Funcional: catálogo e saúde", () => {
+  test("GET /health fixa Parnaíba", async () => {
+    const r = await api("/health");
+    assert.equal(r.status, 200);
+    assert.equal(r.json.city.ibgeCode, "2207702");
+  });
+
+  test("GET /api/sources lista as 6 fontes públicas e esconde a zika", async () => {
+    const slugs = (await api("/api/sources")).json.sources.map((s) => s.slug).sort();
+    assert.deepEqual(slugs, [...PUBLIC_SOURCES].sort());
+  });
+
+  test("Fonte interna (zika) não é exposta: 404", async () => {
+    assert.equal((await api("/api/sources/zika_sinan")).status, 404);
+  });
+
+  for (const slug of PUBLIC_SOURCES) {
+    test(`GET /api/sources/${slug} e /availability`, async () => {
+      assert.equal((await api(`/api/sources/${slug}`)).json.source.slug, slug);
+      assert.equal((await api(`/api/sources/${slug}/availability`)).status, 200);
+    });
+  }
+});
+
+describe("Integração: dados sincronizados", () => {
+  for (const slug of PUBLIC_SOURCES) {
+    test(`${slug}: resumo, filtros, 4 gráficos e registros coerentes`, async () => {
+      const summary = (await api(`/api/sources/${slug}/summary`)).json.summary;
+      assert.ok(summary.totalRecords > 0, "deve ter registros (rode npm run sync:data)");
+      assert.ok(summary.firstAvailableYear <= summary.lastAvailableYear);
+      assert.ok((await api(`/api/sources/${slug}/filters`)).json.filters.years.length > 0);
+
+      const [yearly, bySex, byAge, byRace] = await Promise.all(
+        ["yearly-evolution", "by-sex", "by-age-group", "by-race-color"].map((chart) =>
+          api(`/api/charts/${chart}?source=${slug}`).then((r) => r.json.series)
+        )
+      );
+      // Cada fatia (sexo, faixa etária, raça/cor) soma o mesmo total anual
+      assert.equal(sum(yearly), summary.totalCases, "evolução anual = total de casos");
+      assert.equal(sum(bySex), sum(yearly), "soma por sexo = total");
+      assert.equal(sum(byAge), sum(yearly), "soma por faixa etária = total");
+      assert.equal(sum(byRace), sum(yearly), "soma por raça/cor = total");
+
+      const records = (await api(`/api/records?source=${slug}&pageSize=5`)).json;
+      assert.equal(records.pagination.total, summary.totalRecords);
+      assert.ok(records.records.every((r) => r.city.ibgeCode === "2207702"));
+    });
+  }
+
+  test("Arboviroses (derivada) inclui mais que a dengue", async () => {
+    const arbo = (await api("/api/sources/arboviroses_sinan/summary")).json.summary.totalCases;
+    const dengue = (await api("/api/sources/dengue_sinan/summary")).json.summary.totalCases;
+    assert.ok(arbo > dengue);
+  });
+
+  test("Por ano: soma por sexo = total anual (últimos 3 anos de cada fonte)", async () => {
+    for (const slug of PRIMARY_SOURCES) {
+      const years = (await api(`/api/charts/yearly-evolution?source=${slug}`)).json.series;
+      for (const { year, value } of years.slice(-3)) {
+        const bySex = (await api(`/api/charts/by-sex?source=${slug}&year=${year}`)).json.series;
+        assert.equal(sum(bySex), value, `${slug} ${year}`);
+      }
+    }
+  });
+
+  test("Paginação: páginas não se repetem e respeitam pageSize", async () => {
+    const p1 = (await api("/api/records?source=tuberculose_sinan&page=1&pageSize=10")).json;
+    const p2 = (await api("/api/records?source=tuberculose_sinan&page=2&pageSize=10")).json;
+    assert.equal(p1.records.length, 10);
+    const ids = new Set(p1.records.map((r) => r.id));
+    assert.ok(p2.records.every((r) => !ids.has(r.id)));
+    assert.equal(p1.pagination.totalPages, Math.ceil(p1.pagination.total / 10));
+  });
+
+  test("Paginação: pageSize acima do máximo é limitado a 500", async () => {
+    assert.equal((await api("/api/records?pageSize=99999")).json.pagination.pageSize, 500);
+  });
+
+  test("Paginação: página além do fim retorna lista vazia", async () => {
+    const r = await api("/api/records?source=dengue_sinan&page=9999");
+    assert.equal(r.status, 200);
+    assert.equal(r.json.records.length, 0);
+  });
+});
+
+describe("Validação de entrada", () => {
+  for (const param of ["city=Teresina", "municipio=x", "uf=CE", "ibgeCode=2211001", "estado=MA"]) {
+    test(`Bloqueia filtro de outro município (${param}): 400`, async () => {
+      assert.equal((await api(`/api/records?${param}`)).status, 400);
+    });
+  }
+
+  test("Parâmetro desconhecido: 400", async () => {
+    assert.equal((await api("/api/records?foo=1")).status, 400);
+  });
+
+  test("Gráfico sem source: 400", async () => {
+    assert.equal((await api("/api/charts/by-sex")).status, 400);
+  });
+
+  test("Fonte inexistente: 404", async () => {
+    assert.equal((await api("/api/charts/by-sex?source=covid")).status, 404);
+  });
+
+  test("Rota inexistente: 404 em JSON", async () => {
+    const r = await api("/api/nao-existe");
+    assert.equal(r.status, 404);
+    assert.equal(r.json.error.code, "not_found");
+  });
+
+  test("Ano não numérico é ignorado sem erro", async () => {
+    assert.equal((await api("/api/records?source=dengue_sinan&year=abc")).status, 200);
+  });
+});
+
+describe("Área administrativa", () => {
+  test("Sem sessão: 401 em todas as rotas protegidas", async () => {
+    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs",
+      "/api/admin/records/export.csv", "/api/admin/dashboard/export.html?source=dengue_sinan"]) {
+      assert.equal((await api(path)).status, 401, path);
+    }
+  });
+
+  test("Com sessão: me, histórico e auditoria", async () => {
+    assert.equal((await admin("/api/admin/auth/me")).status, 200);
+    assert.ok(Array.isArray((await admin("/api/admin/sync-history")).json.syncJobs));
+    assert.ok(Array.isArray((await admin("/api/admin/audit-logs")).json.auditLogs));
+  });
+
+  test("Exportação CSV: cabeçalho e linhas = total de registros da fonte", async () => {
+    const r = await admin("/api/admin/records/export.csv?source=sifilis_congenita_sinan");
+    assert.match(r.headers.get("content-type"), /text\/csv/);
+    const lines = r.text.trim().split("\n");
+    assert.match(lines[0], /^source_slug,source_name,city/);
+    const total = (await api("/api/sources/sifilis_congenita_sinan/summary")).json.summary.totalRecords;
+    assert.equal(lines.length - 1, total);
+  });
+
+  test("Exportação HTML do dashboard", async () => {
+    const r = await admin("/api/admin/dashboard/export.html?source=tuberculose_sinan");
+    assert.equal(r.status, 200);
+    assert.match(r.text, /<!doctype html>/i);
+  });
+
+  test("Exportação HTML sem source: 400", async () => {
+    assert.equal((await admin("/api/admin/dashboard/export.html")).status, 400);
+  });
+
+  test("Sincronizar fonte derivada (arboviroses): 501", async () => {
+    assert.equal((await admin("/api/admin/sync/arboviroses_sinan", { method: "POST" })).status, 501);
+  });
+
+  test("Sincronização manual fim a fim, sem duplicar dados (TABNET)", { skip: !RUN_TABNET && "defina QA_TABNET=1 (usa a internet)" }, async () => {
+    const before = (await api("/api/sources/sifilis_gestacional_sinan/summary")).json.summary;
+    const r = await admin("/api/admin/sync/sifilis_gestacional_sinan", { method: "POST" });
+    assert.equal(r.status, 200);
+    assert.equal(r.json.syncJob.status, "SUCCESS");
+    const after = (await api("/api/sources/sifilis_gestacional_sinan/summary")).json.summary;
+    assert.equal(after.totalRecords, before.totalRecords);
+    assert.equal(after.totalCases, before.totalCases);
+  });
+
+  test("Sincronizações simultâneas da mesma fonte: uma recebe 409 (TABNET)", { skip: !RUN_TABNET && "defina QA_TABNET=1 (usa a internet)" }, async () => {
+    const [a, b] = await Promise.all([
+      admin("/api/admin/sync/zika_sinan", { method: "POST" }),
+      admin("/api/admin/sync/zika_sinan", { method: "POST" })
+    ]);
+    assert.deepEqual([a.status, b.status].sort(), [200, 409]);
+  });
+
+  test("Logout limpa o cookie de sessão", async () => {
+    const login = await adminLogin();
+    const r = await fetch(API + "/api/admin/auth/logout", { method: "POST", headers: { cookie: login.cookie, origin: ORIGIN } });
+    assert.equal(r.status, 200);
+    assert.match(r.headers.get("set-cookie") ?? "", /painel_admin_session=;/);
+  });
+});
+
+describe("Regressão: números conhecidos (validados no TABNET)", () => {
+  test("Tuberculose 2024 = 86 casos", async () => {
+    const series = (await api("/api/charts/yearly-evolution?source=tuberculose_sinan&year=2024")).json.series;
+    assert.equal(series[0].value, 86);
+  });
+
+  test("Tuberculose 2001–2025 = 1.856 casos em 500 registros", async () => {
+    const s = (await api("/api/sources/tuberculose_sinan/summary")).json.summary;
+    assert.equal(s.firstAvailableYear, 2001);
+    assert.equal(s.totalCases, 1856);
+    assert.equal(s.totalRecords, 500);
+  });
+});
+
+// Defeitos conhecidos (docs/11). Marcados como "todo": rodam e mostram o defeito, mas não
+// derrubam a suíte. Ao corrigir o item, remova o "todo" e o teste passa a ser obrigatório.
+describe("Defeitos conhecidos", () => {
+  test("D1: dengue tem dados depois de 2013", { todo: "D1 — Fase 1" }, async () => {
+    const s = (await api("/api/sources/dengue_sinan/summary")).json.summary;
+    assert.ok(s.lastAvailableYear > 2013, `último ano = ${s.lastAvailableYear}`);
+  });
+
+  test("D2: com filtro de sexo, o gráfico por faixa etária não fica vazio", { todo: "D2 — Fase 1" }, async () => {
+    const s = (await api("/api/charts/by-age-group?source=tuberculose_sinan&sex=Masculino")).json.series;
+    assert.ok(s.length > 0, "gráfico vazio");
+  });
+
+  test("D3: soma da tabela de um ano = total do ano", { todo: "D3 — Fase 1" }, async () => {
+    const r = (await api("/api/records?source=tuberculose_sinan&year=2024&pageSize=500")).json.records;
+    assert.equal(sum(r), 86, `soma = ${sum(r)}`);
+  });
+
+  test("D4: total geral não inclui a zika (fonte interna)", { todo: "D4 — Fase 1" }, async () => {
+    const overall = (await api("/api/dashboard/overview")).json.summary.totalCases;
+    let publicTotal = 0;
+    for (const slug of PRIMARY_SOURCES) {
+      publicTotal += (await api(`/api/sources/${slug}/summary`)).json.summary.totalCases;
+    }
+    assert.equal(overall, publicTotal, `geral=${overall}, soma das fontes públicas=${publicTotal}`);
+  });
+
+  test("S6: JSON inválido retorna erro em JSON", { todo: "S6 — Fase 2" }, async () => {
+    const r = await api("/api/admin/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: ORIGIN },
+      body: "{x"
+    });
+    assert.match(r.headers.get("content-type") ?? "", /json/, `retornou ${r.headers.get("content-type")}`);
+  });
+});

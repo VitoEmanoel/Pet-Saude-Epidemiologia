@@ -1,0 +1,250 @@
+// Testes de interface, usabilidade e acessibilidade (Playwright).
+// Navegador: QA_BROWSER=chromium (padrão) | firefox | webkit.
+// WebKit não roda direto no Arch Linux; ver docs/13-testes.md.
+import assert from "node:assert/strict";
+import { mkdirSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { after, before, describe, test } from "node:test";
+import pw from "playwright-core";
+import { ADMIN_PASSWORD, ADMIN_USERNAME, OUTPUT, WEB, assertSystemUp } from "../support/env.mjs";
+
+const BROWSER = process.env.QA_BROWSER ?? "chromium";
+const SHOTS = `${OUTPUT}screenshots/${BROWSER}/`;
+const axeSource = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
+
+const DISEASE_PAGES = ["/tuberculose", "/hanseniase", "/sifilis", "/dengue", "/arboviroses", "/sifilis-gestacional"];
+const PAGES = ["/", ...DISEASE_PAGES, "/admin"];
+const PROFILES = {
+  desktop: { viewport: { width: 1440, height: 900 } },
+  celular: BROWSER === "webkit" ? pw.devices["iPhone 15"] : { viewport: { width: 390, height: 844 } }
+};
+
+let browser;
+
+before(async () => {
+  await assertSystemUp();
+  mkdirSync(SHOTS, { recursive: true });
+  browser = await pw[BROWSER].launch();
+});
+
+after(async () => {
+  await browser?.close();
+});
+
+async function openPage(profile, path) {
+  const context = await browser.newContext({ ...PROFILES[profile], locale: "pt-BR" });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto(WEB + path, { waitUntil: "networkidle" });
+  await page.waitForTimeout(800);
+  return { context, page, errors };
+}
+
+const shotName = (profile, path) => `${SHOTS}${profile}${path === "/" ? "_inicio" : path.replace(/\//g, "_")}.png`;
+
+for (const profile of Object.keys(PROFILES)) {
+  describe(`Páginas (${BROWSER}, ${profile})`, () => {
+    for (const path of PAGES) {
+      test(`${path} carrega sem erro, sem rolagem horizontal, com gráficos`, async () => {
+        const { context, page, errors } = await openPage(profile, path);
+        try {
+          const info = await page.evaluate(() => ({
+            overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+            canvases: [...document.querySelectorAll("canvas")].filter((c) => c.width > 0).length,
+            tiles: document.querySelectorAll(".leaflet-tile-loaded").length,
+            apiError: /API indisponivel/i.test(document.body.innerText),
+            lang: document.documentElement.lang
+          }));
+          await page.screenshot({ path: shotName(profile, path), fullPage: true });
+          assert.deepEqual(errors, [], "erros de JavaScript");
+          assert.equal(info.overflow, false, "rolagem horizontal");
+          assert.equal(info.apiError, false, "página mostra API indisponível");
+          assert.equal(info.lang, "pt-BR");
+          if (DISEASE_PAGES.includes(path)) {
+            assert.equal(info.canvases, 4, "4 gráficos");
+            assert.ok(info.tiles > 0, "mapa carregado");
+          }
+          if (path === "/") {
+            assert.ok(info.canvases >= 1, "gráfico da visão geral");
+          }
+        } finally {
+          await context.close();
+        }
+      });
+
+      test(`${path}: acessibilidade WCAG 2 A/AA (exceto contraste, ver U2)`, async () => {
+        const { context, page } = await openPage(profile, path);
+        try {
+          await page.addScriptTag({ content: axeSource });
+          const violations = await page.evaluate(async () =>
+            (await window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa"] })).violations
+              .filter((v) => v.id !== "color-contrast")
+              .map((v) => `${v.id} (${v.nodes.length})`)
+          );
+          assert.deepEqual(violations, []);
+        } finally {
+          await context.close();
+        }
+      });
+    }
+  });
+
+  describe(`Fluxos públicos (${BROWSER}, ${profile})`, () => {
+    test("Filtro de ano 2024 mostra os 86 casos de tuberculose; Limpar restaura", async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      try {
+        await page.locator("select").nth(0).selectOption("2024");
+        await page.waitForLoadState("networkidle");
+        await page.waitForTimeout(600);
+        assert.match(await page.innerText("main"), /\b86\b/);
+        await page.getByRole("button", { name: /limpar/i }).first().click();
+        await page.waitForTimeout(400);
+        assert.equal(await page.locator("select").nth(0).inputValue(), "");
+      } finally {
+        await context.close();
+      }
+    });
+
+    test("Todos os filtros têm rótulo acessível", async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      try {
+        const labelled = await page.$$eval("select", (selects) =>
+          selects.map((s) => Boolean(s.labels?.length || s.getAttribute("aria-label")))
+        );
+        assert.ok(labelled.length >= 4 && labelled.every(Boolean));
+      } finally {
+        await context.close();
+      }
+    });
+
+    test("Paginação da tabela muda o conteúdo", async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      try {
+        const before = await page.innerText("main");
+        await page.locator('[title="Proxima pagina"]').first().click();
+        await page.waitForLoadState("networkidle");
+        await page.waitForTimeout(500);
+        assert.notEqual(await page.innerText("main"), before);
+      } finally {
+        await context.close();
+      }
+    });
+
+    test("Navegação pelo menu", async () => {
+      const { context, page } = await openPage(profile, "/");
+      try {
+        if (profile === "celular") {
+          await page.locator('button[aria-label="Abrir menu"]').click();
+          await page.waitForTimeout(300);
+          await page.getByRole("link", { name: /dengue/i }).last().click();
+          await page.waitForURL("**/dengue");
+        } else {
+          await page.getByRole("link", { name: /hansen/i }).first().click();
+          await page.waitForURL("**/hanseniase");
+        }
+      } finally {
+        await context.close();
+      }
+    });
+
+    test("Tema escuro persiste após recarregar", async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      try {
+        await page.locator('button[aria-label="Ativar tema escuro"]').first().click();
+        await page.reload({ waitUntil: "networkidle" });
+        assert.ok(await page.evaluate(() => document.documentElement.classList.contains("dark")));
+      } finally {
+        await context.close();
+      }
+    });
+
+    test("D2: com filtro de sexo, nenhum gráfico fica vazio", { todo: "D2 — Fase 1" }, async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      try {
+        const sexOptions = await page.locator("select").nth(1).locator("option").evaluateAll((o) => o.map((x) => x.value).filter(Boolean));
+        await page.locator("select").nth(1).selectOption(sexOptions[0]);
+        await page.waitForLoadState("networkidle");
+        await page.waitForTimeout(600);
+        assert.doesNotMatch(await page.innerText("main"), /Sem dados para os filtros/i);
+      } finally {
+        await context.close();
+      }
+    });
+  });
+}
+
+describe(`Área administrativa (${BROWSER})`, () => {
+  test("Senha errada mostra mensagem; login abre o painel; sessão persiste; CSV baixa; Sair volta ao login", async () => {
+    const { context, page } = await openPage("desktop", "/admin");
+    try {
+      await page.locator("input").nth(0).fill(ADMIN_USERNAME);
+      await page.locator('input[type="password"]').fill("senha-errada-teste-ui");
+      await page.getByRole("button", { name: /entrar/i }).click();
+      await page.waitForTimeout(800);
+      assert.match(await page.innerText("main"), /Credencial administrativa invalida/i);
+
+      await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
+      await page.getByRole("button", { name: /entrar/i }).click();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(1200);
+      assert.match(await page.innerText("body"), /Historico de sincronizacoes/i);
+      await page.screenshot({ path: `${SHOTS}desktop_admin_logado.png`, fullPage: true });
+
+      await page.reload({ waitUntil: "networkidle" });
+      await page.waitForTimeout(800);
+      assert.match(await page.innerText("body"), /Historico de sincronizacoes/i, "sessão persiste");
+
+      const download = page.waitForEvent("download", { timeout: 8000 });
+      await page.getByRole("button", { name: /baixar csv/i }).first().click();
+      assert.match((await download).suggestedFilename(), /\.csv$/);
+
+      await page.getByRole("button", { name: /sair/i }).first().click();
+      await page.waitForTimeout(800);
+      assert.ok((await page.locator('input[type="password"]').count()) > 0);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("U1: Enter no campo de senha envia o login", { todo: "U1 — Fase 4" }, async () => {
+    const { context, page } = await openPage("desktop", "/admin");
+    try {
+      await page.locator("input").nth(0).fill(ADMIN_USERNAME);
+      await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
+      const sent = page.waitForRequest((r) => r.url().includes("/auth/login"), { timeout: 3000 });
+      await page.locator('input[type="password"]').press("Enter");
+      await sent;
+    } finally {
+      await context.close();
+    }
+  });
+});
+
+describe(`Resiliência e acessibilidade (${BROWSER})`, () => {
+  test("Com a API fora do ar, a página mostra aviso em vez de quebrar", async () => {
+    const context = await browser.newContext();
+    try {
+      await context.route(/:3333\//, (route) => route.abort());
+      const page = await context.newPage();
+      await page.goto(WEB + "/tuberculose", { waitUntil: "networkidle" });
+      await page.waitForTimeout(800);
+      assert.match(await page.innerText("body"), /indispon/i);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("U2: contraste de cores (WCAG AA)", { todo: "U2 — Fase 4" }, async () => {
+    const { context, page } = await openPage("desktop", "/tuberculose");
+    try {
+      await page.addScriptTag({ content: axeSource });
+      const violations = await page.evaluate(async () =>
+        (await window.axe.run(document, { runOnly: ["color-contrast"] })).violations.length
+      );
+      assert.equal(violations, 0);
+    } finally {
+      await context.close();
+    }
+  });
+});

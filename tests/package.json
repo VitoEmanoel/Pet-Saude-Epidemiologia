@@ -1,0 +1,19 @@
+{
+  "name": "@painel-parnaiba/tests",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Testes de QA contra o sistema rodando (fora dos workspaces para não afetar o build Docker).",
+  "type": "module",
+  "scripts": {
+    "setup": "npm install && npx playwright-core install chromium firefox",
+    "e2e": "node --test --test-concurrency=1 e2e/api.test.mjs e2e/security.test.mjs",
+    "ui": "node --test --test-concurrency=1 ui/ui.test.mjs",
+    "load": "node load/load.mjs",
+    "soak": "node load/soak.mjs"
+  },
+  "devDependencies": {
+    "autocannon": "^8.0.0",
+    "axe-core": "^4.10.0",
+    "playwright-core": "1.63.0"
+  }
+}
