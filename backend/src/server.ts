@@ -52,13 +52,30 @@ export function createServer() {
   app.use("/api/charts", chartsRouter);
   app.use("/api/admin", adminRouter);
 
+  // Precisa dos 4 parâmetros: é assim que o Express reconhece um tratador de erro.
+  app.use(
+    (error: unknown, _request: express.Request, response: express.Response, next: express.NextFunction) => {
+      if (response.headersSent) {
+        return next(error);
+      }
+
+      const type = (error as { type?: unknown } | null)?.type;
+
+      if (type === "entity.parse.failed") {
+        return sendError(response, 400, "invalid_body", "Corpo da requisicao nao e um JSON valido.");
+      }
+
+      if (type === "entity.too.large") {
+        return sendError(response, 413, "payload_too_large", "Corpo da requisicao grande demais.");
+      }
+
+      console.error(error);
+      return sendError(response, 500, "internal_error", "Erro interno do servidor.");
+    }
+  );
+
   app.use((_request, response) => {
     return sendError(response, 404, "not_found", "Rota nao encontrada.");
-  });
-
-  app.use((error: unknown, _request: express.Request, response: express.Response) => {
-    console.error(error);
-    return sendError(response, 500, "internal_error", "Erro interno do servidor.");
   });
 
   return app;

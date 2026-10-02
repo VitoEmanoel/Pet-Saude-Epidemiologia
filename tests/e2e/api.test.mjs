@@ -321,15 +321,16 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
   });
 });
 
-// Defeitos conhecidos (docs/11). Marcados como "todo": rodam e mostram o defeito, mas não
-// derrubam a suíte. Ao corrigir o item, remova o "todo" e o teste passa a ser obrigatório.
-describe("Defeitos conhecidos", () => {
-  test("S6: JSON inválido retorna erro em JSON", { todo: "S6 — Fase 2" }, async () => {
+// Erros de entrada devolvem JSON no formato padrão (antes do S6, vinham em HTML).
+describe("Erros", () => {
+  test("S6: JSON inválido retorna erro em JSON", async () => {
     const r = await api("/api/admin/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json", origin: ORIGIN },
       body: "{x"
     });
     assert.match(r.headers.get("content-type") ?? "", /json/, `retornou ${r.headers.get("content-type")}`);
+    assert.equal(r.status, 400);
+    assert.equal(r.json?.error?.code, "invalid_body");
   });
 });

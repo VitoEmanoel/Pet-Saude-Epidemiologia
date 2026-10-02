@@ -13,6 +13,7 @@ Erros seguem sempre o formato ([`api-response.ts`](../backend/src/utils/api-resp
 | `code` | HTTP | Quando |
 |---|---|---|
 | `invalid_query` | 400 | Parâmetro não permitido, filtro de outro município, `source` ausente |
+| `invalid_body` | 400 | Corpo da requisição não é um JSON válido |
 | `unauthorized` | 401 | Sem sessão admin / credencial errada |
 | `forbidden` | 403 | Requisição admin de origem não permitida |
 | `not_found` | 404 | Fonte ou rota inexistente |
@@ -20,7 +21,10 @@ Erros seguem sempre o formato ([`api-response.ts`](../backend/src/utils/api-resp
 | `rate_limited` | 429 | 5 logins errados em 15 min |
 | `not_implemented` | 501 | Fonte sem coletor |
 | `admin_not_configured` | 503 | Faltam `ADMIN_USERNAME`, `ADMIN_PASSWORD` ou `ADMIN_SESSION_SECRET` |
-| `internal_error` | 500 | Erro inesperado |
+| `payload_too_large` | 413 | Corpo da requisição acima de 100 KB |
+| `internal_error` | 500 | Erro inesperado (detalhes só no log do backend, nunca na resposta) |
+
+Os erros são tratados no fim de [`server.ts`](../backend/src/server.ts). O tratador de erro do Express **precisa ter 4 parâmetros** `(error, request, response, next)`: com 3, o Express não o reconhece e devolve a página de erro padrão em HTML.
 
 ## 6.1 Rotas públicas
 

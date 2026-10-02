@@ -24,13 +24,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
-| 2 | Segurança mínima para publicar | 7 | 5 |
+| 2 | Segurança mínima para publicar | 7 | 6 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **48** | **13** |
+| | **Total** | **48** | **14** |
 
 ---
 
@@ -118,8 +118,8 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] Bloqueio de login por IP real: tentativas de terceiros não trancam o administrador em outro endereço. **Atraso progressivo não foi feito**: a senha é um segredo forte e o limite de 5 por IP já barra força bruta; segurar respostas abertas facilitaria derrubar o servidor com conexões presas
   - [x] Mapa de tentativas não cresce sem limite (entradas vencidas são descartadas)
   - [x] Testes: `X-Forwarded-For` falso não é gravado (e2e) nem escapa do bloqueio (backend); senha correta funciona após tentativas de terceiros, atrás de proxy confiável (backend)
-- [ ] **S6** Handler de erro do Express com 4 parâmetros, antes do 404
-  - [ ] Teste: JSON inválido → resposta JSON 400
+- [x] **S6** Handler de erro do Express com 4 parâmetros, antes do 404 (02/10/2026, branch `fix/s6-handler-de-erro`)
+  - [x] Teste: JSON inválido → resposta JSON 400 (`invalid_body`); corpo acima de 100 KB → 413 (`payload_too_large`)
 - [x] **S8** Remover `X-Powered-By` (Express e Next.js) (02/10/2026, feito junto com o S2: `helmet` e `poweredByHeader: false`)
 - [ ] **S9** Documentar e validar `ADMIN_COOKIE_SECURE=true` no checklist de publicação (Fase 6)
 

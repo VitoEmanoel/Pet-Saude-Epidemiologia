@@ -332,3 +332,28 @@ test("S5: com proxy confiavel, tentativas de terceiros nao trancam o administrad
   resetAdminSecurityState();
 });
 
+test("S6: JSON invalido devolve 400 em JSON, sem stack trace", async () => {
+  const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "http://localhost:3000" },
+    body: "{x"
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error.code, "invalid_body");
+  assert.doesNotMatch(JSON.stringify(body), /at .*\.(ts|js)/);
+});
+
+test("S6: corpo grande demais devolve 413 em JSON", async () => {
+  const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "http://localhost:3000" },
+    body: JSON.stringify({ username: "x".repeat(200_000) })
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 413);
+  assert.equal(body.error.code, "payload_too_large");
+});
+
