@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import type { Server } from "node:http";
 import { after, before, test } from "node:test";
 import { prisma } from "../database/prisma";
+import { parseTrustProxy } from "../config/proxy";
 import { resetAdminSecurityState } from "../middleware/admin-auth";
 import { createServer } from "../server";
 
@@ -262,3 +263,72 @@ test("GET /api/admin/auth/me aceita sessao mesmo com cookie antigo invalido", as
   assert.equal(response.status, 200);
   assert.equal(body.authenticated, true);
 });
+
+// Sobe uma instância à parte com TRUST_PROXY definido (simula o backend atrás de um proxy local).
+async function withTrustedProxyServer(trustProxy: string, run: (url: string) => Promise<void>) {
+  const previousTrustProxy = process.env.TRUST_PROXY;
+  process.env.TRUST_PROXY = trustProxy;
+  const proxiedServer = await new Promise<Server>((resolve) => {
+    const listener = createServer().listen(0, "127.0.0.1", () => resolve(listener));
+  });
+
+  try {
+    const address = proxiedServer.address();
+    assert.ok(address && typeof address !== "string");
+    await run(`http://127.0.0.1:${address.port}`);
+  } finally {
+    if (previousTrustProxy === undefined) {
+      delete process.env.TRUST_PROXY;
+    } else {
+      process.env.TRUST_PROXY = previousTrustProxy;
+    }
+    await new Promise<void>((resolve) => proxiedServer.close(() => resolve()));
+  }
+}
+
+function loginFrom(url: string, forwardedFor: string, password: string) {
+  return fetch(`${url}/api/admin/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-forwarded-for": forwardedFor },
+    body: JSON.stringify({ username: "test-admin", password })
+  });
+}
+
+test("parseTrustProxy aceita numero e lista, recusa true", () => {
+  assert.equal(parseTrustProxy(undefined), false);
+  assert.equal(parseTrustProxy(""), false);
+  assert.equal(parseTrustProxy("false"), false);
+  assert.equal(parseTrustProxy("1"), 1);
+  assert.equal(parseTrustProxy("loopback, 172.16.0.0/12"), "loopback, 172.16.0.0/12");
+  assert.equal(parseTrustProxy("true"), false);
+});
+
+test("S4: sem TRUST_PROXY, X-Forwarded-For forjado nao muda o IP do bloqueio", async () => {
+  resetAdminSecurityState();
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const response = await loginFrom(baseUrl, `203.0.113.${attempt}`, "senha-errada");
+    assert.equal(response.status, 401);
+  }
+
+  // Trocar o cabeçalho não escapa do bloqueio: o IP considerado é o da conexão.
+  const response = await loginFrom(baseUrl, "198.51.100.99", "senha-errada");
+  assert.equal(response.status, 429);
+  resetAdminSecurityState();
+});
+
+test("S5: com proxy confiavel, tentativas de terceiros nao trancam o administrador", async () => {
+  resetAdminSecurityState();
+
+  await withTrustedProxyServer("loopback", async (url) => {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      assert.equal((await loginFrom(url, "203.0.113.10", `errada-${attempt}`)).status, 401);
+    }
+
+    assert.equal((await loginFrom(url, "203.0.113.10", "test-admin-password")).status, 429);
+    assert.equal((await loginFrom(url, "198.51.100.20", "test-admin-password")).status, 200);
+  });
+
+  resetAdminSecurityState();
+});
+

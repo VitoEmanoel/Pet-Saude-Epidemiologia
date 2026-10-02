@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { ALLOWED_CITY, ALLOWED_DATASUS_CATEGORY } from "./config/city";
+import { parseTrustProxy } from "./config/proxy";
 import { adminRouter } from "./routes/admin";
 import { chartsRouter } from "./routes/charts";
 import { dashboardRouter } from "./routes/dashboard";
@@ -11,6 +12,9 @@ import { sendError } from "./utils/api-response";
 
 export function createServer() {
   const app = express();
+
+  // IP real do visitante (request.ip) só vem do X-Forwarded-For de proxies confiáveis.
+  app.set("trust proxy", parseTrustProxy(process.env.TRUST_PROXY));
 
   // A API só devolve JSON, CSV e HTML para download: nada nela precisa carregar recursos.
   // As rotas do admin reforçam esses cabeçalhos em setAdminSecurityHeaders.

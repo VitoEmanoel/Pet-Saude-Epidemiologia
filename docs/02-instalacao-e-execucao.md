@@ -173,6 +173,7 @@ Use quando for **programar**: o backend e o frontend recarregam sozinhos ao salv
 | `ADMIN_PASSWORD` | — | Senha do admin (**obrigatório trocar**) |
 | `ADMIN_SESSION_SECRET` | — | Segredo que assina o cookie de sessão. Trocar = derruba todas as sessões |
 | `ADMIN_COOKIE_SECURE` | `false` | Use `true` quando o site estiver em HTTPS |
+| `TRUST_PROXY` | vazio | De quais proxies o backend aceita o `X-Forwarded-For` para saber o IP real do visitante (auditoria e bloqueio de login). Vazio = backend exposto direto. Atrás de proxy: número de proxies (ex.: `1`) ou IPs/redes deles (ex.: `loopback, 172.16.0.0/12`). `true` é recusado (permitiria forjar o IP) |
 | `ADMIN_ALLOW_BEARER_TOKEN` / `ADMIN_TOKEN` | desativado | Acesso por `Authorization: Bearer <token>` para scripts. Só funciona com `ADMIN_ALLOW_BEARER_TOKEN=true` |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` / `postgres` / `pet_saude` | Credenciais do banco. Mudar depois de criado o volume exige `db:reset` |
 | `POSTGRES_PORT` | `5433` | Porta do banco **no host** (5433 para não colidir com um PostgreSQL local) |
@@ -199,7 +200,7 @@ APP_BIND_HOST=0.0.0.0
 - Exponha apenas as portas **3000** e **3333**. O PostgreSQL fica em `127.0.0.1` por padrão.
 - O `start` bloqueia se `NEXT_PUBLIC_API_URL` apontar para `localhost` com URLs de servidor.
 - Em HTTPS (recomendado), use `ADMIN_COOKIE_SECURE=true`.
-- Atrás de proxy reverso (nginx etc.), leia o item sobre `trust proxy` em [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md).
+- Atrás de proxy reverso (nginx, Caddy), defina `TRUST_PROXY` (§2.5). Sem isso, todos os visitantes aparecem com o IP do proxy: a auditoria perde o IP real e 5 senhas erradas de qualquer pessoa trancam o login de todos. Com `TRUST_PROXY` errado para mais (ex.: confiar em qualquer IP), o visitante consegue forjar o próprio IP. Para conferir: faça login e veja o IP na auditoria do admin.
 
 ## 2.7 Servidor pequeno (VPS) e imagens construídas fora dele
 

@@ -40,7 +40,7 @@ export async function recordAdminAudit({
         'admin',
         ${action},
         ${status},
-        ${getRequestIp(request)},
+        ${request.ip ?? null},
         ${request.header("user-agent")},
         ${metadataSql}
       )
@@ -67,12 +67,3 @@ export function getAdminAuditLogs() {
   `;
 }
 
-function getRequestIp(request: Request) {
-  const forwardedFor = request.header("x-forwarded-for");
-
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0]?.trim() || request.ip;
-  }
-
-  return request.ip;
-}

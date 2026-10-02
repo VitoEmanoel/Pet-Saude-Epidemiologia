@@ -24,13 +24,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
-| 2 | Segurança mínima para publicar | 7 | 4 |
+| 2 | Segurança mínima para publicar | 7 | 5 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **48** | **12** |
+| | **Total** | **48** | **13** |
 
 ---
 
@@ -112,11 +112,12 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] `USER node` nos estágios finais do `Dockerfile`; `backend/storage` e `frontend/.next/cache` com dono `node`
   - [x] `docker compose exec backend id` ≠ `uid=0`: backend e frontend com `uid=1000(node)`; teste automático no `test:e2e`
   - [x] Conferido sem root: migrations, seed, sincronização (`npm run sync:data` e serviço `sync-data`) gravando os arquivos brutos
-- [ ] **S4 + S5** Proxy, IP real e bloqueio de login
-  - [ ] `app.set("trust proxy", ...)` configurável por variável de ambiente
-  - [ ] Auditoria usa só `request.ip`
-  - [ ] Bloqueio de login não tranca o administrador legítimo (ex.: por IP real + atraso progressivo)
-  - [ ] Testes: `X-Forwarded-For` falso não é gravado; senha correta funciona após tentativas de terceiros
+- [x] **S4 + S5** Proxy, IP real e bloqueio de login (02/10/2026, branch `fix/s4-s5-proxy-e-bloqueio`)
+  - [x] `app.set("trust proxy", ...)` configurável por `TRUST_PROXY` (vazio, número de proxies ou lista de IPs/redes; `true` é recusado)
+  - [x] Auditoria usa só `request.ip`
+  - [x] Bloqueio de login por IP real: tentativas de terceiros não trancam o administrador em outro endereço. **Atraso progressivo não foi feito**: a senha é um segredo forte e o limite de 5 por IP já barra força bruta; segurar respostas abertas facilitaria derrubar o servidor com conexões presas
+  - [x] Mapa de tentativas não cresce sem limite (entradas vencidas são descartadas)
+  - [x] Testes: `X-Forwarded-For` falso não é gravado (e2e) nem escapa do bloqueio (backend); senha correta funciona após tentativas de terceiros, atrás de proxy confiável (backend)
 - [ ] **S6** Handler de erro do Express com 4 parâmetros, antes do 404
   - [ ] Teste: JSON inválido → resposta JSON 400
 - [x] **S8** Remover `X-Powered-By` (Express e Next.js) (02/10/2026, feito junto com o S2: `helmet` e `poweredByHeader: false`)
@@ -183,7 +184,7 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 ## Fase 6: Implantação em produção
 
 - [ ] **6.1** Definir servidor, domínio e responsável pela operação. Uma VPS de 1 CPU / 2 GB / 20 GB basta ([02 §2.7](02-instalacao-e-execucao.md#27-servidor-pequeno-vps-e-imagens-construídas-fora-dele)); criar 2 GB de swap
-- [ ] **6.2** HTTPS com proxy reverso (nginx/Caddy) + `trust proxy` (S4) + `ADMIN_COOKIE_SECURE=true` (S9)
+- [ ] **6.2** HTTPS com proxy reverso (nginx/Caddy) + `TRUST_PROXY` conforme o proxy, conferindo o IP real na auditoria (S4) + `ADMIN_COOKIE_SECURE=true` (S9)
 - [ ] **6.3** Expor só 80/443; backend e frontend atrás do proxy
 - [ ] **6.4** Backup automático diário do banco + teste de restauração mensal ([04 §4.4](04-banco-de-dados.md#44-migrations-seed-e-backup))
 - [ ] **6.5** Monitoramento: `/health`, espaço em disco, status das sincronizações

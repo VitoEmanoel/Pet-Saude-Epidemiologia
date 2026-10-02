@@ -21,7 +21,7 @@ Credenciais e URLs são lidas do `.env` da raiz. Para apontar para outro ambient
 
 | Comando | O que testa | Duração |
 |---|---|---|
-| `npm run test:backend` | Testes do backend (13) | segundos |
+| `npm run test:backend` | Testes do backend (16) | segundos |
 | `npm run test:e2e` | API: funcional, integração, regressão, validação, admin; segurança: sessão, login, CSRF/CORS, injeção, XSS, exposição, cabeçalhos | ~2 s |
 | `npm run test:ui` | Interface no Chromium: 8 páginas × desktop/celular, gráficos, mapa, bloqueios da CSP, acessibilidade (axe), filtros, paginação, menu, tema, fluxo do admin, API fora do ar | ~1 min |
 | `QA_BROWSER=firefox npm run test:ui` | O mesmo no Firefox | ~1 min |
@@ -53,7 +53,7 @@ Cada problema de [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md) que 
 
 | Suíte | Testes `todo` hoje |
 |---|---|
-| `test:e2e` | S4, S6, S7 |
+| `test:e2e` | S6, S7 |
 | `test:ui` | U1, U2 |
 
 Para ver os `todo` e se estão falhando:
@@ -62,12 +62,12 @@ Para ver os `todo` e se estão falhando:
 cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs | grep "# TODO"
 ```
 
-## 13.4 Resultado de referência (02/10/2026, após o S3)
+## 13.4 Resultado de referência (02/10/2026, após o S4 + S5)
 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
-| `test:backend` | 13 | 0 | 0 | 0 |
-| `test:e2e` | 88 | 0 | 3 (TABNET ×2, bloqueio) | 3 |
+| `test:backend` | 16 | 0 | 0 | 0 |
+| `test:e2e` | 89 | 0 | 3 (TABNET ×2, bloqueio) | 2 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 50 | 0 | 0 | 2 |
 | `test:resilience` | 6/6 | | | |

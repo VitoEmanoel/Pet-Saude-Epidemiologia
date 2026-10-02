@@ -78,7 +78,7 @@ Uma linha por consulta (são 4 por sincronização).
 
 ### `admin_audit_logs`: auditoria da área administrativa
 
-Logins (sucesso/falha), logouts, exportações, sincronizações e requisições bloqueadas, com IP, navegador e detalhes (`metadata`).
+Logins (sucesso/falha), logouts, exportações, sincronizações e requisições bloqueadas, com IP, navegador e detalhes (`metadata`). O IP é o `request.ip` do Express: o `X-Forwarded-For` só é considerado quando vem de um proxy confiável (`TRUST_PROXY`), então não dá para forjá-lo.
 
 ## 4.2 Ponto essencial: as 4 agregações convivem na mesma tabela
 

@@ -191,7 +191,7 @@ describe("Exposição de informação", () => {
     assert.equal((await request(WEB + "/")).headers.get("x-powered-by"), null);
   });
 
-  test("S4: auditoria não confia em X-Forwarded-For forjado", { todo: "S4 — Fase 2" }, async () => {
+  test("S4: auditoria não confia em X-Forwarded-For forjado", async () => {
     await loginWith({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD }, { "x-forwarded-for": "8.8.8.8" });
     const logs = (await admin("/api/admin/audit-logs")).json.auditLogs;
     assert.notEqual(logs[0].ipAddress, "8.8.8.8");

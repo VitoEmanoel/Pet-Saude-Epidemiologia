@@ -8,6 +8,8 @@ const LEGACY_ADMIN_SESSION_COOKIE_PATH = "/";
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const ADMIN_LOGIN_MAX_ATTEMPTS = 5;
+// Acima disso, entradas vencidas são descartadas (evita o mapa crescer com IPs variados).
+const LOGIN_ATTEMPTS_PRUNE_THRESHOLD = 1000;
 
 type LoginAttemptState = {
   count: number;
@@ -62,11 +64,12 @@ export function isAllowedAdminOrigin(request: Request) {
   return allowedOrigins.length === 0 || allowedOrigins.includes(origin);
 }
 
+// O bloqueio é por IP real do visitante (request.ip, ver TRUST_PROXY): tentativas de
+// terceiros não trancam o administrador que acessa de outro endereço.
 export function getAdminLoginRateLimit(request: Request) {
-  const key = getLoginAttemptKey(request);
-  const state = getOrCreateLoginAttemptState(key);
+  const state = getActiveLoginAttemptState(getLoginAttemptKey(request));
 
-  if (state.count < ADMIN_LOGIN_MAX_ATTEMPTS) {
+  if (!state || state.count < ADMIN_LOGIN_MAX_ATTEMPTS) {
     return {
       limited: false,
       retryAfterSeconds: 0
@@ -83,11 +86,15 @@ export function getAdminLoginRateLimit(request: Request) {
 
 export function registerFailedAdminLogin(request: Request) {
   const key = getLoginAttemptKey(request);
-  const state = getOrCreateLoginAttemptState(key);
+  const state = getActiveLoginAttemptState(key) ?? { count: 0, resetAt: 0 };
 
   state.count += 1;
   state.resetAt = Date.now() + ADMIN_LOGIN_WINDOW_MS;
   failedLoginAttempts.set(key, state);
+
+  if (failedLoginAttempts.size > LOGIN_ATTEMPTS_PRUNE_THRESHOLD) {
+    pruneExpiredLoginAttempts();
+  }
 }
 
 export function clearAdminLoginAttempts(request: Request) {
@@ -252,20 +259,25 @@ function getLoginAttemptKey(request: Request) {
   return request.ip || request.socket.remoteAddress || "unknown";
 }
 
-function getOrCreateLoginAttemptState(key: string): LoginAttemptState {
-  const currentState = failedLoginAttempts.get(key);
+function getActiveLoginAttemptState(key: string): LoginAttemptState | undefined {
+  const state = failedLoginAttempts.get(key);
 
-  if (currentState && currentState.resetAt > Date.now()) {
-    return currentState;
+  if (state && state.resetAt > Date.now()) {
+    return state;
   }
 
-  const freshState = {
-    count: 0,
-    resetAt: Date.now() + ADMIN_LOGIN_WINDOW_MS
-  };
+  failedLoginAttempts.delete(key);
+  return undefined;
+}
 
-  failedLoginAttempts.set(key, freshState);
-  return freshState;
+function pruneExpiredLoginAttempts() {
+  const now = Date.now();
+
+  for (const [key, state] of failedLoginAttempts) {
+    if (state.resetAt <= now) {
+      failedLoginAttempts.delete(key);
+    }
+  }
 }
 
 function sendAdminNotConfigured(response: Response) {

@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 3 | 3 | 6 |
+| Segurança (S) | 0 | 1 | 3 | 4 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **11** | **13** | **24** |
+| **Total** | **0** | **9** | **13** | **22** |
 
 ---
 
@@ -50,14 +50,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ---
 
 ## S. Segurança
-
-### S4. IP da auditoria falsificável. **Média**
-- **Evidência:** login com `X-Forwarded-For: 8.8.8.8` → auditoria grava `8.8.8.8` (`getRequestIp` em `admin-audit.service.ts`).
-- **Correção:** `app.set("trust proxy", ...)` conforme o deploy e usar só `request.ip`.
-
-### S5. Bloqueio de login tranca o admin legítimo. **Média**
-- **Evidência:** após 5 senhas erradas, até a senha correta recebe 429 por 15 min. Conexões vindas do host aparecem como `172.18.0.1` (gateway Docker); atrás de proxy, todos dividem o mesmo IP, então qualquer pessoa consegue trancar o admin.
-- **Correção:** `trust proxy` (S4) + limite por usuário/IP real; considerar atraso progressivo em vez de bloqueio total.
 
 ### S6. Handler de erro do Express não funciona. **Média**
 - `server.ts` declara o handler com 3 parâmetros (Express exige 4) e depois do 404. JSON inválido retorna página HTML (sem stack trace em produção).

@@ -23,7 +23,7 @@ Fontes derivadas (arboviroses) não têm botão de sincronizar: sincronize `deng
 |---|---|
 | Sessão | Cookie `painel_admin_session` `httpOnly`, `SameSite=Strict`, restrito a `/api/admin`, válido por **8 horas**, assinado com HMAC-SHA256 usando `ADMIN_SESSION_SECRET` |
 | Comparação de senha | Em tempo constante (`timingSafeEqual`) |
-| Limite de tentativas | 5 erros por IP → bloqueio de 15 minutos (em memória: reiniciar o backend zera) |
+| Limite de tentativas | 5 erros por IP real → bloqueio de 15 minutos **só para aquele IP** (em memória: reiniciar o backend zera). Tentativas de outra pessoa não trancam o administrador que acessa de outro endereço. Atrás de proxy, depende de `TRUST_PROXY` ([02 §2.5](02-instalacao-e-execucao.md#25-variáveis-de-ambiente-env)) |
 | Origem | POST/PUT/DELETE só aceitos de origens em `CORS_ORIGIN` |
 | Cabeçalhos | `no-store`, `X-Frame-Options: DENY`, CSP restritiva, `nosniff` |
 | Auditoria | Tudo registrado em `admin_audit_logs` |
