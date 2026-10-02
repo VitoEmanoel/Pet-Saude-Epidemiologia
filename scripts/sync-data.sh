@@ -12,4 +12,4 @@ if [ -z "$backend_id" ] || ! docker inspect -f '{{.State.Running}}' "$backend_id
   exit 1
 fi
 
-docker compose --env-file .env exec -T backend npm --workspace backend run sync:data
+docker compose --env-file .env exec -T backend npm --workspace backend run sync:data:prod -- "$@"

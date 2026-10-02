@@ -234,7 +234,7 @@ start_app_services
 
 if [[ "${RUN_INITIAL_SYNC:-false}" == "true" ]]; then
   echo "Executando sincronizacao inicial de dados..."
-  "${COMPOSE_CMD[@]}" exec -T backend npm --workspace backend run sync:data
+  "${COMPOSE_CMD[@]}" exec -T backend npm --workspace backend run sync:data:prod
 fi
 
 cat <<EOF

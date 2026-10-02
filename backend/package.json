@@ -13,6 +13,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "prisma db seed",
     "seed:prod": "node dist/prisma/seed.js",
+    "sync:data:prod": "node dist/scripts/sync-data.js",
     "prisma:studio": "prisma studio",
     "sync:data": "tsx src/scripts/sync-data.ts",
     "sync:tuberculose": "tsx src/scripts/sync-data.ts tuberculose_sinan",

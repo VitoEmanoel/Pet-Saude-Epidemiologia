@@ -54,7 +54,7 @@ Para saber quais fontes estão desatualizadas: **Admin → Dashboard da fonte** 
    - crie `frontend/src/app/<rota>/page.tsx` copiando `app/dengue/page.tsx` e trocando `source`, `title` e `active`;
    - acrescente o item em `navItems` de [`frontend/src/components/layout/AppShell.tsx`](../frontend/src/components/layout/AppShell.tsx).
 6. (Opcional) Crie um atalho em `backend/package.json`: `"sync:chikungunya": "tsx src/scripts/sync-data.ts chikungunya_sinan"`.
-7. Suba o sistema (`npm run start`, que roda o seed e cadastra a fonte) e sincronize: `docker compose --env-file .env exec backend npm --workspace backend run sync:data -- chikungunya_sinan`.
+7. Suba o sistema (`npm run start`, que roda o seed e cadastra a fonte) e sincronize: `npm run sync:data -- chikungunya_sinan`.
 8. Confira o resultado no admin (histórico) e no banco ([04-banco-de-dados.md §4.3](04-banco-de-dados.md#43-consultas-úteis-sql)).
 9. Salve as evidências em `docs/evidencias/<slug>/` e atualize as tabelas de [01-visao-geral.md](01-visao-geral.md) e [05-coleta-de-dados.md](05-coleta-de-dados.md).
 

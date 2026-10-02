@@ -89,7 +89,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-pet_saude}?schema=public
       REDIS_URL: redis://redis:6379
       NPM_CONFIG_UPDATE_NOTIFIER: "false"
-    command: npm --workspace backend run sync:data
+    command: npm --workspace backend run sync:data:prod
     depends_on:
       postgres:
         condition: service_healthy

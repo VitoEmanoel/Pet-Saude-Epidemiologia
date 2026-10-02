@@ -16,7 +16,8 @@
 
 - O **navegador** chama o backend diretamente (`NEXT_PUBLIC_API_URL`). O Next.js não faz proxy.
 - O **backend** é o único que fala com o TABNET e com o banco.
-- O serviço `sync-data` do Compose (perfil `manual`) existe para rodar a coleta num container à parte; o fluxo normal usa `npm run sync:data`, que roda **dentro** do container do backend.
+- O serviço `sync-data` do Compose (perfil `manual`) roda a coleta num container à parte (`docker compose --env-file .env --profile manual run --rm sync-data`); o fluxo normal usa `npm run sync:data`, que roda **dentro** do container do backend.
+- Dentro do Docker a coleta usa o código compilado (`npm --workspace backend run sync:data:prod` → `node dist/scripts/sync-data.js`), porque a imagem de produção não tem `tsx` nem o código-fonte. Fora do Docker (modo dev), `sync:data` usa `tsx` direto no código-fonte.
 
 Diagramas editáveis (abra em https://app.diagrams.net): [diagramas/](diagramas/)
 

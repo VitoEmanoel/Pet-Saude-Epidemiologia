@@ -22,7 +22,7 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 
 | Fase | Objetivo | Itens | Concluídos |
 |---|---|---|---|
-| 0 | Preparar o terreno | 4 | 1 |
+| 0 | Preparar o terreno | 4 | 3 |
 | 1 | Dados corretos | 4 | 0 |
 | 2 | Segurança mínima para publicar | 7 | 0 |
 | 3 | Operação confiável | 6 | 0 |
@@ -30,7 +30,7 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 7 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **1** |
+| | **Total** | **47** | **3** |
 
 ---
 
@@ -39,11 +39,12 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 Pré-requisitos para trabalhar com segurança nas fases seguintes.
 
 - [x] **0.1** Commitar a reorganização da documentação (docs 00–12, `.claude/settings.json`) (01/10/2026, branch `docs/reorganiza-documentacao`)
-- [ ] **0.2** Criar branch de trabalho para as correções (ex.: `fix/fase-1-dados`) e não commitar direto na `main`
-- [ ] **O1** Corrigir `npm run sync:data` no Docker
-  - [ ] Trocar `tsx src/scripts/sync-data.ts` por `node backend/dist/scripts/sync-data.js` em `scripts/sync-data.sh`, no `RUN_INITIAL_SYNC` de `scripts/start.sh` e no serviço `sync-data` do `docker-compose.yml`
-  - [ ] Testar `npm run sync:data` com o sistema no Docker
-  - [ ] Testar `RUN_INITIAL_SYNC=true npm run start`
+- [x] **0.2** Criar branch de trabalho para as correções (ex.: `fix/fase-1-dados`) e não commitar direto na `main`
+- [x] **O1** Corrigir `npm run sync:data` no Docker (01/10/2026, branch `fix/o1-sync-data`)
+  - [x] Trocar `tsx src/scripts/sync-data.ts` por `node backend/dist/scripts/sync-data.js` em `scripts/sync-data.sh`, no `RUN_INITIAL_SYNC` de `scripts/start.sh` e no serviço `sync-data` do `docker-compose.yml`
+  - [x] Testar `npm run sync:data` com o sistema no Docker (todas as fontes e uma fonte com `npm run sync:data -- <slug>`)
+  - [x] Testar `RUN_INITIAL_SYNC=true` no `.env` + `npm run start`
+  - [x] Testar o serviço `sync-data` do Compose (`--profile manual`)
   - [ ] **Pronto quando:** o comando do README sincroniza as 6 fontes sem erro
 - [ ] **0.3** Trazer a suíte de testes de QA para dentro do projeto (hoje está fora do repositório)
   - [ ] Criar `tests/e2e/` com os testes de API (funcional, integração, regressão, segurança)

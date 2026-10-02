@@ -7,11 +7,11 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 | Tema | Alta | Média | Baixa | Total |
 |---|---|---|---|---|
 | Dados exibidos (D) | 3 | 2 | 1 | 6 |
-| Implantação e operação (O) | 1 | 3 | 2 | 6 |
+| Implantação e operação (O) | 0 | 3 | 2 | 5 |
 | Segurança (S) | 2 | 4 | 4 | 10 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **6** | **13** | **14** | **33** |
+| **Total** | **5** | **13** | **14** | **32** |
 
 ---
 
@@ -49,12 +49,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ---
 
 ## O. Implantação e operação
-
-### O1. `npm run sync:data` quebrado no Docker. **Alta**
-- **Sintoma:** falha com código 127 (`tsx: not found`). Também quebra `RUN_INITIAL_SYNC=true` e o serviço `sync-data` do Compose.
-- **Causa:** o script `sync:data` do backend roda `tsx src/scripts/sync-data.ts`; a imagem de produção não tem `tsx` nem `src/`.
-- **Evidência:** `npm run sync:data` → `sh: tsx: not found`. Hoje os dados só chegam porque o agendador sincroniza 30 s após subir.
-- **Correção:** usar `node backend/dist/scripts/sync-data.js` (já existe na imagem) em `scripts/sync-data.sh`, `scripts/start.sh` e no serviço `sync-data`.
 
 ### O2. HTMLs brutos se perdem ao recriar o container. **Média**
 - **Evidência:** recriando o backend, 32 arquivos → 0; 38 linhas em `raw_imports` apontando para arquivos inexistentes.

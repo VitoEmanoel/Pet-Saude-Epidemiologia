@@ -27,7 +27,7 @@ Manual de manutenção do sistema. Foi escrito para alguém com conhecimento bá
 | 08 | [Área administrativa](08-area-administrativa.md) | Funções, segurança, tarefas comuns |
 | 09 | [Guia de manutenção](09-guia-de-manutencao.md) | Receitas passo a passo |
 | 10 | [Solução de problemas](10-solucao-de-problemas.md) | Sintoma → causa → solução |
-| 11 | [Problemas conhecidos](11-limitacoes-conhecidas.md) | Os 33 problemas encontrados (D, O, S, U, Q), com causa, evidência e correção |
+| 11 | [Problemas conhecidos](11-limitacoes-conhecidas.md) | Os problemas em aberto (D, O, S, U, Q), com causa, evidência e correção |
 | 12 | [Plano de ação](12-plano-de-acao.md) | Checklist do que fazer, do mais urgente ao menos urgente |
 
 ## Outras pastas

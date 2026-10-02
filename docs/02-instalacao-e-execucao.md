@@ -115,6 +115,7 @@ Se o site abrir **sem números**, falta rodar `npm run sync:data`.
 | `npm run restart` | `stop` + `start` |
 | `npm run logs` | Mostra os logs de todos os containers (`npm run logs -- backend` para um só) |
 | `npm run sync:data` | Sincroniza todas as fontes (precisa do backend rodando no Docker) |
+| `npm run sync:data -- <slug>` | Sincroniza uma fonte só (ex.: `npm run sync:data -- dengue_sinan`) |
 | `npm run db:reset -- --force` | **Apaga** os volumes do PostgreSQL e Redis |
 | `npm run docker:recover` | Tenta destravar o Docker sem apagar dados (`-- --reset-db` também apaga o banco) |
 
@@ -152,7 +153,7 @@ Use quando for **programar**: o backend e o frontend recarregam sozinhos ao salv
 | `npm run build:backend` / `build:frontend` | Compila para produção |
 | `npm run prisma:migrate` | Cria uma migration nova a partir do `schema.prisma` |
 | `npm run sync:tuberculose` (e `sync:hanseniase`, `sync:sifilis`) | Sincroniza uma fonte |
-| `npm --workspace backend run sync:data -- <slug>` | Sincroniza qualquer fonte pelo slug |
+| `npm --workspace backend run sync:data -- <slug>` | Sincroniza uma fonte pelo slug usando o backend local |
 | `npm --workspace backend run prisma:studio` | Interface web para olhar o banco |
 
 ## 2.5 Variáveis de ambiente (`.env`)
@@ -180,7 +181,7 @@ Use quando for **programar**: o backend e o frontend recarregam sozinhos ao salv
 | `SYNC_SCHEDULE_INTERVAL_DAYS` | `30` | Idade máxima da última coleta bem-sucedida antes de recoletar |
 | `SYNC_SCHEDULE_CHECK_INTERVAL_MINUTES` | `1440` | De quanto em quanto tempo o agendador verifica (1440 = 1 dia) |
 | `SYNC_SCHEDULE_STARTUP_DELAY_SECONDS` | `30` | Espera após o backend subir antes da 1ª verificação |
-| `RUN_INITIAL_SYNC` | `false` | Se `true`, o `npm run start` já sincroniza ao final |
+| `RUN_INITIAL_SYNC` | `false` | Se `true`, o `npm run start` já sincroniza ao final. Defina **no `.env`**: o `start` recarrega o `.env` e ignora o valor passado no terminal |
 | `VITE_API_URL` | — | Sobra antiga; não é usada |
 
 ## 2.6 Executar em servidor
