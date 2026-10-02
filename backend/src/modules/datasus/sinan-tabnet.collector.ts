@@ -21,11 +21,19 @@ type QueryDefinition = {
 };
 
 // Um formulário TABNET (.def) e os arquivos de ano consultados nele. Uma fonte pode ter
-// vários segmentos quando o DATASUS divide os anos em formulários diferentes (ex.: dengue).
+// vários segmentos quando o DATASUS divide os anos em formulários diferentes (ex.: dengue)
+// ou quando parte dos anos precisa de outro filtro (ex.: chikungunya 2015 sem classificação).
 type TabnetSegment = {
   tabnetQueryUrl: string;
   periodFiles: string[];
+  /** Filtros extras do formulário, já codificados ("campo=valor"), ex.: classificação. */
+  extraParams?: string[];
 };
+
+// Classificação final da zika (opções do zikabr.def): 1 Ign/Branco, 2 Confirmado,
+// 3 Descartado, 4 Inconclusivo. Casos prováveis = tudo menos descartado (D7).
+const CLASSIFICATION_FILTER = "SClassifica%E7%E3o";
+const ZIKA_PROBABLE_CASES = ["1", "2", "4"].map((value) => `${CLASSIFICATION_FILTER}=${value}`);
 
 type SinanTabnetCollectorConfig = {
   sourceSlug: string;
@@ -133,8 +141,16 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
   zika_sinan: {
     sourceSlug: "zika_sinan",
     diseaseOrCondition: "Zika",
-    metric: "todos_os_casos",
-    segments: [{ tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/zikabr.def", periodFiles: numberedFiles("zikabr", 15, 26) }],
+    // O formulário só oferece "Todos os casos" (inclui descartados); o filtro de classificação
+    // deixa só os casos prováveis, a mesma regra da dengue (D7).
+    metric: "casos_provaveis",
+    segments: [
+      {
+        tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/zikabr.def",
+        periodFiles: numberedFiles("zikabr", 15, 26),
+        extraParams: ZIKA_PROBABLE_CASES
+      }
+    ],
     lineEncoded: "Ano_1%BA_Sintoma(s)",
     lineLabel: "Ano_1o_Sintoma(s)",
     incrementEncoded: "Todos_os_casos",
@@ -195,6 +211,7 @@ export async function collectSinanTabnetSource(
           },
           update: {
             syncJobId,
+            metric: config.metric,
             value: record.value,
             sex: record.sex,
             ageGroup: record.ageGroup,
@@ -227,6 +244,12 @@ export async function collectSinanTabnetSource(
       }
     }
   }
+
+  // Coleta completa: registros que o TABNET não devolveu mais (ex.: ano que ficou sem casos
+  // depois de uma revisão, ou que só tinha descartados) não podem ficar com o valor antigo.
+  await prisma.epidemiologicalRecord.deleteMany({
+    where: { sourceId, OR: [{ syncJobId: { not: syncJobId } }, { syncJobId: null }] }
+  });
 
   return {
     recordsImported,
@@ -281,6 +304,7 @@ function buildEncodedFormBody(
     `Incremento=${config.incrementEncoded}`,
     ...segment.periodFiles.map((file) => `Arquivos=${file}`),
     `${config.municipalityResidenceFilterEncoded ?? DEFAULT_MUNICIPALITY_RESIDENCE_FILTER}=${municipalityOptionValue}`,
+    ...(segment.extraParams ?? []),
     "formato=prn",
     "mostre=Mostra"
   ].join("&");
@@ -301,6 +325,7 @@ function buildRequestParams(
     increment: config.incrementLabel,
     tabnetQueryUrl: segment.tabnetQueryUrl,
     periodFiles: segment.periodFiles,
+    extraFilters: segment.extraParams ?? [],
     municipalityFilter: {
       type: "municipio_residencia",
       tabnetCode: TABNET_CITY_CODE,

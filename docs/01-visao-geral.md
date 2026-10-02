@@ -43,7 +43,7 @@ A especificação original completa (com as 13 fontes previstas inicialmente) es
 | Dengue | `dengue_sinan` | primária | `sinannet/cnv/denguebr.def` (2007–2013) + `sinannet/cnv/denguebbr.def` (2014 em diante) |
 | Sífilis gestacional | `sifilis_gestacional_sinan` | primária | `sinannet/cnv/sifilisgestantepi.def` |
 | Arboviroses | `arboviroses_sinan` | **derivada** (soma dengue + zika) | — |
-| *(não aparece no menu)* | `zika_sinan` | **interna** (só alimenta arboviroses) | `sinannet/cnv/zikabr.def` |
+| *(não aparece no menu)* | `zika_sinan` | **interna** (só alimenta arboviroses), contada como casos prováveis | `sinannet/cnv/zikabr.def` |
 
 - **primária**: coletada diretamente do TABNET e exibida no site.
 - **derivada**: não é coletada; é montada somando outras fontes.

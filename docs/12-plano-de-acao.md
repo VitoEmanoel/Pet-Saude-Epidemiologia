@@ -39,14 +39,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
-| 2C | Arboviroses e indicadores de saúde | 10 | 0 |
+| 2C | Arboviroses e indicadores de saúde | 10 | 1 |
 | 3 | Operação confiável | 4 | 0 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 1 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **24** |
+| | **Total** | **64** | **25** |
 
 ---
 
@@ -169,10 +169,12 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
 
 **Bloco 1: números corretos e chikungunya**
 
-- [ ] **D7** Zika e chikungunya contadas como **casos prováveis** (iguais à dengue)
-  - [ ] Coletar por "Classificação" e guardar prováveis (= total − descartados) e confirmados
-  - [ ] Zika: 187 → ~33 prováveis (19 confirmados); documentar a mudança para quem já viu o número antigo
-  - [ ] Teste: soma de prováveis por ano confere com a consulta manual ao TABNET
+- [x] **D7** Zika e chikungunya contadas como **casos prováveis** (iguais à dengue) (02/10/2026, branch `fix/d7-casos-provaveis`)
+  - [x] Filtro "Classificação ≠ Descartado" no próprio TABNET (`extraParams` do segmento); a chikungunya nasce com a mesma regra no A2
+  - [x] Zika: 187 → **33** prováveis; arboviroses 7.899 → 7.745. Evidências em `docs/evidencias/zika_sinan/`
+  - [x] Teste: valores por ano idênticos à consulta manual ao TABNET; e2e de referência (arboviroses − dengue = 33)
+  - [x] Achado durante a correção: registros que somem da resposta do TABNET ficavam com o valor antigo (ex.: zika 2025). Agora a coleta completa apaga o que não renovou; coleta com falha não apaga nada (resiliência 6/6)
+  - [ ] Guardar também os **confirmados**: fica para o A5, que já precisa consultar a classificação (dengue com sinais de alarme e grave)
 - [ ] **A1** Zika com **página própria** no site (deixa de ser fonte interna; entra no menu e na visão geral)
 - [ ] **A2** Incluir a **chikungunya** (`chikunbr.def`, arquivos `chikbr14..26`, Parnaíba = 827; colunas sexo, faixa etária, raça/cor)
   - [ ] Evidências em `docs/evidencias/chikungunya_sinan/` (2.306 notificações; epidemias em 2017 e 2022–2023)

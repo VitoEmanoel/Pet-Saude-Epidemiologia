@@ -75,7 +75,7 @@ Uma linha por consulta (são 4 por sincronização).
 | `sex`, `age_group`, `race_color` | Dimensão do registro (no máximo **uma** preenchida, ver abaixo) |
 | `source_table` | Tipo de agregação, ex.: `tabnet_tuberculose_by_sex_residence` |
 | `dimensions` | JSON com metadados (tipo de agregação, códigos TABNET) |
-| `record_key` | Hash único (fonte + tabela + município + ano + dimensões). Garante que sincronizar de novo **atualiza** em vez de duplicar |
+| `record_key` | Hash único (fonte + tabela + município + ano + dimensões). Garante que sincronizar de novo **atualiza** em vez de duplicar. Registros que a coleta completa não renova são apagados no fim dela |
 
 ### `admin_audit_logs`: auditoria da área administrativa
 
@@ -111,7 +111,7 @@ Distribuição real após uma sincronização completa (01/10/2026; dengue atual
 | sifilis_congenita_sinan | 16 | 48 | 48 | 80 | 2008–2024 |
 | sifilis_gestacional_sinan | 17 | 17 | 68 | 102 | 2008–2024 |
 | dengue_sinan | 20 | 60 | 233 | 120 | 2007–2026 |
-| zika_sinan | 10 | 20 | 100 | 50 | 2016–2025 |
+| zika_sinan | 9 | 18 | 81 | 27 | 2016–2024 (casos prováveis desde o D7) |
 
 ## 4.3 Consultas úteis (SQL)
 

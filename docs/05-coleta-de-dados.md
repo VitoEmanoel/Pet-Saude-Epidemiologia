@@ -53,7 +53,11 @@ Toda a configuração fica no objeto `collectorConfigs` em [`sinan-tabnet.collec
 | sifilis_congenita_sinan | `sifilisbr` | `sifcbr07..24` | Ano Diagnóstico | Casos confirmados | `Faixa_Etária` | 827 |
 | dengue_sinan | `denguebr` + `denguebbr` (2 segmentos) | `dengbr07..13` (2007–2013) + `dengbr14..26` (2014–2026) | Ano 1º Sintoma(s) | Casos prováveis | `Faixa_Etária` | 827 |
 | sifilis_gestacional_sinan | `sifilisgestantepi` | `sifgpi07..24` | Ano de Diagnóstico | Casos confirmados | `Faixa_Etária` | **152** |
-| zika_sinan | `zikabr` | `zikabr15..26` | Ano 1º Sintoma(s) | Todos os casos | `Faixa_Etária` | 827 |
+| zika_sinan | `zikabr` | `zikabr15..26` | Ano 1º Sintoma(s) | Todos os casos **+ filtro Classificação ≠ Descartado** (= casos prováveis, D7) | `Faixa_Etária` | 827 |
+
+**Casos prováveis em todas as arboviroses.** Para dengue o TABNET já oferece o incremento "Casos prováveis". Para zika, o único incremento é "Todos os casos" (inclui descartados), então o filtro de classificação tira os descartados. Regra do DATASUS: casos prováveis = todas as notificações exceto as descartadas.
+
+**Registros que somem.** Ao fim de uma coleta completa, o coletor apaga os registros da fonte que a coleta não renovou (ex.: um ano que ficou sem casos depois de uma revisão do DATASUS). Se a coleta falha no meio, nada é apagado.
 
 Campos de `SinanTabnetCollectorConfig`:
 
@@ -61,7 +65,7 @@ Campos de `SinanTabnetCollectorConfig`:
 |---|---|
 | `sourceSlug` | Igual ao slug em `sources.ts` |
 | `diseaseOrCondition`, `metric` | Gravados em cada registro |
-| `segments` | Lista de **segmentos**: cada um tem `tabnetQueryUrl` (URL `tabcgi.exe?...def`) e `periodFiles` (arquivos de ano; `numberedFiles(prefixo, início, fim)` gera `prefixoNN.dbf`). Quase todas as fontes têm 1 segmento; a dengue tem 2, porque o DATASUS divide os anos em dois formulários. As 4 consultas rodam em cada segmento |
+| `segments` | Lista de **segmentos**: cada um tem `tabnetQueryUrl` (URL `tabcgi.exe?...def`), `periodFiles` (arquivos de ano; `numberedFiles(prefixo, início, fim)` gera `prefixoNN.dbf`) e, opcionalmente, `extraParams` (filtros extras do formulário já codificados, ex.: classificação da zika). Quase todas as fontes têm 1 segmento; a dengue tem 2, porque o DATASUS divide os anos em dois formulários. As 4 consultas rodam em cada segmento |
 | `lineEncoded` / `lineLabel` | Linha (padrão: `Ano_Diagnóstico`) |
 | `incrementEncoded` / `incrementLabel` | O que contar |
 | `sourceTablePrefix` | Prefixo do `source_table` (ex.: `tabnet_tuberculose`) |
