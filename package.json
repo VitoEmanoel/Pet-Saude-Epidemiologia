@@ -36,5 +36,10 @@
     "sync:tuberculose": "npm --workspace backend run sync:tuberculose",
     "sync:hanseniase": "npm --workspace backend run sync:hanseniase",
     "sync:sifilis": "npm --workspace backend run sync:sifilis"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.28"
+    }
   }
 }

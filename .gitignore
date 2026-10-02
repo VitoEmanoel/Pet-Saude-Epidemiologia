@@ -17,3 +17,4 @@ memoria.md
 
 # Resultados dos testes de QA (capturas de tela, CSV do teste longo)
 tests/output/
+*.tsbuildinfo

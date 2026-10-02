@@ -24,13 +24,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
-| 2 | Segurança mínima para publicar | 7 | 0 |
+| 2 | Segurança mínima para publicar | 7 | 1 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 7 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **8** |
+| | **Total** | **47** | **9** |
 
 ---
 
@@ -98,10 +98,11 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 
 **Antes de colocar o sistema na internet.**
 
-- [ ] **S1** Atualizar dependências vulneráveis
-  - [ ] Atualizar `next` (crítica) e rodar o build e os testes de UI
-  - [ ] Atualizar `sharp`, `postcss`, `nanoid`, `express`, `body-parser`, `qs`
-  - [ ] `npm audit --omit=dev` sem críticas nem altas
+- [x] **S1** Atualizar dependências vulneráveis (02/10/2026, branch `fix/s1-dependencias`)
+  - [x] Atualizar `next` (crítica) e rodar o build e os testes de UI: `15.5.19` → `15.5.27` (correção retroportada, sem migrar para o Next 16)
+  - [x] Atualizar `sharp` (0.35.5), `postcss` (8.5.28, inclusive a cópia interna do `next` via `overrides`), `nanoid` (3.3.19), `express` (4.22.3), `body-parser` (1.20.8), `qs` (6.16.0)
+  - [x] `npm audit --omit=dev` e `npm audit` (com dependências de desenvolvimento): **0 vulnerabilidades** (era 7: 1 crítica, 3 altas, 3 moderadas)
+  - [x] Pacote `tests/`: 3 moderadas no `autocannon` aceitas (só testes; ver [09 §9.6](09-guia-de-manutencao.md#96-atualizar-dependências))
 - [ ] **S2** Cabeçalhos de segurança
   - [ ] Next.js: CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, HSTS (via `headers()` em `next.config.ts`)
   - [ ] Express: `helmet` (ou equivalente) na API pública

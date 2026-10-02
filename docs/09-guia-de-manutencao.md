@@ -126,6 +126,18 @@ npm run test:backend && npm run build:backend && npm run build:frontend
 
 Atualize uma coisa por vez e teste. Mudanças de versão principal (Next, React, Prisma, Express) exigem ler o guia de migração do pacote.
 
+Depois de atualizar, reconstrua as imagens (`docker compose --env-file .env up -d --build backend frontend`) e rode a suíte de QA (`npm run test:e2e` e `npm run test:ui`, ver [13](13-testes.md)).
+
+**`overrides` no `package.json` da raiz.** O Next.js 15 traz uma cópia própria e antiga do `postcss` (8.4.31, com vulnerabilidade alta). Como a correção oficial só existe no Next 16 (mudança de versão principal), o `package.json` da raiz força o `postcss` corrigido dentro do `next`:
+
+```json
+"overrides": { "next": { "postcss": "^8.5.28" } }
+```
+
+Ao migrar para o Next 16, teste remover esse bloco: se `npm audit` continuar limpo sem ele, ele não é mais necessário.
+
+**Pacote de testes (`tests/`).** Tem dependências próprias, que não vão para produção. Em 02/10/2026, `npm audit` dentro de `tests/` mostra 3 alertas **moderados** no `uuid` usado pelo `autocannon` (ferramenta de carga). A "correção" sugerida rebaixaria o `autocannon` da versão 8 para a 2, por isso foi aceito: só roda na máquina de quem testa.
+
 ---
 
 ## 9.7 Rotina mensal sugerida

@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 2 | 4 | 4 | 10 |
+| Segurança (S) | 1 | 4 | 4 | 9 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **2** | **12** | **14** | **28** |
+| **Total** | **1** | **12** | **14** | **27** |
 
 ---
 
@@ -50,9 +50,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ---
 
 ## S. Segurança
-
-### S1. Dependências com vulnerabilidades. **Alta**
-- `npm audit --omit=dev`: 7 vulnerabilidades: **1 crítica (`next`)**, altas em `sharp`, `postcss`, `nanoid`; moderadas em `express`, `body-parser`, `qs`. Todas com correção disponível.
 
 ### S2. Site público sem cabeçalhos de segurança. **Alta**
 - Faltam CSP, `X-Frame-Options` (clickjacking), `X-Content-Type-Options`, `Referrer-Policy`, HSTS no Next.js; a API pública também não envia `nosniff`.
