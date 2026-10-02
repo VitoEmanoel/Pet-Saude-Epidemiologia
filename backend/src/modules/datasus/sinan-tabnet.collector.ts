@@ -28,6 +28,8 @@ type TabnetSegment = {
   periodFiles: string[];
   /** Filtros extras do formulário, já codificados ("campo=valor"), ex.: classificação. */
   extraParams?: string[];
+  /** Anos sem a classificação preenchida: não consultar por classificação (ex.: chikungunya 2015). */
+  skipClassification?: boolean;
 };
 
 // Classificação final da zika (opções do zikabr.def): 1 Ign/Branco, 2 Confirmado,
@@ -51,6 +53,8 @@ type SinanTabnetCollectorConfig = {
   ageGroupColumnLabel: string;
   municipalityResidenceFilterEncoded?: string;
   municipalityResidenceOptionValue?: string;
+  /** Coluna de classificação final (A5): os casos por classificação vão para `classification_counts`. */
+  classificationColumnEncoded?: string;
 };
 
 type NormalizedRecord = {
@@ -127,6 +131,7 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     incrementEncoded: "Casos_Prov%E1veis",
     incrementLabel: "Casos_Provaveis",
     sourceTablePrefix: "tabnet_dengue",
+    classificationColumnEncoded: "Class._Final",
     ageGroupColumnEncoded: "Faixa_Et%E1ria",
     ageGroupColumnLabel: "Faixa Etaria"
   },
@@ -153,7 +158,8 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
       // Como nenhum caso foi descartado, entram inteiros como prováveis (A2).
       {
         tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/chikunbr.def",
-        periodFiles: numberedFiles("chikbr", 14, 15)
+        periodFiles: numberedFiles("chikbr", 14, 15),
+        skipClassification: true
       },
       {
         tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/chikunbr.def",
@@ -166,6 +172,7 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     incrementEncoded: "Todos_os_casos",
     incrementLabel: "Todos_os_casos",
     sourceTablePrefix: "tabnet_chikungunya",
+    classificationColumnEncoded: "Classifica%E7%E3o",
     ageGroupColumnEncoded: "Faixa_Et%E1ria",
     ageGroupColumnLabel: "Faixa Etaria"
   },
@@ -187,6 +194,7 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     incrementEncoded: "Todos_os_casos",
     incrementLabel: "Todos_os_casos",
     sourceTablePrefix: "tabnet_zika",
+    classificationColumnEncoded: "Classifica%E7%E3o",
     ageGroupColumnEncoded: "Faixa_Et%E1ria",
     ageGroupColumnLabel: "Faixa Etaria"
   }
@@ -275,11 +283,25 @@ export async function collectSinanTabnetSource(
         recordsImported += 1;
       }
     }
+
+    if (config.classificationColumnEncoded && !segment.skipClassification) {
+      rawImportsCreated += await collectClassificationCounts(
+        config,
+        segment,
+        segments.length > 1 ? `by_classification_seg${segmentIndex + 1}` : "by_classification",
+        prisma,
+        sourceId,
+        syncJobId
+      );
+    }
   }
 
   // Coleta completa: registros que o TABNET não devolveu mais (ex.: ano que ficou sem casos
   // depois de uma revisão, ou que só tinha descartados) não podem ficar com o valor antigo.
   await prisma.epidemiologicalRecord.deleteMany({
+    where: { sourceId, OR: [{ syncJobId: { not: syncJobId } }, { syncJobId: null }] }
+  });
+  await prisma.classificationCount.deleteMany({
     where: { sourceId, OR: [{ syncJobId: { not: syncJobId } }, { syncJobId: null }] }
   });
 
@@ -289,6 +311,75 @@ export async function collectSinanTabnetSource(
     newPeriodFiles,
     discoveryWarnings
   };
+}
+
+/** Casos por ano e classificação final (A5), na mesma contagem da fonte (ex.: casos prováveis). */
+async function collectClassificationCounts(
+  config: SinanTabnetCollectorConfig,
+  segment: TabnetSegment,
+  rawImportName: string,
+  prisma: PrismaClient,
+  sourceId: number,
+  syncJobId: number
+): Promise<number> {
+  const queryDefinition: QueryDefinition = {
+    name: "by_classification",
+    columnEncoded: config.classificationColumnEncoded!,
+    columnLabel: "Classificacao final",
+    sourceTable: `${config.sourceTablePrefix}_by_classification_residence`,
+    aggregationType: "yearly"
+  };
+  const tabnetResponse = await postTabnetPrn(segment.tabnetQueryUrl, buildEncodedFormBody(config, segment, queryDefinition));
+  const counts = parseClassificationCounts(tabnetResponse.html);
+  const storedPath = await storeRawImport(config.sourceSlug, rawImportName, tabnetResponse.html);
+
+  await prisma.rawImport.create({
+    data: {
+      sourceId,
+      syncJobId,
+      requestUrl: tabnetResponse.requestUrl,
+      requestParams: buildRequestParams(config, segment, queryDefinition),
+      responseFormat: tabnetResponse.responseFormat,
+      contentHash: tabnetResponse.contentHash,
+      storedPath,
+      rowCount: counts.length
+    }
+  });
+
+  for (const count of counts) {
+    await prisma.classificationCount.upsert({
+      where: { sourceId_year_classification: { sourceId, year: count.year, classification: count.classification } },
+      update: { value: count.value, syncJobId, importedAt: new Date() },
+      create: { sourceId, syncJobId, ...count }
+    });
+  }
+
+  return 1;
+}
+
+/** Tabela ano × classificação do TABNET → { ano, classificação, valor } (sem a coluna Total). */
+export function parseClassificationCounts(html: string) {
+  const table = parsePrnTable(html);
+  const counts: Array<{ year: number; classification: string; value: number }> = [];
+
+  for (const row of table.rows) {
+    const year = parseYear(row[0]);
+
+    if (!year) {
+      continue;
+    }
+
+    table.headers.forEach((header, index) => {
+      const value = index === 0 || isTotalLabel(header) ? null : parseTabnetNumber(row[index]);
+
+      // "-" no TABNET é zero: não grava (ausência já conta como zero nos indicadores).
+      if (value !== null && value > 0) {
+        counts.push({ year, classification: header.trim().slice(0, 100), value });
+      }
+    });
+  }
+
+  return counts;
 }
 
 const PERIOD_FILE_PATTERN = /^([a-z]+)(\d{2})\.dbf$/i;

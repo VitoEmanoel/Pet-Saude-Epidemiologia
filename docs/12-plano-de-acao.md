@@ -39,14 +39,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
-| 2C | Arboviroses e indicadores de saúde | 10 | 7 |
+| 2C | Arboviroses e indicadores de saúde | 10 | 8 |
 | 3 | Operação confiável | 4 | 0 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 1 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **31** |
+| | **Total** | **64** | **32** |
 
 ---
 
@@ -200,7 +200,7 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
 
 **Bloco 3: indicadores e filtro**
 
-- [ ] **A5** Indicadores calculados automaticamente (a cada sincronização e a cada envio de população)
+- [x] **A5** Indicadores calculados automaticamente (02/10/2026, branch `feat/a5-indicadores`): `GET /api/indicators`, tabela `classification_counts` (migration `20261002210000_add_classification_counts`), documento [15](15-indicadores.md). Valores conferidos com o TABNET (dengue 2024: 42 de 510 com sinais de alarme = 8,24%)
 
   | Indicador | Cálculo | Disponível |
   |---|---|---|
@@ -211,8 +211,9 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
   | Incidência de chikungunya em idosos | prováveis 60+ (faixas 60-64, 65-69, 70-79, 80+) ÷ população 60+ × 100.000 | Se o CSV tiver `populacao_60_mais` |
   | Incidência de zika | prováveis ÷ população × 100.000 | Com D7 |
 
-  - [ ] Decisão do GT1 para **antes de 2014** (classificação antiga: clássico, com complicações, febre hemorrágica, síndrome do choque): mostrar "não se aplica" ou definir equivalência
-  - [ ] Ano sem população cadastrada: indicador aparece como "sem população" (nunca estimar)
+  - [x] **Antes de 2014**: "não se aplica" (sugestão aceita; o GT1 pode pedir equivalência depois)
+  - [x] Ano sem população: "sem população" (nunca estima); ano corrente marcado como provisório
+  - [x] Casos confirmados de zika e chikungunya (pendência do D7)
 - [ ] **A6** **Filtro por indicador** no painel público e no admin: casos, incidência por 100 mil, % sinais de alarme, % grave, incidência em idosos; gráficos e exportações (CSV/HTML) seguem o indicador escolhido
   - [ ] Incidência só no total do município (a população não vem por sexo/idade/raça); com filtro demográfico, avisar
   - [ ] Texto explicativo de cada indicador (descrição e cálculo do documento do GT1)

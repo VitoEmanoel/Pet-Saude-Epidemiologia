@@ -60,6 +60,8 @@ Toda a configuração fica no objeto `collectorConfigs` em [`sinan-tabnet.collec
 
 **Registros que somem.** Ao fim de uma coleta completa, o coletor apaga os registros da fonte que a coleta não renovou (ex.: um ano que ficou sem casos depois de uma revisão do DATASUS). Se a coleta falha no meio, nada é apagado.
 
+**Consulta por classificação (A5).** Fontes com `classificationColumnEncoded` (dengue: `Class._Final`; zika e chikungunya: `Classificação`) fazem uma 5ª consulta por segmento, ano × classificação final, gravada em `classification_counts` (não em `epidemiological_records`). Segmentos com `skipClassification` (chikungunya 2014–2015, sem classificação) pulam essa consulta.
+
 **Novas tentativas (O5).** Falha temporária do TABNET (rede, tempo esgotado, HTTP 5xx) é repetida até 3 vezes, com espera de 3 s e 10 s (`TABNET_RETRY_DELAYS_MS`). Resposta com layout diferente (sem o bloco `<PRE>`) não é repetida: é falha real. A situação de cada fonte aparece no admin (`/api/admin/source-health`).
 
 **Anos novos automáticos (D5).** Os arquivos de período da tabela acima são o mínimo. A cada coleta, o último segmento de cada fonte recebe os arquivos mais novos que o formulário oferecer (`withDiscoveredPeriodFiles`, `listPeriodFilesInForm`, `newerPeriodFiles`). Se o formulário não carregar, segue a lista configurada.

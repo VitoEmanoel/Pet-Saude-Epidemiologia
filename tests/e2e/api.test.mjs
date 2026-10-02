@@ -291,6 +291,28 @@ describe("Área administrativa", () => {
     assert.equal((await admin("/api/admin/population")).json.population.length, before.length);
   });
 
+  test("A5: indicadores calculados com população temporária (e sem estimar quando falta)", async () => {
+    const json = { "content-type": "application/json" };
+    const beforeCsv = (await admin("/api/admin/population/template.csv")).text;
+    const hadPopulation = (await admin("/api/admin/population")).json.population.length > 0;
+    try {
+      await admin("/api/admin/population", { method: "PUT", headers: json, body: JSON.stringify({ csv: "ano;populacao;populacao_60_mais\n2022;162159;20000" }) });
+      const dengue = (await api("/api/indicators?source=dengue_sinan")).json.indicators;
+      const point = (key, year) => dengue.find((indicator) => indicator.key === key).series.find((p) => p.year === year);
+      assert.equal(point("incidencia", 2022).value, 1279.61);
+      assert.equal(point("incidencia", 2023).status, "sem_populacao");
+      assert.equal(point("incidencia", 2023).value, null);
+      assert.equal(point("pct_sinais_alarme", 2013).status, "nao_se_aplica");
+      assert.equal(point("pct_sinais_alarme", 2024).value, 8.24, "42 de 510 casos (validado no TABNET)");
+    } finally {
+      if (hadPopulation) {
+        await admin("/api/admin/population", { method: "PUT", headers: json, body: JSON.stringify({ csv: beforeCsv }) });
+      } else {
+        await admin("/api/admin/population", { method: "DELETE" });
+      }
+    }
+  });
+
   test("Sincronizar fonte derivada (arboviroses): 501", async () => {
     assert.equal((await admin("/api/admin/sync/arboviroses_sinan", { method: "POST" })).status, 501);
   });
@@ -366,6 +388,17 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
     for (const year of Object.keys(arbo)) {
       assert.equal(arbo[year], (dengue[year] ?? 0) + (zika[year] ?? 0) + (chik[year] ?? 0), `ano ${year}`);
     }
+  });
+
+  test("A5: indicadores só nas arboviroses; parâmetro extra 400; fonte inexistente 404", async () => {
+    const keys = async (slug) => (await api(`/api/indicators?source=${slug}`)).json.indicators.map((i) => i.key);
+    assert.deepEqual(await keys("dengue_sinan"), ["casos", "incidencia", "pct_sinais_alarme", "pct_grave"]);
+    assert.deepEqual(await keys("chikungunya_sinan"), ["casos", "incidencia", "incidencia_idosos", "casos_confirmados"]);
+    assert.deepEqual(await keys("tuberculose_sinan"), []);
+    assert.equal((await api("/api/indicators?source=dengue_sinan&year=2022")).status, 400);
+    assert.equal((await api("/api/indicators?source=inexistente")).status, 404);
+    const zika = (await api("/api/indicators?source=zika_sinan")).json.indicators.find((i) => i.key === "casos_confirmados");
+    assert.equal(zika.series.reduce((total, p) => total + (p.value ?? 0), 0), 19, "19 confirmados (validado no TABNET)");
   });
 
   test("Tuberculose 2024 = 86 casos, também somando a tabela (D3)", async () => {

@@ -7,6 +7,7 @@ import { createApiRateLimiter } from "./config/rate-limit";
 import { adminRouter } from "./routes/admin";
 import { chartsRouter } from "./routes/charts";
 import { dashboardRouter } from "./routes/dashboard";
+import { indicatorsRouter } from "./routes/indicators";
 import { recordsRouter } from "./routes/records";
 import { sourcesRouter } from "./routes/sources";
 import { sendError } from "./utils/api-response";
@@ -52,6 +53,7 @@ export function createServer() {
   app.use("/api/dashboard", dashboardRouter);
   app.use("/api/records", recordsRouter);
   app.use("/api/charts", chartsRouter);
+  app.use("/api/indicators", indicatorsRouter);
   app.use("/api/admin", adminRouter);
 
   // Precisa dos 4 parâmetros: é assim que o Express reconhece um tratador de erro.

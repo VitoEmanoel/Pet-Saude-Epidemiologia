@@ -36,6 +36,7 @@ Os erros são tratados no fim de [`server.ts`](../backend/src/server.ts). O trat
 | `GET /api/sources` | `routes/sources.ts` | Catálogo de fontes públicas (sem `zika_sinan`) |
 | `GET /api/sources/:slug` | idem | Uma fonte |
 | `GET /api/sources/:slug/availability` | idem | Status do filtro municipal |
+| `GET /api/indicators?source=<slug>` | `routes/indicators.ts` | Indicadores calculados por ano (A5; ver [15](15-indicadores.md)): `indicators[]` com `key`, `label`, `unit`, `formula` e `series[]` (`year`, `value`, `numerator`, `denominator`, `status` = `ok`/`sem_populacao`/`nao_se_aplica`/`sem_dados`, `provisional`); `population` resume os anos cadastrados. Só dengue, zika, chikungunya e arboviroses têm indicadores (as outras devolvem lista vazia). Só aceita `source` |
 | `GET /api/sources/:slug/summary` | idem | Cartões: total de casos, anos, último ano, última sincronização |
 | `GET /api/sources/:slug/filters` | idem | Valores possíveis de ano, sexo, faixa etária e raça/cor |
 | `GET /api/dashboard/overview` | `routes/dashboard.ts` | Resumo geral e evolução anual somando as 5 fontes primárias públicas (sem a zika interna, sem contar a dengue duas vezes via arboviroses) + `casesBySource` (casos e período de cada fonte pública) |

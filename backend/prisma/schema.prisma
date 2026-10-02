@@ -39,6 +39,7 @@ model DataSource {
 
   availability                DataAvailability?
   syncJobs                    SyncJob[]
+  classificationCounts        ClassificationCount[]
   rawImports                  RawImport[]
   records                     EpidemiologicalRecord[]
 
@@ -73,6 +74,7 @@ model SyncJob {
   source          DataSource?   @relation(fields: [sourceId], references: [id], onDelete: SetNull)
   rawImports      RawImport[]
   records         EpidemiologicalRecord[]
+  classificationCounts ClassificationCount[]
 
   @@index([sourceId])
   @@index([status])
@@ -176,5 +178,24 @@ model PopulationEstimate {
   updatedAt        DateTime @default(now()) @map("updated_at")
 
   @@map("population_estimates")
+}
+
+// Casos por classificação final, por ano (A5): base da % de dengue com sinais de alarme
+// e grave, e dos casos confirmados de zika e chikungunya. Separada de epidemiological_records
+// para a tabela e o CSV públicos não contarem o mesmo caso mais uma vez.
+model ClassificationCount {
+  id             Int      @id @default(autoincrement())
+  sourceId       Int      @map("source_id")
+  syncJobId      Int?     @map("sync_job_id")
+  year           Int
+  classification String   @db.VarChar(100)
+  value          Decimal  @db.Decimal(14, 4)
+  importedAt     DateTime @default(now()) @map("imported_at")
+
+  source         DataSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  syncJob        SyncJob?   @relation(fields: [syncJobId], references: [id], onDelete: SetNull)
+
+  @@unique([sourceId, year, classification])
+  @@map("classification_counts")
 }
 

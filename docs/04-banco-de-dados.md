@@ -16,6 +16,7 @@ data_sources 1───1 data_availability
 admin_audit_logs (independente)
 admin_sessions   (independente)
 population_estimates (independente)
+data_sources 1───* classification_counts
 ```
 
 ### `data_sources`: cadastro das fontes
@@ -81,6 +82,10 @@ Uma linha por consulta (são 4 por sincronização).
 ### `admin_audit_logs`: auditoria da área administrativa
 
 Logins (sucesso/falha), logouts, exportações, sincronizações e requisições bloqueadas, com IP, navegador e detalhes (`metadata`). O IP é o `request.ip` do Express: o `X-Forwarded-For` só é considerado quando vem de um proxy confiável (`TRUST_PROXY`), então não dá para forjá-lo.
+
+### `classification_counts`: casos por classificação final
+
+Uma linha por fonte, ano e classificação (ex.: dengue, 2024, "Dengue com sinais de alarme", 42), na mesma contagem da fonte (casos prováveis). Base dos indicadores de % de alarme/grave e de casos confirmados ([15](15-indicadores.md)). Fica **fora** de `epidemiological_records` para a tabela e o CSV públicos não contarem o mesmo caso mais uma vez. Coletada para dengue, zika e chikungunya; zeros não são gravados; a coleta completa apaga o que não renovou.
 
 ### `population_estimates`: população residente por ano
 
