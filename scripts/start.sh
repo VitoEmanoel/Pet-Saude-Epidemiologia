@@ -35,7 +35,6 @@ COMPOSE_CMD=(docker compose --env-file .env)
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 BACKEND_PORT="${BACKEND_PORT:-3333}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-REDIS_PORT="${REDIS_PORT:-6379}"
 APP_BIND_HOST="${APP_BIND_HOST:-0.0.0.0}"
 SERVICE_BIND_HOST="${SERVICE_BIND_HOST:-127.0.0.1}"
 FRONTEND_URL="${FRONTEND_URL:-http://localhost:${FRONTEND_PORT}}"
@@ -148,29 +147,29 @@ recover_docker_state() {
 }
 
 start_core_services() {
-  if "${COMPOSE_CMD[@]}" up -d postgres redis; then
+  if "${COMPOSE_CMD[@]}" up -d postgres; then
     return
   fi
 
   recover_docker_state
-  "${COMPOSE_CMD[@]}" up -d postgres redis
+  "${COMPOSE_CMD[@]}" up -d postgres
 }
 
 start_app_services() {
-  if "${COMPOSE_CMD[@]}" up -d --no-build backend frontend; then
+  if "${COMPOSE_CMD[@]}" up -d --no-build --remove-orphans backend frontend; then
     return
   fi
 
   recover_docker_state
 
-  echo "Reativando banco de dados e Redis apos recuperacao..."
-  "${COMPOSE_CMD[@]}" up -d postgres redis
+  echo "Reativando banco de dados apos recuperacao..."
+  "${COMPOSE_CMD[@]}" up -d postgres
 
   echo "Validando conexao com PostgreSQL apos recuperacao..."
   verify_postgres_access
 
   echo "Subindo backend e frontend apos recuperacao..."
-  "${COMPOSE_CMD[@]}" up -d --no-build backend frontend
+  "${COMPOSE_CMD[@]}" up -d --no-build --remove-orphans backend frontend
 }
 
 verify_docker_access
@@ -201,7 +200,6 @@ fi
 check_port "frontend" "$(compose_service_id frontend)" "$APP_BIND_HOST" "$FRONTEND_PORT"
 check_port "backend" "$(compose_service_id backend)" "$APP_BIND_HOST" "$BACKEND_PORT"
 check_port "postgres" "$(compose_service_id postgres)" "$SERVICE_BIND_HOST" "$POSTGRES_PORT"
-check_port "redis" "$(compose_service_id redis)" "$SERVICE_BIND_HOST" "$REDIS_PORT"
 
 if [ "$APP_BIND_HOST" = "127.0.0.1" ] && [ "$DEPLOYMENT_TARGET" = "servidor" ]; then
   echo "APP_BIND_HOST esta em 127.0.0.1, mas as URLs configuradas indicam uso em servidor."
@@ -214,7 +212,7 @@ if grep -Eq "SEU_IP|SEU_IP_OU_DOMINIO" .env; then
   exit 1
 fi
 
-echo "Subindo banco de dados e Redis..."
+echo "Subindo banco de dados..."
 start_core_services
 
 echo "Validando conexao com PostgreSQL..."

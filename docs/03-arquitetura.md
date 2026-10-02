@@ -7,7 +7,7 @@
  Navegador ──HTTP──► │ frontend (Next.js :3000)                                     │
      │               │                                                              │
      └────HTTP─────► │ backend (Express :3333) ──► postgres (:5432 interno/:5433)   │
-                     │      │  └─ agendador de sync         redis (sem uso)         │
+                     │      │  └─ agendador de sync                                 │
                      │      └──► backend/storage/raw-imports (HTML bruto)           │
                      └──────┼───────────────────────────────────────────────────────┘
                             ▼

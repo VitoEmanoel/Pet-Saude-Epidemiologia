@@ -81,7 +81,7 @@ npm run sync:data   # baixa os dados do DATASUS (~1 minuto)
 O `npm run start` executa, nesta ordem:
 
 1. valida Docker, variáveis obrigatórias e portas;
-2. sobe PostgreSQL e Redis;
+2. sobe o PostgreSQL;
 3. espera o PostgreSQL aceitar conexões;
 4. faz o build das imagens do backend e do frontend;
 5. aplica as migrations (`prisma migrate deploy`);
@@ -116,7 +116,7 @@ Se o site abrir **sem números**, falta rodar `npm run sync:data`.
 | `npm run logs` | Mostra os logs de todos os containers (`npm run logs -- backend` para um só) |
 | `npm run sync:data` | Sincroniza todas as fontes (precisa do backend rodando no Docker) |
 | `npm run sync:data -- <slug>` | Sincroniza uma fonte só (ex.: `npm run sync:data -- dengue_sinan`) |
-| `npm run db:reset -- --force` | **Apaga** os volumes do PostgreSQL e Redis |
+| `npm run db:reset -- --force` | **Apaga** o volume do PostgreSQL (todos os dados) |
 | `npm run docker:recover` | Tenta destravar o Docker sem apagar dados (`-- --reset-db` também apaga o banco) |
 
 ## 2.4 Modo desenvolvimento (sem Docker para o código)
@@ -164,7 +164,7 @@ Use quando for **programar**: o backend e o frontend recarregam sozinhos ao salv
 | `NODE_ENV` | `development` | Modo de execução |
 | `HOST` | `0.0.0.0` | Interface em que o backend escuta |
 | `APP_BIND_HOST` | `0.0.0.0` | Onde o Docker expõe frontend/backend (`0.0.0.0` = acessível na rede) |
-| `SERVICE_BIND_HOST` | `127.0.0.1` | Onde o Docker expõe PostgreSQL/Redis (só na máquina local) |
+| `SERVICE_BIND_HOST` | `127.0.0.1` | Onde o Docker expõe o PostgreSQL (só na máquina local) |
 | `FRONTEND_PORT` / `BACKEND_PORT` / `PORT` | `3000` / `3333` / `3333` | Portas |
 | `FRONTEND_URL` / `BACKEND_URL` | `http://localhost:3000` / `:3333` | Endereços públicos (usados pelos scripts) |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:3333` | URL que o **navegador** usa para chamar a API. É gravada no build do frontend: mudou → rebuild (`npm run start`) |
@@ -177,7 +177,6 @@ Use quando for **programar**: o backend e o frontend recarregam sozinhos ao salv
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` / `postgres` / `pet_saude` | Credenciais do banco. Mudar depois de criado o volume exige `db:reset` |
 | `POSTGRES_PORT` | `5433` | Porta do banco **no host** (5433 para não colidir com um PostgreSQL local) |
 | `DATABASE_URL` | `...@postgres:5432/...` | Conexão do backend. Dentro do Docker o host é `postgres` |
-| `REDIS_URL` / `REDIS_PORT` | — | Redis (não utilizado pelo código hoje) |
 | `SYNC_SCHEDULE_ENABLED` | `true` | Liga o agendador automático |
 | `SYNC_SCHEDULE_INTERVAL_DAYS` | `30` | Idade máxima da última coleta bem-sucedida antes de recoletar |
 | `SYNC_SCHEDULE_CHECK_INTERVAL_MINUTES` | `1440` | De quanto em quanto tempo o agendador verifica (1440 = 1 dia) |
@@ -197,7 +196,65 @@ CORS_ORIGIN=http://SEU_IP_OU_DOMINIO:3000
 APP_BIND_HOST=0.0.0.0
 ```
 
-- Exponha apenas as portas **3000** e **3333**. PostgreSQL e Redis ficam em `127.0.0.1` por padrão.
+- Exponha apenas as portas **3000** e **3333**. O PostgreSQL fica em `127.0.0.1` por padrão.
 - O `start` bloqueia se `NEXT_PUBLIC_API_URL` apontar para `localhost` com URLs de servidor.
 - Em HTTPS (recomendado), use `ADMIN_COOKIE_SECURE=true`.
 - Atrás de proxy reverso (nginx etc.), leia o item sobre `trust proxy` em [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md).
+
+## 2.7 Servidor pequeno (VPS) e imagens construídas fora dele
+
+### Quanto o sistema consome
+
+Medido em 02/10/2026 com dados reais (6 fontes, ~1.900 registros):
+
+| Recurso | Uso rodando | Observação |
+|---|---|---|
+| Memória | ~175 MB parado; ~250–300 MB sob carga | PostgreSQL ~100 MB, frontend ~40 MB, backend ~30–70 MB |
+| Disco | imagens ~1,1 GB; banco ~10 MB; arquivos brutos < 1 MB | O banco cresce poucos MB por ano |
+| CPU | quase zero parado | A sincronização mensal leva ~1 min e é quase toda espera de rede |
+
+**Uma VPS de 1 CPU, 2 GB de RAM e 20 GB de disco roda o sistema com folga.** Com 1 núcleo a capacidade fica na casa de dezenas de requisições por segundo, mais que suficiente para um painel municipal.
+
+**O gargalo é o build**, não o uso: construir as imagens (principalmente o Next.js) pede 1–1,5 GB de RAM e bastante CPU. Numa VPS de 2 GB o build pode demorar muito ou travar por falta de memória. Por isso:
+
+1. **Construa as imagens fora da VPS** (no seu computador ou no GitHub Actions) e envie só as imagens prontas (abaixo).
+2. Mesmo assim, **crie 2 GB de swap** na VPS como margem de segurança:
+   ```bash
+   sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
+   sudo mkswap /swapfile && sudo swapon /swapfile
+   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+   ```
+3. Se algum dia construir na VPS, rode `docker builder prune` depois (o cache do build passa de 2 GB).
+
+### Construir no seu computador e enviar para a VPS
+
+**Atenção:** `NEXT_PUBLIC_API_URL` é embutida no build do frontend (e define a CSP, ver [07 §7.5](07-frontend.md#75-cabeçalhos-de-segurança)). A imagem precisa ser construída **com o endereço de produção**, não com `localhost`. Use um `.env` de produção (ex.: `.env.producao`, fora do git) com os endereços do servidor (§2.6).
+
+Também confira a arquitetura: a maioria das VPS é `amd64` (x86), como a maioria dos computadores. Se a VPS for ARM, construa com `DOCKER_DEFAULT_PLATFORM=linux/arm64`.
+
+**No seu computador:**
+
+```bash
+docker compose --env-file .env.producao build backend frontend
+docker save pet-saude-epidemiologia-backend pet-saude-epidemiologia-frontend postgres:16-alpine \
+  | gzip > painel-imagens.tar.gz                       # ~300–400 MB
+scp painel-imagens.tar.gz usuario@IP_DA_VPS:/opt/painel/
+```
+
+**Na VPS** (com o repositório clonado em `/opt/painel`, para ter o `docker-compose.yml` e os scripts, e o `.env` de produção lá):
+
+```bash
+cd /opt/painel
+gunzip -c painel-imagens.tar.gz | docker load
+docker compose --env-file .env up -d postgres
+docker compose --env-file .env run --rm backend npm --workspace backend run prisma:deploy
+docker compose --env-file .env run --rm backend npm --workspace backend run seed:prod
+docker compose --env-file .env up -d --no-build --remove-orphans backend frontend
+```
+
+Não use `npm run start` na VPS nesse modo: ele faz o build lá. A VPS só precisa de Docker e Docker Compose (sem Node).
+
+Para atualizar: repita os dois blocos (o `prisma:deploy` aplica migrations novas; o seed não apaga dados).
+
+**Alternativa automática:** publicar as imagens no GitHub Container Registry (gratuito) a cada push na `main` via GitHub Actions; na VPS basta `docker compose pull` e `up -d`. Previsto no plano (Fase 6, item 6.8).
+

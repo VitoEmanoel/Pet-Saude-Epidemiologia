@@ -45,7 +45,7 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 - **Correção:** retry com backoff + alerta (e-mail/log destacado/aviso no admin).
 
 ### O6. Infraestrutura e código sem uso. **Baixa**
-- Redis (sobe e não é usado), `tuberculosis-sinan.collector.ts` (não importado), dependência `zod`, variável `VITE_API_URL`, status `PENDING/PARTIAL_SUCCESS/SKIPPED` e coluna `month` sem uso.
+- `tuberculosis-sinan.collector.ts` (não importado), dependência `zod`, variável `VITE_API_URL`, status `PENDING/PARTIAL_SUCCESS/SKIPPED` e coluna `month` sem uso.
 
 ---
 
@@ -116,7 +116,7 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 - `AdminDashboard.tsx` com ~1.700 linhas; `TuberculosisDashboard.tsx` exporta `DiseaseDashboard`.
 
 ### Q4. Sem cache. **Baixa**
-- Backend é o gargalo (1.440% CPU vs 95% do banco) e satura ~2.000 conexões simultâneas. Capacidade atual é suficiente; um cache (Redis já disponível) multiplicaria a folga.
+- Backend é o gargalo (1.440% CPU vs 95% do banco) e satura ~2.000 conexões simultâneas. Capacidade atual é suficiente; um cache em memória no backend multiplicaria a folga (o Redis foi removido no O6; volta só se o cache precisar ser compartilhado).
 
 ---
 

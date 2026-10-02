@@ -10,7 +10,7 @@ COMPOSE_CMD=(docker compose --env-file .env)
 
 if [ "${1:-}" != "--force" ]; then
   echo "Uso: npm run db:reset -- --force"
-  echo "Esse comando remove os volumes Docker do banco e do Redis deste projeto."
+  echo "Esse comando remove os volumes Docker do banco deste projeto."
   exit 1
 fi
 

@@ -28,9 +28,9 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
-| 6 | Implantação em produção | 7 | 0 |
+| 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **11** |
+| | **Total** | **48** | **11** |
 
 ---
 
@@ -168,7 +168,11 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [ ] Dividir `AdminDashboard.tsx` em componentes
   - [ ] Renomear `TuberculosisDashboard.tsx` → `DiseaseDashboard.tsx`
   - [x] Unificar os 4 handlers de `charts.ts` (feito junto com o D2)
-- [ ] **O6** Remover o que não é usado: coletor antigo, `zod` (ou passar a usá-lo para validar entradas), `VITE_API_URL`, Redis (ou usá-lo no Q4)
+- [ ] **O6** Remover o que não é usado
+  - [x] Redis: removido do Compose, `.env.example` e scripts (02/10/2026, branch `fix/o6-remove-redis`)
+  - [ ] Coletor antigo `tuberculosis-sinan.collector.ts`
+  - [ ] `zod` (ou passar a usá-lo para validar entradas)
+  - [ ] `VITE_API_URL`
 - [ ] **Q4** Cache das respostas públicas (invalidado ao fim de cada sincronização)
 - [ ] **S7** Exigir `Origin`/`Referer` em POST administrativos
 
@@ -176,13 +180,16 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 
 ## Fase 6: Implantação em produção
 
-- [ ] **6.1** Definir servidor, domínio e responsável pela operação
+- [ ] **6.1** Definir servidor, domínio e responsável pela operação. Uma VPS de 1 CPU / 2 GB / 20 GB basta ([02 §2.7](02-instalacao-e-execucao.md#27-servidor-pequeno-vps-e-imagens-construídas-fora-dele)); criar 2 GB de swap
 - [ ] **6.2** HTTPS com proxy reverso (nginx/Caddy) + `trust proxy` (S4) + `ADMIN_COOKIE_SECURE=true` (S9)
 - [ ] **6.3** Expor só 80/443; backend e frontend atrás do proxy
 - [ ] **6.4** Backup automático diário do banco + teste de restauração mensal ([04 §4.4](04-banco-de-dados.md#44-migrations-seed-e-backup))
 - [ ] **6.5** Monitoramento: `/health`, espaço em disco, status das sincronizações
 - [ ] **6.6** Alerta de falha de sincronização (depende do O5)
 - [ ] **6.7** Documento de implantação em `docs/` (passo a passo do servidor)
+- [ ] **6.8** Construir as imagens fora da VPS e só enviá-las ([02 §2.7](02-instalacao-e-execucao.md#27-servidor-pequeno-vps-e-imagens-construídas-fora-dele))
+  - [ ] Script `npm run deploy:build` (build com `.env.producao` + `docker save`) e `scripts/deploy-vps.sh` (load + migrations + seed + up, sem build)
+  - [ ] Ou: GitHub Actions publicando as imagens no GitHub Container Registry a cada push na `main`; na VPS, `docker compose pull`
 
 ---
 

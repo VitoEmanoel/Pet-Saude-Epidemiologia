@@ -70,7 +70,6 @@ Pendente: incluir **chikungunya** em arboviroses (ver [12-plano-de-acao.md](12-p
 | Gráficos | ECharts | Gráficos dos dashboards |
 | Mapa | Leaflet / react-leaflet | Mapa de Parnaíba |
 | Infra | Docker + Docker Compose | Sobe tudo com um comando |
-| Redis | Redis 7 | Sobe no Compose, mas **ainda não é usado pelo código** |
 
 ## Glossário
 

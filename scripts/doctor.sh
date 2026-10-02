@@ -53,7 +53,6 @@ set +a
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 BACKEND_PORT="${BACKEND_PORT:-3333}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-REDIS_PORT="${REDIS_PORT:-6379}"
 APP_BIND_HOST="${APP_BIND_HOST:-0.0.0.0}"
 SERVICE_BIND_HOST="${SERVICE_BIND_HOST:-127.0.0.1}"
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
@@ -147,7 +146,6 @@ fi
 check_port "frontend" "$(compose_service_id frontend)" "$APP_BIND_HOST" "$FRONTEND_PORT"
 check_port "backend" "$(compose_service_id backend)" "$APP_BIND_HOST" "$BACKEND_PORT"
 check_port "postgres" "$(compose_service_id postgres)" "$SERVICE_BIND_HOST" "$POSTGRES_PORT"
-check_port "redis" "$(compose_service_id redis)" "$SERVICE_BIND_HOST" "$REDIS_PORT"
 
 if compose_service_running postgres; then
   if "${COMPOSE_CMD[@]}" exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select 1;" >/dev/null 2>&1; then
@@ -157,13 +155,6 @@ if compose_service_running postgres; then
   fi
 fi
 
-if compose_service_running redis; then
-  if "${COMPOSE_CMD[@]}" exec -T redis redis-cli ping | grep -qx "PONG"; then
-    ok "Redis responde normalmente."
-  else
-    warn "Redis em execucao, mas nao respondeu a redis-cli ping."
-  fi
-fi
 
 if [ "$status" -eq 0 ]; then
   echo
