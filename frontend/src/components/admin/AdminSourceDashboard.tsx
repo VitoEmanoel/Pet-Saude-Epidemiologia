@@ -4,6 +4,7 @@ import { Activity, CalendarDays, Database, Download, FileText, RefreshCw, X } fr
 import { useEffect, useMemo, useState } from "react";
 import {
   downloadAdminDashboardHtml,
+  downloadAdminIndicatorsCsv,
   downloadAdminRecordsCsv,
   getChartByAgeGroup,
   getChartByRaceColor,
@@ -16,6 +17,7 @@ import { ignoredFiltersNote, withSingleDemographic } from "@/lib/demographics";
 import { formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
 import type { CategoryPoint, ChartPoint, DataSource, RecordFilters, SourceFiltersResponse, SourceSummaryResponse } from "@/types/api";
 import { ChartPanel } from "../dashboard/ChartPanel";
+import { IndicatorPanel } from "../dashboard/IndicatorPanel";
 import { MetricCard } from "../ui/MetricCard";
 import { useAdminSession } from "./AdminSession";
 import {
@@ -242,6 +244,22 @@ export function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
           ))}
         </section>
       )}
+
+      <IndicatorPanel
+        source={sourceSlug}
+        selectedYear={activeFilters.year}
+        hasDemographicFilter={Boolean(filters.sex || filters.ageGroup || filters.raceColor)}
+        onDownload={async () => {
+          try {
+            const { blob, filename } = await downloadAdminIndicatorsCsv(sourceSlug);
+            downloadBlob(blob, filename);
+          } catch (error) {
+            if (!handleAuthError(error)) {
+              setActionState({ ...IDLE_ACTION, error: errorMessage(error, "Falha ao baixar os indicadores.") });
+            }
+          }
+        }}
+      />
 
       {chartsState.status === "loading" ? (
         <div className="grid gap-5 xl:grid-cols-2">

@@ -39,6 +39,7 @@ import type {
 } from "@/types/api";
 import { ignoredFiltersNote, withSingleDemographic } from "@/lib/demographics";
 import { ChartPanel } from "./ChartPanel";
+import { IndicatorPanel } from "./IndicatorPanel";
 import { MetricCard } from "../ui/MetricCard";
 
 const ParnaibaMap = dynamic(
@@ -388,6 +389,12 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
           />
         </div>
       </section>
+
+      <IndicatorPanel
+        source={source}
+        selectedYear={activeFilters.year}
+        hasDemographicFilter={demographicView !== null}
+      />
 
       <DashboardCharts state={chartsState} />
 

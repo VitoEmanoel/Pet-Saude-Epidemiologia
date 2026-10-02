@@ -198,6 +198,31 @@ export type AdminAuditLog = {
   createdAt: string;
 };
 
+export type IndicatorStatus = "ok" | "sem_populacao" | "nao_se_aplica" | "sem_dados";
+
+export type IndicatorPoint = {
+  year: number;
+  value: number | null;
+  numerator: number | null;
+  denominator: number | null;
+  status: IndicatorStatus;
+  provisional: boolean;
+};
+
+export type Indicator = {
+  key: string;
+  label: string;
+  unit: string;
+  description: string;
+  formula: string;
+  series: IndicatorPoint[];
+};
+
+export type IndicatorsResponse = {
+  population: { years: number; firstYear: number | null; lastYear: number | null; updatedAt: string | null };
+  indicators: Indicator[];
+};
+
 export type PopulationEstimate = {
   year: number;
   population: number;

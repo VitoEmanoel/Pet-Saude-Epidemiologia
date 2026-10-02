@@ -88,6 +88,7 @@ Todas respondem com cabeçalhos anti-cache e de segurança. Requisições que **
 | `POST /api/admin/sync/:sourceSlug` | sessão | Sincroniza uma fonte e **espera terminar** (pode levar ~10 s) |
 | `POST /api/admin/sync-all` | sessão | Sincroniza todas as fontes em sequência (~45 s) |
 | `GET /api/admin/sync-history` | sessão | Últimos 50 jobs |
+| `GET /api/admin/indicators/export.csv?source=<slug>` | sessão | Indicadores da fonte em CSV (`;`, vírgula decimal, BOM para o Excel): indicador, unidade, ano, valor, numerador, denominador, situação, provisório; auditado |
 | `GET /api/admin/population` | sessão | População cadastrada por ano |
 | `GET /api/admin/population/template.csv` | sessão | Planilha atual (ou só o cabeçalho) no formato aceito |
 | `POST /api/admin/population/preview` | sessão | Corpo `{csv}`: devolve `rows`, `errors` e `diff` (`added`, `changed`, `removed`, `unchanged`) sem gravar |

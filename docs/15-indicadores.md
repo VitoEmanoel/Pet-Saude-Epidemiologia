@@ -48,7 +48,8 @@ Validação de 02/10/2026 (consulta manual ao TABNET): dengue 2024 = 510 casos, 
 
 ## 15.5 Onde fica no sistema
 
-- **API pública:** `GET /api/indicators?source=<slug>` ([06](06-api.md)).
+- **Na tela:** painel **Indicadores** nas páginas de dengue, zika, chikungunya e arboviroses (seletor de indicador, valor do ano, cálculo e série) e no dashboard do admin, com **Baixar indicadores** (CSV).
+- **API pública:** `GET /api/indicators?source=<slug>` ([06](06-api.md)); CSV só no admin: `GET /api/admin/indicators/export.csv?source=<slug>`.
 - **Cálculo:** [`indicators.service.ts`](../backend/src/modules/public/indicators.service.ts) (`SOURCE_INDICATORS` diz quais indicadores cada doença tem).
 - **Classificação:** tabela `classification_counts` ([04](04-banco-de-dados.md)), preenchida pelo coletor ([05](05-coleta-de-dados.md)).
 - **População:** tabela `population_estimates`, tela **População** do admin ([08](08-area-administrativa.md)).

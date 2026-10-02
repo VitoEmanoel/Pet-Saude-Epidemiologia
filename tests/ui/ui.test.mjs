@@ -71,7 +71,9 @@ for (const profile of Object.keys(PROFILES)) {
           assert.equal(info.apiError, false, "página mostra API indisponível");
           assert.equal(info.lang, "pt-BR");
           if (DISEASE_PAGES.includes(path)) {
-            assert.equal(info.canvases, 4, "4 gráficos");
+            // 4 gráficos + 1 do painel de indicadores nas arboviroses (A6).
+            const arbovirus = ["/dengue", "/zika", "/chikungunya", "/arboviroses"].includes(path);
+            assert.equal(info.canvases, arbovirus ? 5 : 4, "gráficos");
             assert.ok(info.tiles > 0, "mapa carregado");
           }
           if (path === "/") {
@@ -232,6 +234,35 @@ for (const profile of Object.keys(PROFILES)) {
     });
   });
 }
+
+describe(`Indicadores (${BROWSER})`, () => {
+  test("A6: painel de indicadores na dengue troca de indicador e explica anos sem valor", async () => {
+    const { context, page } = await openPage("desktop", "/dengue");
+    try {
+      const panel = page.locator('section[aria-label="Indicadores"]');
+      await panel.waitFor();
+      await panel.locator("select").selectOption("pct_sinais_alarme");
+      await page.waitForTimeout(500);
+      const text = await panel.innerText();
+      assert.match(text, /% com sinais de alarme/);
+      assert.match(text, /não se aplica/, "anos antes de 2014 devem ser explicados");
+      assert.match(text, /Cálculo:/);
+      assert.equal(await panel.locator("canvas").count(), 1, "gráfico do indicador");
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("A6: tuberculose não tem painel de indicadores (só arboviroses)", async () => {
+    const { context, page } = await openPage("desktop", "/tuberculose");
+    try {
+      await page.waitForTimeout(800);
+      assert.equal(await page.locator('section[aria-label="Indicadores"]').count(), 0);
+    } finally {
+      await context.close();
+    }
+  });
+});
 
 describe(`Mapa e cabeçalho (${BROWSER})`, () => {
   for (const profile of Object.keys(PROFILES)) {

@@ -22,6 +22,8 @@ import {
 } from "../middleware/admin-auth";
 import { prisma } from "../database/prisma";
 import { getSourcesHealth } from "../modules/admin/source-health.service";
+import { getSourceIndicators } from "../modules/public/indicators.service";
+import { getPublicSourceBySlug } from "../config/sources";
 import {
   clearPopulation,
   diffPopulation,
@@ -426,6 +428,54 @@ adminRouter.get("/audit-logs", async (_request, response) => {
   return response.json({
     auditLogs
   });
+});
+
+// Indicadores de uma fonte em CSV (A6), na mesma regra de exportação só pelo admin.
+const INDICATOR_STATUS_LABELS: Record<string, string> = {
+  ok: "",
+  sem_populacao: "sem populacao cadastrada",
+  nao_se_aplica: "nao se aplica",
+  sem_dados: "sem dados"
+};
+
+adminRouter.get("/indicators/export.csv", async (request, response) => {
+  const source = typeof request.query.source === "string" ? getPublicSourceBySlug(request.query.source) : undefined;
+
+  if (!source) {
+    return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+  }
+
+  const indicators = await getSourceIndicators(source.slug);
+  const lines = ["indicador;unidade;ano;valor;numerador;denominador;situacao;provisorio"];
+
+  for (const indicator of indicators) {
+    for (const point of indicator.series) {
+      const decimal = (value: number | null) => (value === null ? "" : String(value).replace(".", ","));
+      lines.push(
+        [
+          indicator.label,
+          indicator.unit,
+          point.year,
+          decimal(point.value),
+          decimal(point.numerator),
+          decimal(point.denominator),
+          INDICATOR_STATUS_LABELS[point.status] ?? point.status,
+          point.provisional ? "sim" : "nao"
+        ].join(";")
+      );
+    }
+  }
+
+  await recordAdminAudit({
+    request,
+    action: "admin_export_indicators",
+    status: "SUCCESS",
+    metadata: { source: source.slug, indicators: indicators.length }
+  });
+
+  response.setHeader("content-type", "text/csv; charset=utf-8");
+  response.setHeader("content-disposition", `attachment; filename="indicadores-${source.slug}.csv"`);
+  return response.send(`\uFEFF${lines.join("\n")}\n`);
 });
 
 // População por ano (A4): consulta, pré-visualização da planilha e substituição da tabela.

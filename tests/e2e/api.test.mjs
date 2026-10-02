@@ -209,7 +209,7 @@ describe("Validação de entrada", () => {
 
 describe("Área administrativa", () => {
   test("Sem sessão: 401 em todas as rotas protegidas", async () => {
-    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs", "/api/admin/source-health", "/api/admin/population",
+    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs", "/api/admin/source-health", "/api/admin/population", "/api/admin/indicators/export.csv?source=dengue_sinan",
       "/api/admin/records/export.csv", "/api/admin/dashboard/export.html?source=dengue_sinan"]) {
       assert.equal((await api(path)).status, 401, path);
     }
@@ -311,6 +311,16 @@ describe("Área administrativa", () => {
         await admin("/api/admin/population", { method: "DELETE" });
       }
     }
+  });
+
+  test("A6: exportação dos indicadores em CSV (só no admin)", async () => {
+    const r = await admin("/api/admin/indicators/export.csv?source=dengue_sinan");
+    assert.equal(r.status, 200);
+    assert.match(r.headers.get("content-type") ?? "", /text\/csv/);
+    assert.match(r.text, /indicador;unidade;ano;valor;numerador;denominador;situacao;provisorio/);
+    assert.match(r.text, /% com sinais de alarme;%;2024;8,24;42;510;;nao/);
+    assert.match(r.text, /% com sinais de alarme;%;2013;;;244;nao se aplica;nao/);
+    assert.equal((await admin("/api/admin/indicators/export.csv?source=inexistente")).status, 404);
   });
 
   test("Sincronizar fonte derivada (arboviroses): 501", async () => {

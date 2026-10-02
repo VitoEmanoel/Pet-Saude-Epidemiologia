@@ -39,14 +39,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
-| 2C | Arboviroses e indicadores de saúde | 10 | 8 |
+| 2C | Arboviroses e indicadores de saúde | 10 | 9 |
 | 3 | Operação confiável | 4 | 0 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 1 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **32** |
+| | **Total** | **64** | **33** |
 
 ---
 
@@ -214,9 +214,10 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
   - [x] **Antes de 2014**: "não se aplica" (sugestão aceita; o GT1 pode pedir equivalência depois)
   - [x] Ano sem população: "sem população" (nunca estima); ano corrente marcado como provisório
   - [x] Casos confirmados de zika e chikungunya (pendência do D7)
-- [ ] **A6** **Filtro por indicador** no painel público e no admin: casos, incidência por 100 mil, % sinais de alarme, % grave, incidência em idosos; gráficos e exportações (CSV/HTML) seguem o indicador escolhido
-  - [ ] Incidência só no total do município (a população não vem por sexo/idade/raça); com filtro demográfico, avisar
-  - [ ] Texto explicativo de cada indicador (descrição e cálculo do documento do GT1)
+- [x] **A6** **Filtro por indicador** no painel público e no admin (02/10/2026, branch `feat/a6-filtro-indicador`): painel "Indicadores" com seletor, valor do ano (filtrado ou último fechado), série em barras e anos sem valor explicados; abre em incidência quando há população, senão em casos
+  - [x] Incidência só no total do município; com filtro demográfico, o painel avisa
+  - [x] Texto explicativo de cada indicador (descrição e cálculo do documento do GT1)
+  - [x] Exportação: **Baixar indicadores** (CSV) no admin; o HTML do dashboard continua com casos (indicadores no HTML: não pedido)
 - [ ] **A7** (opcional, baixa) Série **mensal** (o TABNET tem "Mês 1º Sintoma(s)")
 
 **Fora do alcance do TABNET** (registrado em [11](11-limitacoes-conhecidas.md)): indicadores **por bairro** e **zika em gestantes**. Caminho, se o GT1 quiser: dados do SINAN local da Secretaria Municipal de Saúde, com outra forma de importação.

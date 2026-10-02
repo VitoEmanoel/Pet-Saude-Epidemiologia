@@ -8,7 +8,7 @@ As telas ficam no **menu lateral**, que abre pelo botão ☰ no canto superior e
 
 | Tela | Endereço | O que tem |
 |---|---|---|
-| Painel | `/admin` | Números gerais (fontes, registros, sincronizações, falhas) e o **dashboard da fonte**: escolha fonte e filtros; ao lado ficam **Baixar CSV** (registros) e **Baixar dashboard** (HTML com indicadores e gráficos). Os dois arquivos seguem exatamente os filtros da tela |
+| Painel | `/admin` | Números gerais (fontes, registros, sincronizações, falhas), alerta de fontes com problema e o **dashboard da fonte** (nas arboviroses, com o painel **Indicadores** e o botão **Baixar indicadores** em CSV): escolha fonte e filtros; ao lado ficam **Baixar CSV** (registros) e **Baixar dashboard** (HTML com indicadores e gráficos). Os dois arquivos seguem exatamente os filtros da tela |
 | Fontes | `/admin/fontes` | Coluna **Situação** (Em dia / Atenção / Problema, com o motivo), filtro municipal, link para a página no TABNET, **Sincronizar** cada uma ou **Sincronizar todas** (~1 minuto) |
 | População | `/admin/populacao` | **População residente por ano** (base dos indicadores por 100 mil habitantes). Envie um CSV com `ano;populacao;populacao_60_mais` (a última coluna é opcional, para a incidência em idosos); o sistema mostra os erros e o que muda (novos, alterados, apagados) antes de gravar. **A planilha substitui a tabela inteira.** "Baixar modelo" / "Baixar planilha atual" traz o arquivo no formato certo. Cada envio fica na auditoria |
 | Sincronizações | `/admin/sincronizacoes` | As 50 sincronizações mais recentes: início, fonte, status, registros, duração, origem (agendador, admin, linha de comando) e erro. Filtros por fonte e status |

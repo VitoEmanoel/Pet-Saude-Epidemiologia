@@ -7,6 +7,7 @@ import type {
   SourceHealthResponse,
   PopulationPreviewResponse,
   PopulationResponse,
+  IndicatorsResponse,
   AdminSyncResult,
   CategoryPoint,
   ChartPoint,
@@ -107,6 +108,10 @@ export function getChartByRaceColor(slug: string, filters: RecordFilters = {}) {
   );
 }
 
+export function getIndicators(slug: string) {
+  return fetchJson<IndicatorsResponse>(`/api/indicators?source=${encodeURIComponent(slug)}`);
+}
+
 export function getRecords(filters: RecordFilters) {
   return fetchJson<RecordsResponse>(`/api/records?${buildSearchParams(filters)}`);
 }
@@ -162,6 +167,11 @@ export function saveAdminPopulation(csv: string, sourceNote: string) {
 export async function downloadAdminPopulationCsv() {
   const response = await fetchAdminResponse("/api/admin/population/template.csv");
   return { blob: await response.blob(), filename: "populacao-parnaiba.csv" };
+}
+
+export async function downloadAdminIndicatorsCsv(slug: string) {
+  const response = await fetchAdminResponse(`/api/admin/indicators/export.csv?source=${encodeURIComponent(slug)}`);
+  return { blob: await response.blob(), filename: `indicadores-${slug}.csv` };
 }
 
 export function getAdminAuditLogs() {

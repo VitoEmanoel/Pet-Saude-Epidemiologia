@@ -26,7 +26,8 @@ const ACTION_LABELS: Record<string, string> = {
   admin_sync_source: "Sincronizou fonte",
   admin_sync_all: "Sincronizou todas",
   admin_population_upload: "Enviou população",
-  admin_population_clear: "Apagou população"
+  admin_population_clear: "Apagou população",
+  admin_export_indicators: "Baixou indicadores"
 };
 
 const UNIDENTIFIED_ACTOR = "nao_identificado";
@@ -125,6 +126,8 @@ export function describeAuditEvent(log: AdminAuditLog, sourceNames: SourceNames)
         changes.length ? `; ${changes.join("; ")}` : "; sem mudanças"
       }.`;
     }
+    case "admin_export_indicators":
+      return `Baixou os indicadores de ${sourceName ?? "fonte"} em CSV.`;
     case "admin_population_clear":
       return `Apagou a tabela de população (${text(metadata.removed) ?? "0"} anos).`;
     default:
