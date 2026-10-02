@@ -73,6 +73,29 @@ describe("Integração: dados sincronizados", () => {
     });
   }
 
+  test("D4: total geral = soma das fontes primárias públicas (sem zika, sem duplicar a dengue)", async () => {
+    const overview = (await api("/api/dashboard/overview")).json;
+    let publicTotal = 0;
+    for (const slug of PRIMARY_SOURCES) {
+      publicTotal += (await api(`/api/sources/${slug}/summary`)).json.summary.totalCases;
+    }
+    assert.equal(overview.summary.totalCases, publicTotal);
+    assert.equal(overview.summary.casesSourceCount, PRIMARY_SOURCES.length);
+    assert.equal(overview.summary.sourcesWithMunicipalData, PUBLIC_SOURCES.length, "as 6 fontes públicas têm dados");
+    assert.equal(sum(overview.charts.yearlyEvolution), overview.summary.totalCases, "gráfico geral soma o total");
+  });
+
+  test("D4: casos por doença na visão geral batem com o resumo de cada página", async () => {
+    const { casesBySource } = (await api("/api/dashboard/overview")).json;
+    assert.deepEqual(casesBySource.map((item) => item.slug).sort(), [...PUBLIC_SOURCES].sort());
+    for (const item of casesBySource) {
+      const summary = (await api(`/api/sources/${item.slug}/summary`)).json.summary;
+      assert.equal(item.totalCases, summary.totalCases, item.slug);
+      assert.equal(item.firstYear, summary.firstAvailableYear, item.slug);
+      assert.equal(item.lastYear, summary.lastAvailableYear, item.slug);
+    }
+  });
+
   test("Arboviroses (derivada) inclui mais que a dengue", async () => {
     const arbo = (await api("/api/sources/arboviroses_sinan/summary")).json.summary.totalCases;
     const dengue = (await api("/api/sources/dengue_sinan/summary")).json.summary.totalCases;
@@ -283,15 +306,6 @@ describe("Defeitos conhecidos", () => {
   test("D1: dengue tem dados depois de 2013", { todo: "D1 — Fase 1" }, async () => {
     const s = (await api("/api/sources/dengue_sinan/summary")).json.summary;
     assert.ok(s.lastAvailableYear > 2013, `último ano = ${s.lastAvailableYear}`);
-  });
-
-  test("D4: total geral não inclui a zika (fonte interna)", { todo: "D4 — Fase 1" }, async () => {
-    const overall = (await api("/api/dashboard/overview")).json.summary.totalCases;
-    let publicTotal = 0;
-    for (const slug of PRIMARY_SOURCES) {
-      publicTotal += (await api(`/api/sources/${slug}/summary`)).json.summary.totalCases;
-    }
-    assert.equal(overall, publicTotal, `geral=${overall}, soma das fontes públicas=${publicTotal}`);
   });
 
   test("S6: JSON inválido retorna erro em JSON", { todo: "S6 — Fase 2" }, async () => {

@@ -23,14 +23,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | Fase | Objetivo | Itens | Concluídos |
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
-| 1 | Dados corretos | 4 | 2 |
+| 1 | Dados corretos | 4 | 3 |
 | 2 | Segurança mínima para publicar | 7 | 0 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 7 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **6** |
+| | **Total** | **47** | **7** |
 
 ---
 
@@ -78,10 +78,12 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] Teste: com `sex=Masculino`, os gráficos de faixa etária e raça/cor não ficam vazios e trazem `ignoredFilters`
   - [x] Atualizar docs 06, 07 e 10
 
-- [ ] **D4** "Total de casos" da página inicial
-  - [ ] Excluir fontes `internal` (zika) de `baseSourceSlugs`/visão geral
-  - [ ] Substituir o número único por casos por doença (ou remover o indicador)
-  - [ ] Teste: total geral = soma das fontes públicas
+- [x] **D4** "Total de casos" da página inicial (02/10/2026, branch `fix/d4-total-geral`)
+  - [x] Excluir fontes `internal` (zika) da visão geral (sem mexer em `baseSourceSlugs`, que a composição de arboviroses usa)
+  - [x] Casos e período por doença na tabela de fontes da página inicial (`casesBySource`); cartão e gráfico dizem que são a soma das doenças
+  - [x] Teste: total geral = soma das fontes públicas; casos por doença = resumo de cada página; gráfico soma o total
+  - [x] Bônus: visão geral ~60% mais rápida (225 → ~355 req/s) ao trocar ~12 consultas por uma agrupada
+
 - [ ] **D1** Dengue a partir de 2014
   - [ ] Encontrar no TABNET a tabela de dengue 2014+ (seguir [05 §5.5](05-coleta-de-dados.md#55-como-descobrir-os-parâmetros-de-uma-fonte-nova-ou-que-mudou))
   - [ ] Validar parâmetros e o valor da opção de Parnaíba; salvar evidências em `docs/evidencias/dengue_sinan/`

@@ -74,6 +74,11 @@ const AGE_GROUP_ORDER = [
 const baseSourceSlugs = allowedSources
   .filter((source) => source.kind !== "derived")
   .map((source) => source.slug);
+// A visão geral soma só as fontes primárias públicas: fica de fora a zika (interna) e
+// arboviroses (derivada, que contaria a dengue duas vezes).
+const overviewSourceSlugs = publicSources
+  .filter((source) => source.kind === "primary")
+  .map((source) => source.slug);
 
 export async function getDashboardOverview() {
   const sourcesWithoutMunicipalData = publicSources.filter(
@@ -83,19 +88,32 @@ export async function getDashboardOverview() {
     (source) => source.municipalityFilterStatus === "unknown"
   ).length;
 
-  const [totalNormalizedRecords, totalCases, lastImportedRecord, sourcesWithData] =
+  const overviewWhere: Prisma.EpidemiologicalRecordWhereInput = {
+    ...cityWhere(),
+    source: {
+      slug: {
+        in: overviewSourceSlugs
+      }
+    }
+  };
+  const overviewYearlyWhere: Prisma.EpidemiologicalRecordWhereInput = {
+    ...overviewWhere,
+    year: {
+      not: null
+    },
+    sourceTable: {
+      contains: YEARLY_SOURCE_TABLE_FRAGMENT
+    }
+  };
+
+  const [totalNormalizedRecords, totalCases, lastImportedRecord, yearlyRows, casesBySource] =
     await Promise.all([
       prisma.epidemiologicalRecord.count({
-        where: baseCityRecordWhere()
+        where: overviewWhere
       }),
-      sumValues({
-        ...baseCityRecordWhere(),
-        sourceTable: {
-          contains: YEARLY_SOURCE_TABLE_FRAGMENT
-        }
-      }),
+      sumValues(overviewYearlyWhere),
       prisma.epidemiologicalRecord.findFirst({
-        where: baseCityRecordWhere(),
+        where: overviewWhere,
         orderBy: {
           importedAt: "desc"
         },
@@ -103,10 +121,25 @@ export async function getDashboardOverview() {
           importedAt: true
         }
       }),
-      countPublicSourcesWithData()
+      prisma.epidemiologicalRecord.groupBy({
+        by: ["year"],
+        where: overviewYearlyWhere,
+        _sum: {
+          value: true
+        },
+        orderBy: {
+          year: "asc"
+        }
+      }),
+      getCasesBySource()
     ]);
 
-  const yearlyEvolution = await getYearlyEvolution();
+  // Fonte com dados = tem pelo menos um ano coletado (evita uma consulta por fonte)
+  const sourcesWithData = casesBySource.filter((item) => item.firstYear !== null).length;
+  const yearlyEvolution = yearlyRows.map((row) => ({
+    year: row.year as number,
+    value: decimalToNumber(row._sum.value)
+  }));
 
   return {
     city: ALLOWED_CITY,
@@ -118,12 +151,69 @@ export async function getDashboardOverview() {
       sourcesWithMunicipalData: sourcesWithData,
       sourcesWithoutMunicipalData,
       sourcesPendingValidation,
-      dataStatus: totalNormalizedRecords > 0 ? "synced" : "not_synced"
+      dataStatus: totalNormalizedRecords > 0 ? "synced" : "not_synced",
+      casesSourceCount: overviewSourceSlugs.length
     },
+    casesBySource,
     charts: {
       yearlyEvolution
     }
   };
+}
+
+/** Casos (total anual) e período de cada fonte pública, em uma única consulta agrupada. */
+async function getCasesBySource() {
+  const rows = await prisma.epidemiologicalRecord.groupBy({
+    by: ["sourceId"],
+    where: {
+      ...baseCityRecordWhere(),
+      year: {
+        not: null
+      },
+      sourceTable: {
+        contains: YEARLY_SOURCE_TABLE_FRAGMENT
+      }
+    },
+    _sum: {
+      value: true
+    },
+    _min: {
+      year: true
+    },
+    _max: {
+      year: true
+    }
+  });
+  const dataSources = await prisma.dataSource.findMany({
+    where: {
+      id: {
+        in: rows.map((row) => row.sourceId)
+      }
+    },
+    select: {
+      id: true,
+      slug: true
+    }
+  });
+  const rowsBySlug = new Map(
+    rows.map((row) => [dataSources.find((source) => source.id === row.sourceId)?.slug, row])
+  );
+
+  return publicSources.map((source) => {
+    const sourceRows = getResolvedSourceSlugs(source.slug)
+      .map((slug) => rowsBySlug.get(slug))
+      .filter((row): row is (typeof rows)[number] => Boolean(row));
+    const years = sourceRows.flatMap((row) => [row._min.year, row._max.year]).filter((year): year is number => year !== null);
+
+    return {
+      slug: source.slug,
+      name: source.name,
+      kind: source.kind,
+      totalCases: sourceRows.reduce((total, row) => total + decimalToNumber(row._sum.value), 0),
+      firstYear: years.length > 0 ? Math.min(...years) : null,
+      lastYear: years.length > 0 ? Math.max(...years) : null
+    };
+  });
 }
 
 export async function getSourceSummary(sourceSlug: string) {
@@ -756,31 +846,6 @@ async function getResolvedSourceIds(sourceSlug: string): Promise<number[]> {
   });
 
   return rows.map((row) => row.id);
-}
-
-async function countPublicSourcesWithData(): Promise<number> {
-  const availability = await Promise.all(
-    publicSources.map(async (source) => {
-      const sourceIds = await getResolvedSourceIds(source.slug);
-
-      if (sourceIds.length === 0) {
-        return false;
-      }
-
-      const count = await prisma.epidemiologicalRecord.count({
-        where: {
-          ...cityWhere(),
-          sourceId: {
-            in: sourceIds
-          }
-        }
-      });
-
-      return count > 0;
-    })
-  );
-
-  return availability.filter(Boolean).length;
 }
 
 async function sumValues(where: Prisma.EpidemiologicalRecordWhereInput): Promise<number> {

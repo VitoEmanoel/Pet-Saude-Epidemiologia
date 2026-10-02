@@ -30,7 +30,7 @@ Erros seguem sempre o formato ([`api-response.ts`](../backend/src/utils/api-resp
 | `GET /api/sources/:slug/availability` | idem | Status do filtro municipal |
 | `GET /api/sources/:slug/summary` | idem | Cartões: total de casos, anos, último ano, última sincronização |
 | `GET /api/sources/:slug/filters` | idem | Valores possíveis de ano, sexo, faixa etária e raça/cor |
-| `GET /api/dashboard/overview` | `routes/dashboard.ts` | Resumo geral + evolução anual somando todas as fontes |
+| `GET /api/dashboard/overview` | `routes/dashboard.ts` | Resumo geral e evolução anual somando as 5 fontes primárias públicas (sem a zika interna, sem contar a dengue duas vezes via arboviroses) + `casesBySource` (casos e período de cada fonte pública) |
 | `GET /api/records` | `routes/records.ts` | Registros paginados de **uma visão** (`aggregation`); cada registro traz o campo `aggregation` |
 | `GET /api/charts/yearly-evolution` | `routes/charts.ts` | `series: [{year, value}]` |
 | `GET /api/charts/by-sex` | idem | `series: [{label, value}]` |

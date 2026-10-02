@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Activity, CheckCircle2, Clock3, Database, Layers } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDashboardOverview, getSources } from "@/lib/api";
-import { formatDateTime, formatNumber } from "@/lib/format";
+import { formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
 import type { DashboardOverviewResponse, SourcesResponse } from "@/types/api";
 import { ChartPanel } from "./ChartPanel";
 import { MetricCard } from "../ui/MetricCard";
@@ -63,6 +63,7 @@ export function OverviewDashboard() {
   }
 
   const { overview, sources } = state;
+  const casesBySlug = new Map(overview.casesBySource.map((item) => [item.slug, item]));
 
   return (
     <div className="space-y-5">
@@ -70,7 +71,7 @@ export function OverviewDashboard() {
         <MetricCard
           label="Casos"
           value={formatNumber(overview.summary.totalCases)}
-          detail="Fontes SINAN"
+          detail={`Soma de ${overview.summary.casesSourceCount} doenças`}
           icon={Activity}
           tone="green"
         />
@@ -106,6 +107,7 @@ export function OverviewDashboard() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
         <ChartPanel
           title="Evolucao anual"
+          note={`Soma dos casos das ${overview.summary.casesSourceCount} doenças. Veja cada doença na sua página.`}
           type="line"
           data={overview.charts.yearlyEvolution}
           height={340}
@@ -147,6 +149,13 @@ export function OverviewDashboard() {
                   <div className="font-medium text-slate-950">{source.name}</div>
                   <div className="mt-1 text-xs text-slate-500">{source.system}</div>
                 </div>
+                <div className="text-sm text-slate-700">
+                  {formatNumber(casesBySlug.get(source.slug)?.totalCases)} casos ·{" "}
+                  {formatYearRange(
+                    casesBySlug.get(source.slug)?.firstYear ?? null,
+                    casesBySlug.get(source.slug)?.lastYear ?? null
+                  )}
+                </div>
                 <StatusPill status={source.municipalityFilterStatus} />
                 <div className="text-sm">
                   {pageHref ? (
@@ -170,6 +179,8 @@ export function OverviewDashboard() {
               <tr>
                 <th className="px-4 py-3 font-semibold">Fonte</th>
                 <th className="px-4 py-3 font-semibold">Sistema</th>
+                <th className="px-4 py-3 font-semibold">Casos</th>
+                <th className="px-4 py-3 font-semibold">Período</th>
                 <th className="px-4 py-3 font-semibold">Status municipal</th>
                 <th className="px-4 py-3 font-semibold">Pagina</th>
               </tr>
@@ -183,6 +194,15 @@ export function OverviewDashboard() {
                   <tr key={source.slug} className="hover:bg-pet-light/10">
                     <td className="px-4 py-3 font-medium text-slate-950">{source.name}</td>
                     <td className="px-4 py-3 text-slate-700">{source.system}</td>
+                    <td className="px-4 py-3 text-slate-900">
+                      {formatNumber(casesBySlug.get(source.slug)?.totalCases)}
+                    </td>
+                    <td className="px-4 py-3 text-slate-700">
+                      {formatYearRange(
+                        casesBySlug.get(source.slug)?.firstYear ?? null,
+                        casesBySlug.get(source.slug)?.lastYear ?? null
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <StatusPill status={source.municipalityFilterStatus} />
                     </td>

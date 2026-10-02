@@ -6,12 +6,12 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 | Tema | Alta | Média | Baixa | Total |
 |---|---|---|---|---|
-| Dados exibidos (D) | 1 | 2 | 1 | 4 |
+| Dados exibidos (D) | 1 | 1 | 1 | 3 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
 | Segurança (S) | 2 | 4 | 4 | 10 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **3** | **13** | **14** | **30** |
+| **Total** | **3** | **12** | **14** | **29** |
 
 ---
 
@@ -22,11 +22,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 - **Causa:** `periodFiles: numberedFiles("dengbr", 7, 13)` em `backend/src/modules/datasus/sinan-tabnet.collector.ts`. Os dados de 2014+ ficam em outra tabela TABNET, nunca configurada.
 - **Evidência:** `GET /api/sources/dengue_sinan/summary` → `lastAvailableYear: 2013`.
 - **Correção:** localizar no TABNET o `.def` de dengue 2014+, validar e configurar (provavelmente como fonte nova que também compõe `dengue_sinan`/arboviroses).
-
-### D4. "Total de casos" da página inicial não tem significado. **Média**
-- **Sintoma:** 6.476 = soma de doenças diferentes, métricas diferentes (confirmados + prováveis + frequência) e **187 casos de zika** (fonte interna, não exibida).
-- **Causa:** `getDashboardOverview` e `baseSourceSlugs` em `public-data.service.ts` incluem fontes `internal`.
-- **Correção:** excluir fontes internas e trocar o indicador por algo com sentido (ex.: total por doença, ou remover).
 
 ### D5. Anos de coleta fixos no código. **Média**
 - **Sintoma:** ano novo publicado no DATASUS não aparece até alguém editar `periodFiles`.

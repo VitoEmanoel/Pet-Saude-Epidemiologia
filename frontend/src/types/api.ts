@@ -48,7 +48,17 @@ export type DashboardOverviewResponse = {
     sourcesWithoutMunicipalData: number;
     sourcesPendingValidation: number;
     dataStatus: string;
+    // Quantas doenças entram na soma de totalCases (fontes primárias públicas)
+    casesSourceCount: number;
   };
+  casesBySource: Array<{
+    slug: string;
+    name: string;
+    kind: "primary" | "derived" | "internal";
+    totalCases: number;
+    firstYear: number | null;
+    lastYear: number | null;
+  }>;
   charts: {
     yearlyEvolution: ChartPoint[];
   };
