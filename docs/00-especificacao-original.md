@@ -1,3 +1,5 @@
+> **Especificação original do projeto.** Registro dos requisitos definidos no início. O escopo implementado é menor (6 doenças em vez de 13 fontes) e alguns detalhes mudaram: o sistema como funciona hoje está descrito nos documentos 01 a 12 ([índice](README.md)).
+
 # Projeto: Painel Epidemiológico de Parnaíba - PI
 
 ## 1. Objetivo do sistema

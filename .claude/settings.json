@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(**/node_modules/**)",
+      "Read(**/.next/**)",
+      "Read(**/dist/**)",
+      "Read(**/coverage/**)",
+      "Read(**/.runtime/**)",
+      "Read(**/*.tsbuildinfo)",
+      "Read(**/next-env.d.ts)",
+      "Read(./package-lock.json)",
+      "Read(./backend/storage/raw-imports/**)",
+      "Read(./docs/evidencias/**/*.html)",
+      "Read(./docs/diagramas/**)",
+      "Read(**/*.log)"
+    ]
+  }
+}

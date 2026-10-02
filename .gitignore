@@ -8,3 +8,16 @@ coverage/
 .DS_Store
 *.log
 backend/storage/raw-imports/
+
+# Anotações internas (não versionar)
+memoria.md
+
+# Configuração local do Claude Code
+.claude/settings.local.json
+
+# Artefatos de testes de QA
+tests/qa/node_modules/
+tests/qa/shots*/
+tests/qa/*.json
+tests/qa/*.csv
+tests/qa/*.dump

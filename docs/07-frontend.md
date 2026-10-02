@@ -1,0 +1,40 @@
+# 7. Frontend (site)
+
+Next.js 15 (App Router) + React 19 + Tailwind CSS. Todas as páginas buscam dados **no navegador** (componentes `"use client"`) chamando a API de [`lib/api.ts`](../frontend/src/lib/api.ts).
+
+## 7.1 Páginas
+
+| URL | Arquivo | Componente principal |
+|---|---|---|
+| `/` | `app/page.tsx` | `OverviewDashboard`: cartões gerais, evolução anual, mapa, catálogo de fontes |
+| `/tuberculose` | `app/tuberculose/page.tsx` | `DiseaseDashboard source="tuberculose_sinan"` |
+| `/hanseniase` | `app/hanseniase/page.tsx` | `DiseaseDashboard source="hanseniase_sinan"` |
+| `/sifilis` | `app/sifilis/page.tsx` | `DiseaseDashboard source="sifilis_congenita_sinan"` |
+| `/dengue` | `app/dengue/page.tsx` | `DiseaseDashboard source="dengue_sinan"` |
+| `/arboviroses` | `app/arboviroses/page.tsx` | `DiseaseDashboard source="arboviroses_sinan"` |
+| `/sifilis-gestacional` | `app/sifilis-gestacional/page.tsx` | `DiseaseDashboard source="sifilis_gestacional_sinan"` |
+| `/admin` | `app/admin/page.tsx` | `AdminDashboard` dentro de `AdminShell` |
+
+Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda a lógica está em **`DiseaseDashboard`**, exportado por [`components/dashboard/TuberculosisDashboard.tsx`](../frontend/src/components/dashboard/TuberculosisDashboard.tsx). O nome do arquivo é histórico: o componente serve a todas as doenças.
+
+## 7.2 Componentes
+
+| Componente | Função |
+|---|---|
+| `layout/AppShell.tsx` | Cabeçalho, **menu lateral** (lista `navItems`) e menu mobile do site público |
+| `layout/AdminShell.tsx` | Layout da área administrativa |
+| `dashboard/OverviewDashboard.tsx` | Página inicial |
+| `dashboard/TuberculosisDashboard.tsx` | `DiseaseDashboard`: filtros, cartões, 4 gráficos, mapa e tabela paginada |
+| `dashboard/AdminDashboard.tsx` | Tudo do admin: login, fontes, sincronização, exportação, histórico, auditoria, pré-visualização |
+| `dashboard/ChartPanel.tsx` / `EChart.tsx` | Gráficos (linha/barra) com ECharts |
+| `maps/ParnaibaMap.tsx` | Mapa Leaflet centrado em Parnaíba (`[-2.905, -41.776]`), carregado só no navegador |
+| `ui/MetricCard.tsx`, `StatusPill.tsx`, `ThemeToggle.tsx` | Cartão de indicador, selo de status, alternância claro/escuro |
+
+## 7.3 Identidade visual e tema
+
+- Cores PET-Saúde definidas como `pet-*` em [`tailwind.config.ts`](../frontend/tailwind.config.ts) e em [`globals.css`](../frontend/src/app/globals.css).
+- Tema claro/escuro: script em `app/layout.tsx` lê `localStorage["painel-theme"]` ou a preferência do sistema e aplica a classe `dark` em `<html>`.
+
+## 7.4 Variável importante
+
+`NEXT_PUBLIC_API_URL` é **embutida no build**. Se mudar o endereço da API, rode `npm run start` de novo (ele refaz o build do frontend).
