@@ -53,9 +53,10 @@ Toda a configuração fica no objeto `collectorConfigs` em [`sinan-tabnet.collec
 | sifilis_congenita_sinan | `sifilisbr` | `sifcbr07..24` | Ano Diagnóstico | Casos confirmados | `Faixa_Etária` | 827 |
 | dengue_sinan | `denguebr` + `denguebbr` (2 segmentos) | `dengbr07..13` (2007–2013) + `dengbr14..26` (2014–2026) | Ano 1º Sintoma(s) | Casos prováveis | `Faixa_Etária` | 827 |
 | sifilis_gestacional_sinan | `sifilisgestantepi` | `sifgpi07..24` | Ano de Diagnóstico | Casos confirmados | `Faixa_Etária` | **152** |
+| chikungunya_sinan | `chikunbr` (2 segmentos) | `chikbr14..15` (sem filtro: não há classificação) + `chikbr16..26` | Ano 1º Sintoma(s) | Todos os casos **+ filtro Classificação ≠ Descartado** a partir de 2016 (= casos prováveis) | `Faixa_Etária` | 827 |
 | zika_sinan | `zikabr` | `zikabr15..26` | Ano 1º Sintoma(s) | Todos os casos **+ filtro Classificação ≠ Descartado** (= casos prováveis, D7) | `Faixa_Etária` | 827 |
 
-**Casos prováveis em todas as arboviroses.** Para dengue o TABNET já oferece o incremento "Casos prováveis". Para zika, o único incremento é "Todos os casos" (inclui descartados), então o filtro de classificação tira os descartados. Regra do DATASUS: casos prováveis = todas as notificações exceto as descartadas.
+**Casos prováveis em todas as arboviroses.** Para dengue o TABNET já oferece o incremento "Casos prováveis". Para zika e chikungunya, o único incremento é "Todos os casos" (inclui descartados), então o filtro de classificação tira os descartados. Na chikungunya, 2014–2015 não têm classificação e entram sem filtro (nenhum caso foi descartado). Regra do DATASUS: casos prováveis = todas as notificações exceto as descartadas.
 
 **Registros que somem.** Ao fim de uma coleta completa, o coletor apaga os registros da fonte que a coleta não renovou (ex.: um ano que ficou sem casos depois de uma revisão do DATASUS). Se a coleta falha no meio, nada é apagado.
 

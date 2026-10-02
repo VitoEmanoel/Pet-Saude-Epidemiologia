@@ -39,6 +39,7 @@ export const PUBLIC_SOURCES = [
   "sifilis_congenita_sinan",
   "dengue_sinan",
   "zika_sinan",
+  "chikungunya_sinan",
   "arboviroses_sinan",
   "sifilis_gestacional_sinan"
 ];

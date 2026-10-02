@@ -16,6 +16,13 @@ Cada pasta guarda a prova de que uma fonte foi validada no DATASUS/TABNET: formu
 
 Alguns detalhes desses registros mudaram depois (a exportação CSV foi para o admin, e o acesso por `Bearer` virou login com sessão). O comportamento atual está nos documentos numerados.
 
+## `chikungunya_sinan/` (chikungunya, 02/10/2026)
+
+| Arquivo | Conteúdo |
+|---|---|
+| [validacao.md](chikungunya_sinan/validacao.md) | A2: parâmetros, classificação, regra de 2015 (sem classificação) e conferência (1.714 casos prováveis) |
+| `formulario_tabnet_chikungunya_2026-10-02.html` | Formulário TABNET salvo |
+
 ## `zika_sinan/` (zika como casos prováveis, 02/10/2026)
 
 | Arquivo | Conteúdo |

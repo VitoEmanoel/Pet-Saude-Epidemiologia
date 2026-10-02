@@ -34,6 +34,8 @@ type TabnetSegment = {
 // 3 Descartado, 4 Inconclusivo. Casos prováveis = tudo menos descartado (D7).
 const CLASSIFICATION_FILTER = "SClassifica%E7%E3o";
 const ZIKA_PROBABLE_CASES = ["1", "2", "4"].map((value) => `${CLASSIFICATION_FILTER}=${value}`);
+// Chikungunya (chikunbr.def): 1 Ign/Branco, 2 Descartado, 3 Chikungunya.
+const CHIKUNGUNYA_PROBABLE_CASES = ["1", "3"].map((value) => `${CLASSIFICATION_FILTER}=${value}`);
 
 type SinanTabnetCollectorConfig = {
   sourceSlug: string;
@@ -137,6 +139,31 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     ageGroupColumnEncoded: "Faixa_Et%E1ria",
     ageGroupColumnLabel: "Faixa Etaria",
     municipalityResidenceOptionValue: "152"
+  },
+  chikungunya_sinan: {
+    sourceSlug: "chikungunya_sinan",
+    diseaseOrCondition: "Chikungunya",
+    metric: "casos_provaveis",
+    segments: [
+      // 2014–2015 não têm a classificação preenchida: com o filtro, esses anos sumiriam.
+      // Como nenhum caso foi descartado, entram inteiros como prováveis (A2).
+      {
+        tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/chikunbr.def",
+        periodFiles: numberedFiles("chikbr", 14, 15)
+      },
+      {
+        tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/chikunbr.def",
+        periodFiles: numberedFiles("chikbr", 16, 26),
+        extraParams: CHIKUNGUNYA_PROBABLE_CASES
+      }
+    ],
+    lineEncoded: "Ano_1%BA_Sintoma(s)",
+    lineLabel: "Ano_1o_Sintoma(s)",
+    incrementEncoded: "Todos_os_casos",
+    incrementLabel: "Todos_os_casos",
+    sourceTablePrefix: "tabnet_chikungunya",
+    ageGroupColumnEncoded: "Faixa_Et%E1ria",
+    ageGroupColumnLabel: "Faixa Etaria"
   },
   zika_sinan: {
     sourceSlug: "zika_sinan",

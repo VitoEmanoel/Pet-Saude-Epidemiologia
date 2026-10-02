@@ -42,6 +42,7 @@ A especificação original completa (com as 13 fontes previstas inicialmente) es
 | Sífilis congênita | `sifilis_congenita_sinan` | primária | `sinannet/cnv/sifilisbr.def` |
 | Dengue | `dengue_sinan` | primária | `sinannet/cnv/denguebr.def` (2007–2013) + `sinannet/cnv/denguebbr.def` (2014 em diante) |
 | Zika | `zika_sinan` | primária (casos prováveis: notificações exceto descartadas) | `sinannet/cnv/zikabr.def` |
+| Chikungunya | `chikungunya_sinan` | primária (casos prováveis; 2015 sem classificação entra inteiro) | `sinannet/cnv/chikunbr.def` |
 | Sífilis gestacional | `sifilis_gestacional_sinan` | primária | `sinannet/cnv/sifilisgestantepi.def` |
 | Arboviroses | `arboviroses_sinan` | **derivada** (soma dengue + zika) | — |
 

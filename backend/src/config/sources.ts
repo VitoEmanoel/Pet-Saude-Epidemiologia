@@ -73,6 +73,17 @@ export const allowedSources: readonly AllowedSource[] = [
     kind: "primary"
   },
   {
+    slug: "chikungunya_sinan",
+    name: "Casos de Chikungunya",
+    system: "SINAN",
+    category: ALLOWED_DATASUS_CATEGORY,
+    municipalityFilterStatus: "available",
+    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/chikunbr.def",
+    active: true,
+    syncEnabled: true,
+    kind: "primary"
+  },
+  {
     slug: "arboviroses_sinan",
     name: "Arboviroses em geral",
     system: "SINAN",

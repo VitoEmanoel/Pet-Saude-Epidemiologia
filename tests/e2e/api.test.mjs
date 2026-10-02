@@ -31,7 +31,7 @@ describe("Funcional: catálogo e saúde", () => {
     assert.equal(r.json.city.ibgeCode, "2207702");
   });
 
-  test("GET /api/sources lista as 7 fontes públicas (zika incluída desde o A1)", async () => {
+  test("GET /api/sources lista as 8 fontes públicas (zika desde o A1, chikungunya desde o A2)", async () => {
     const slugs = (await api("/api/sources")).json.sources.map((s) => s.slug).sort();
     assert.deepEqual(slugs, [...PUBLIC_SOURCES].sort());
   });
@@ -309,6 +309,12 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
     const dengue = (await api("/api/sources/dengue_sinan/summary")).json.summary.totalCases;
     assert.equal(arbo - dengue, 33, "zika deveria somar 33 casos prováveis (187 com descartados)");
     assert.equal((await api("/api/sources/zika_sinan/summary")).json.summary.totalCases, 33);
+  });
+
+  test("A2: chikungunya = 1.714 casos prováveis, 2017 = 841 (validado no TABNET em 02/10/2026)", async () => {
+    assert.equal((await api("/api/sources/chikungunya_sinan/summary")).json.summary.totalCases, 1714);
+    const series = (await api("/api/charts/yearly-evolution?source=chikungunya_sinan&year=2017")).json.series;
+    assert.equal(series[0].value, 841);
   });
 
   test("Tuberculose 2024 = 86 casos, também somando a tabela (D3)", async () => {
