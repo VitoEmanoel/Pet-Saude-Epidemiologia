@@ -118,3 +118,39 @@ Como repetir: `npm run test:security` (suíte, segundos) e `npm run test:securit
 - **Senha com espaço:** o frontend remove espaços do começo e do fim da senha digitada, então não use senhas que comecem ou terminem com espaço.
 
 As correções estão no [plano](12-plano-de-acao.md), Fase 2B. **Todos os 8 achados foram corrigidos em 02/10/2026** (§14.5), e os testes deles em `tests/security/owasp.test.mjs` deixaram de ser `todo` e passaram a ser obrigatórios.
+
+## 14.5 Depois das correções (Fase 2B, 02/10/2026)
+
+Os 8 achados foram corrigidos, um por branch, e as ferramentas rodaram de novo (`npm run test:security:scan`):
+
+| Código | O que mudou |
+|---|---|
+| S13 | Imagens em `node:24-alpine` com `apk upgrade`; **sem npm/yarn/corepack** nas imagens finais (migrations, seed e sincronização chamados com `node` direto) |
+| S11 | Sessões do admin guardadas no banco (`admin_sessions`); o logout revoga a sessão |
+| S17 | Limite de 600 requisições/minuto por IP real em `/api` (`RATE_LIMIT_PER_MINUTE`); IPs privados isentos |
+| S15 | Em servidor, o `start` recusa senha padrão do banco, `ADMIN_PASSWORD` < 12 e `ADMIN_SESSION_SECRET` < 32 caracteres; o backend avisa no log |
+| S12 | Zika fora de todas as rotas públicas, inclusive da listagem sem `source` (que também a trazia) |
+| S14 | Filtros malformados, repetidos ou em formato de objeto: 400 |
+| S16 | Comparação de credenciais por hash SHA-256 em tempo constante, também no token Bearer |
+| S18 | `Cross-Origin-Opener-Policy` e `Cross-Origin-Resource-Policy` no site; `HEALTHCHECK` no backend e no frontend |
+
+| Ferramenta | Antes | Depois |
+|---|---|---|
+| Suíte `test:security` | 36 ok + 6 `todo` | **47 ok, 0 `todo`** (48 com `QA_TABNET=1`) |
+| Trivy, imagem do backend | 1 crítica, 21 altas | **0** médias, altas ou críticas |
+| Trivy, imagem do frontend | 1 crítica, 25 altas | **0** médias, altas ou críticas |
+| Trivy, `postgres:16-alpine` | 1 crítica, 21 altas no `gosu` | Igual (imagem oficial já atualizada). **Risco aceito:** o `gosu` só troca de usuário ao iniciar o container e não usa rede |
+| ZAP (API e site) | 0 falhas | 0 falhas; COOP/CORP resolvidos |
+| Nuclei | Só informativos | Só informativos; COOP/CORP resolvidos |
+| sqlmap | Nada injetável | Nada injetável |
+| Semgrep | 7 falsos positivos | Os mesmos 7 falsos positivos |
+
+**Avisos que continuam, de propósito:**
+
+| Aviso | Por que fica |
+|---|---|
+| CSP com `unsafe-inline` | O Next.js gera scripts inline nas páginas estáticas; a alternativa (*nonce*) exigiria renderizar tudo no servidor ([07 §7.5](07-frontend.md#75-cabeçalhos-de-segurança)) |
+| `Cross-Origin-Embedder-Policy` ausente | Ligá-lo bloquearia as imagens do mapa (OpenStreetMap não envia CORP) |
+| Site só em HTTP | Ambiente local; em produção, HTTPS pelo [checklist](02-instalacao-e-execucao.md#28-checklist-de-publicação) |
+| `localStorage` | Guarda só a preferência de tema claro/escuro |
+| IP privado na auditoria | É o IP de quem acessa o admin, visível só para o admin |
