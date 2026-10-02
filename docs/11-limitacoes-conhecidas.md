@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 1 | 6 | 7 |
+| Segurança (S) | 0 | 0 | 6 | 6 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **9** | **16** | **25** |
+| **Total** | **0** | **8** | **16** | **24** |
 
 ---
 
@@ -52,10 +52,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ## S. Segurança
 
 Achados S11–S18 vêm da campanha de testes de segurança de 02/10/2026 ([14](14-testes-de-seguranca.md)).
-
-### S15. Senha padrão do banco aceita em servidor. **Média (produção)**
-- `POSTGRES_PASSWORD=postgres` funciona em qualquer perfil. Hoje o banco só escuta em `127.0.0.1`, mas basta mudar `SERVICE_BIND_HOST` para expô-lo com a senha padrão.
-- **Correção:** `start.sh` recusar senha padrão quando o perfil for `servidor`.
 
 ### S12. Fonte interna (zika) visível em `/api/records`. **Baixa**
 - `/api/sources/zika_sinan`, `/summary` e os gráficos devolvem 404, mas `/api/records?source=zika_sinan` devolve os registros: `validateRecordsQuery` usa `getSourceBySlug` (todas) em vez de `getPublicSourceBySlug`.

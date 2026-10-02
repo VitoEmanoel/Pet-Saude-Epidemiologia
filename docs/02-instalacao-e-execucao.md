@@ -270,8 +270,17 @@ Antes de abrir o sistema para a internet (detalhes no [plano, Fase 6](12-plano-d
 - [ ] `.env` de produção com os endereços `https://` em `FRONTEND_URL`, `BACKEND_URL`, `NEXT_PUBLIC_API_URL` e `CORS_ORIGIN` (frontend construído com eles, ver §2.7)
 - [ ] `ADMIN_COOKIE_SECURE=true`
 - [ ] `TRUST_PROXY` conforme o proxy (ex.: `1`); depois de um login, conferir na auditoria do admin que aparece o **seu** IP, não o do proxy. **Sem isso o limite de requisições (`RATE_LIMIT_PER_MINUTE`) não age**, porque o proxy tem IP privado
-- [ ] `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` fortes e diferentes dos de desenvolvimento (ex.: `openssl rand -base64 32`)
-- [ ] `POSTGRES_PASSWORD` diferente de `postgres`
+- [ ] `ADMIN_PASSWORD` (12+ caracteres) e `ADMIN_SESSION_SECRET` (32+) fortes e diferentes dos de desenvolvimento (ex.: `openssl rand -base64 32`)
+- [ ] `POSTGRES_PASSWORD` forte (12+ caracteres, diferente de `postgres`)
+
+O `npm run start` **recusa subir** em servidor (URLs que não são `localhost`) com essas três senhas fracas, e o backend escreve `AVISO DE SEGURANCA` no log quando sobe sem o `start`.
+
+**Trocar a senha de um banco que já existe** (sem perder dados; a senha do `.env` só vale na criação do volume):
+
+```bash
+docker compose --env-file .env exec postgres psql -U postgres -c "ALTER USER postgres PASSWORD 'NOVA_SENHA'"
+# depois troque POSTGRES_PASSWORD no .env para a mesma NOVA_SENHA e rode npm run start
+```
 - [ ] Log do backend sem `AVISO DE SEGURANCA` (`docker compose --env-file .env logs backend`)
 - [ ] `npm audit --omit=dev` sem vulnerabilidades críticas ou altas
 - [ ] Backup automático do banco configurado ([04 §4.4](04-banco-de-dados.md#44-migrations-seed-e-backup))

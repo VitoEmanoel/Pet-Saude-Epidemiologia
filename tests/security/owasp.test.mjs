@@ -386,8 +386,12 @@ describe("A05 Configuração e A04 lógica de negócio", () => {
     }
   });
 
-  test("S15 [branca] start.sh recusa senha padrão do banco em servidor", { todo: "S15" }, () => {
-    assert.match(read("scripts/start.sh"), /POSTGRES_PASSWORD/);
+  test("S15 [branca] start.sh recusa senha padrão do banco e segredos curtos em servidor", () => {
+    const start = read("scripts/start.sh");
+    assert.match(start, /POSTGRES_PASSWORD:-postgres\}" == "postgres"/);
+    assert.match(start, /#ADMIN_PASSWORD\} -lt 12/);
+    assert.match(start, /#ADMIN_SESSION_SECRET\} -lt 32/);
+    assert.match(read("backend/src/main.ts"), /getWeakConfigWarnings\(\)/);
   });
 });
 

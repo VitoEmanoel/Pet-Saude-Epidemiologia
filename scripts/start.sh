@@ -207,6 +207,21 @@ if [ "$APP_BIND_HOST" = "127.0.0.1" ] && [ "$DEPLOYMENT_TARGET" = "servidor" ]; 
   exit 1
 fi
 
+if [ "$DEPLOYMENT_TARGET" = "servidor" ]; then
+  weak_config=()
+  [[ "${POSTGRES_PASSWORD:-postgres}" == "postgres" || ${#POSTGRES_PASSWORD} -lt 12 ]] \
+    && weak_config+=("POSTGRES_PASSWORD (senha padrao ou com menos de 12 caracteres)")
+  [ ${#ADMIN_PASSWORD} -lt 12 ] && weak_config+=("ADMIN_PASSWORD (menos de 12 caracteres)")
+  [ ${#ADMIN_SESSION_SECRET} -lt 32 ] && weak_config+=("ADMIN_SESSION_SECRET (menos de 32 caracteres)")
+
+  if [ ${#weak_config[@]} -gt 0 ]; then
+    echo "Configuracao fraca para servidor no .env:"
+    printf '  - %s\n' "${weak_config[@]}"
+    echo "Gere valores fortes (ex.: openssl rand -base64 32). Trocar a senha do banco ja criado: ver docs/02 secao 2.8."
+    exit 1
+  fi
+fi
+
 if [[ "$FRONTEND_URL" == https://* ]] && [ "${ADMIN_COOKIE_SECURE:-false}" != "true" ]; then
   echo "FRONTEND_URL usa HTTPS, mas ADMIN_COOKIE_SECURE nao e true."
   echo "Defina ADMIN_COOKIE_SECURE=true no .env: sem isso o cookie do admin tambem trafega sem criptografia."

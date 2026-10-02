@@ -290,6 +290,43 @@ export function getAdminCookieSecurityWarning() {
   return null;
 }
 
+/**
+ * Avisos de configuração fraca quando o sistema parece publicado (origem que não é localhost),
+ * para quem sobe sem o start.sh, que já recusa esses casos (S15).
+ */
+export function getWeakConfigWarnings() {
+  const isPublished = getAllowedAdminOrigins().some(
+    (origin) => !/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(origin)
+  );
+
+  if (!isPublished) {
+    return [];
+  }
+
+  const warnings: string[] = [];
+  const databasePassword = (() => {
+    try {
+      return decodeURIComponent(new URL(process.env.DATABASE_URL ?? "").password);
+    } catch {
+      return "";
+    }
+  })();
+
+  if (databasePassword === "postgres" || databasePassword.length < 12) {
+    warnings.push("senha do banco padrao ou com menos de 12 caracteres (POSTGRES_PASSWORD).");
+  }
+
+  if ((process.env.ADMIN_PASSWORD ?? "").length < 12) {
+    warnings.push("ADMIN_PASSWORD com menos de 12 caracteres.");
+  }
+
+  if ((process.env.ADMIN_SESSION_SECRET ?? "").length < 32) {
+    warnings.push("ADMIN_SESSION_SECRET com menos de 32 caracteres.");
+  }
+
+  return warnings;
+}
+
 function isSecureAdminCookieEnabled() {
   return process.env.ADMIN_COOKIE_SECURE === "true";
 }

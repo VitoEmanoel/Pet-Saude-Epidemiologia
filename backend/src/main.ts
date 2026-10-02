@@ -1,6 +1,6 @@
 import "./config/env";
 import { prisma } from "./database/prisma";
-import { getAdminCookieSecurityWarning } from "./middleware/admin-auth";
+import { getAdminCookieSecurityWarning, getWeakConfigWarnings } from "./middleware/admin-auth";
 import { startSyncScheduler } from "./modules/sync/sync-scheduler";
 import { createServer } from "./server";
 
@@ -12,10 +12,10 @@ const syncScheduler = startSyncScheduler();
 const server = app.listen(port, host, () => {
   console.log(`Backend do Painel Epidemiologico de Parnaiba rodando em http://${host}:${port}`);
 
-  const cookieWarning = getAdminCookieSecurityWarning();
+  const warnings = [getAdminCookieSecurityWarning(), ...getWeakConfigWarnings()];
 
-  if (cookieWarning) {
-    console.warn(`AVISO DE SEGURANCA: ${cookieWarning}`);
+  for (const warning of warnings.filter(Boolean)) {
+    console.warn(`AVISO DE SEGURANCA: ${warning}`);
   }
 });
 

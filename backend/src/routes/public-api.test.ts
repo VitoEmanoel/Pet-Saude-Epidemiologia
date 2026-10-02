@@ -4,7 +4,11 @@ import { after, before, test } from "node:test";
 import { prisma } from "../database/prisma";
 import { parseTrustProxy } from "../config/proxy";
 import { isPrivateAddress } from "../config/rate-limit";
-import { getAdminCookieSecurityWarning, resetAdminSecurityState } from "../middleware/admin-auth";
+import {
+  getAdminCookieSecurityWarning,
+  getWeakConfigWarnings,
+  resetAdminSecurityState
+} from "../middleware/admin-auth";
 import { createServer } from "../server";
 
 let server: Server;
@@ -465,6 +469,36 @@ test("S17: IP publico acima do limite recebe 429; outro IP segue normal", async 
       delete process.env.RATE_LIMIT_PER_MINUTE;
     } else {
       process.env.RATE_LIMIT_PER_MINUTE = previousLimit;
+    }
+  }
+});
+
+test("S15: avisa configuracao fraca so quando o sistema parece publicado", () => {
+  const keys = ["CORS_ORIGIN", "DATABASE_URL", "ADMIN_PASSWORD", "ADMIN_SESSION_SECRET"] as const;
+  const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+
+  try {
+    process.env.DATABASE_URL = "postgresql://postgres:postgres@postgres:5432/pet_saude";
+    process.env.ADMIN_PASSWORD = "curta";
+    process.env.ADMIN_SESSION_SECRET = "curto";
+
+    process.env.CORS_ORIGIN = "http://localhost:3000";
+    assert.deepEqual(getWeakConfigWarnings(), []);
+
+    process.env.CORS_ORIGIN = "https://painel.exemplo.gov.br";
+    assert.equal(getWeakConfigWarnings().length, 3);
+
+    process.env.DATABASE_URL = "postgresql://postgres:Senha-Forte-Do-Banco-2026@postgres:5432/pet_saude";
+    process.env.ADMIN_PASSWORD = "Senha-Forte-Admin-2026";
+    process.env.ADMIN_SESSION_SECRET = "x".repeat(48);
+    assert.deepEqual(getWeakConfigWarnings(), []);
+  } finally {
+    for (const key of keys) {
+      if (previous[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = previous[key];
+      }
     }
   }
 });
