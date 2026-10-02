@@ -39,14 +39,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
-| 2C | Arboviroses e indicadores de saúde | 10 | 5 |
+| 2C | Arboviroses e indicadores de saúde | 10 | 6 |
 | 3 | Operação confiável | 4 | 0 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 1 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **29** |
+| | **Total** | **64** | **30** |
 
 ---
 
@@ -184,9 +184,10 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
   - [x] A cada coleta, lê os arquivos de período do formulário TABNET e acrescenta ao último segmento os mais novos que o configurado; se o formulário falhar, segue a lista configurada e registra aviso na mensagem da fonte
   - [x] Testes de unidade com o formulário real salvo; conferido no TABNET real (dengue configurada até 2025 descobre `dengbr26.dbf`)
   - [x] **Ganho imediato:** entraram 2025 de sífilis congênita (33) e sífilis gestacional (36), já publicados e que o painel não mostrava
-- [ ] **O5** Falhas de coleta visíveis (subiu da Fase 3)
-  - [ ] Retry com espera para falhas temporárias do TABNET
-  - [ ] Aviso no admin (e/ou e-mail) quando uma fonte falhar N vezes seguidas
+- [x] **O5** Falhas de coleta visíveis (02/10/2026, branch `feat/o5-falhas-visiveis`)
+  - [x] Até 3 tentativas com espera (3 s, 10 s) para rede, tempo esgotado e HTTP 5xx; layout diferente não é repetido. Resiliência: novo cenário "falha temporária isolada é recuperada" (7/7)
+  - [x] `GET /api/admin/source-health` + alerta no topo do Painel e coluna "Situação" em Fontes (3+ falhas seguidas, nunca sincronizou, desatualizada, aviso da descoberta de anos)
+  - [ ] E-mail de alerta: fica para o 6.6 (precisa de servidor de e-mail)
 
 **Bloco 2: população**
 

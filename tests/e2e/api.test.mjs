@@ -209,7 +209,7 @@ describe("Validação de entrada", () => {
 
 describe("Área administrativa", () => {
   test("Sem sessão: 401 em todas as rotas protegidas", async () => {
-    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs",
+    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs", "/api/admin/source-health",
       "/api/admin/records/export.csv", "/api/admin/dashboard/export.html?source=dengue_sinan"]) {
       assert.equal((await api(path)).status, 401, path);
     }
@@ -250,6 +250,16 @@ describe("Área administrativa", () => {
 
   test("Exportação HTML sem source: 400", async () => {
     assert.equal((await admin("/api/admin/dashboard/export.html")).status, 400);
+  });
+
+  test("O5: situação das fontes lista todas as sincronizáveis com nível e problemas", async () => {
+    const sources = (await admin("/api/admin/source-health")).json.sources;
+    const slugs = sources.map((source) => source.slug).sort();
+    assert.deepEqual(slugs, PRIMARY_SOURCES.slice().sort());
+    for (const source of sources) {
+      assert.ok(["ok", "warning", "error"].includes(source.level), source.slug);
+      assert.ok(Array.isArray(source.problems));
+    }
   });
 
   test("Sincronizar fonte derivada (arboviroses): 501", async () => {

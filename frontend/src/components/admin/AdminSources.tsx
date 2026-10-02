@@ -2,10 +2,11 @@
 
 import { Database, ExternalLink, Globe, Play, RefreshCw } from "lucide-react";
 import { useState } from "react";
-import { getAdminSyncHistory, getSourceSummary, getSources, runAdminSyncAll, runAdminSyncSource } from "@/lib/api";
+import { getAdminSourceHealth, getAdminSyncHistory, getSourceSummary, getSources, runAdminSyncAll, runAdminSyncSource } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
-import type { AdminSyncHistoryResponse, DataSource, SourceSummaryResponse } from "@/types/api";
+import type { AdminSyncHistoryResponse, DataSource, SourceHealth, SourceSummaryResponse } from "@/types/api";
 import { StatusPill } from "../ui/StatusPill";
+import { HealthBadge } from "./SourceHealthAlert";
 import { useAdminSession } from "./AdminSession";
 import {
   ActionButton,
@@ -26,16 +27,18 @@ type SourceRow = {
   source: DataSource;
   summary: SourceSummaryResponse["summary"];
   latestJob: AdminSyncHistoryResponse["syncJobs"][number] | undefined;
+  health: SourceHealth | undefined;
 };
 
 async function loadSources(): Promise<SourceRow[]> {
-  const [sources, history] = await Promise.all([getSources(), getAdminSyncHistory()]);
+  const [sources, history, health] = await Promise.all([getSources(), getAdminSyncHistory(), getAdminSourceHealth()]);
   const summaries = await Promise.all(sources.sources.map((source) => getSourceSummary(source.slug)));
 
   return sources.sources.map((source, index) => ({
     source,
     summary: summaries[index].summary,
-    latestJob: history.syncJobs.find((job) => job.source?.slug === source.slug)
+    latestJob: history.syncJobs.find((job) => job.source?.slug === source.slug),
+    health: health.sources.find((item) => item.slug === source.slug)
   }));
 }
 
@@ -105,12 +108,13 @@ export function AdminSources() {
       <StatusMessages actionState={actionState} />
 
       <div className="divide-y divide-slate-100 md:hidden">
-        {state.data.map(({ source, summary, latestJob }) => (
+        {state.data.map(({ source, summary, latestJob, health }) => (
           <article key={source.slug} className="space-y-3 p-4">
             <div className="flex items-start justify-between gap-3">
               <SourceName source={source} />
               <OfficialLink source={source} />
             </div>
+            {health ? <HealthLine health={health} /> : null}
             <dl className="grid grid-cols-2 gap-3 text-sm">
               <div className="col-span-2">
                 <dt className="mb-1 text-xs uppercase text-slate-500">Filtro municipal</dt>
@@ -151,6 +155,7 @@ export function AdminSources() {
           <thead className="bg-pet-dark text-xs uppercase text-white">
             <tr>
               <th className="px-4 py-3 font-semibold">Fonte</th>
+              <th className="px-4 py-3 font-semibold">Situação</th>
               <th className="px-4 py-3 font-semibold">Filtro municipal</th>
               <th className="px-4 py-3 font-semibold">Registros</th>
               <th className="px-4 py-3 font-semibold">Atualizada em</th>
@@ -160,10 +165,13 @@ export function AdminSources() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {state.data.map(({ source, summary, latestJob }) => (
-              <tr key={source.slug}>
+            {state.data.map(({ source, summary, latestJob, health }) => (
+              <tr key={source.slug} className="align-top">
                 <td className="px-4 py-3">
                   <SourceName source={source} />
+                </td>
+                <td className="max-w-xs px-4 py-3">
+                  {health ? <HealthLine health={health} /> : <span className="text-xs text-slate-500">Derivada</span>}
                 </td>
                 <td className="px-4 py-3">
                   <StatusPill status={source.municipalityFilterStatus} />
@@ -196,6 +204,15 @@ export function AdminSources() {
         Arboviroses é derivada (soma de dengue, zika e chikungunya): sincronize essas fontes para atualizá-la.
       </p>
     </Panel>
+  );
+}
+
+function HealthLine({ health }: { health: SourceHealth }) {
+  return (
+    <div className="space-y-1">
+      <HealthBadge level={health.level} />
+      {health.problems.length > 0 ? <p className="text-xs text-slate-600">{health.problems.join(" ")}</p> : null}
+    </div>
   );
 }
 

@@ -183,6 +183,7 @@ Use quando for **programar**: o backend e o frontend recarregam sozinhos ao salv
 | `SYNC_SCHEDULE_INTERVAL_DAYS` | `30` | Idade máxima da última coleta bem-sucedida antes de recoletar |
 | `SYNC_SCHEDULE_CHECK_INTERVAL_MINUTES` | `1440` | De quanto em quanto tempo o agendador verifica (1440 = 1 dia) |
 | `SYNC_SCHEDULE_STARTUP_DELAY_SECONDS` | `30` | Espera após o backend subir antes da 1ª verificação |
+| `TABNET_RETRY_DELAYS_MS` | `3000,10000` | Esperas (ms) entre as novas tentativas quando o TABNET falha de forma temporária (rede, tempo esgotado, HTTP 5xx). Duas esperas = até 3 tentativas. Raramente precisa mudar |
 | `RUN_INITIAL_SYNC` | `false` | Se `true`, o `npm run start` já sincroniza ao final. Defina **no `.env`**: o `start` recarrega o `.env` e ignora o valor passado no terminal |
 | `VITE_API_URL` | — | Sobra antiga; não é usada |
 

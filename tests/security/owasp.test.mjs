@@ -41,6 +41,7 @@ const ADMIN_GET_ROUTES = [
   "/api/admin/auth/me",
   "/api/admin/audit-logs",
   "/api/admin/sync-history",
+  "/api/admin/source-health",
   "/api/admin/records/export.csv?source=tuberculose_sinan",
   "/api/admin/dashboard/export.html?source=tuberculose_sinan"
 ];

@@ -21,6 +21,7 @@ import {
   startAdminSession
 } from "../middleware/admin-auth";
 import { prisma } from "../database/prisma";
+import { getSourcesHealth } from "../modules/admin/source-health.service";
 import {
   dashboardExportFilename,
   toDashboardHtml
@@ -416,6 +417,16 @@ adminRouter.get("/audit-logs", async (_request, response) => {
   return response.json({
     auditLogs
   });
+});
+
+// Situação de cada fonte: falhas seguidas, último sucesso e avisos (O5).
+adminRouter.get("/source-health", async (_request, response) => {
+  try {
+    return response.json({ sources: await getSourcesHealth() });
+  } catch (error) {
+    console.error(error);
+    return sendError(response, 500, "internal_error", "Erro ao carregar a situacao das fontes.");
+  }
 });
 
 adminRouter.get("/sync-history", async (_request, response) => {

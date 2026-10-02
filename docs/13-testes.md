@@ -70,11 +70,11 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
 | `test:backend` | 27 | 0 | 0 | 0 |
-| `test:e2e` | 97 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
+| `test:e2e` | 98 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 61 | 0 | 0 | 1 |
 | `test:security` | 48 | 0 | 1 (TABNET) | 0 |
-| `test:resilience` | 6/6 | | | |
+| `test:resilience` | 7/7 | | | |
 
 Carga (16 núcleos, fim da Fase 2B, Node 24): `/health` ~12.800 req/s; resumo de fonte ~470 req/s; visão geral ~365 req/s; página inicial ~2.400 req/s. O limite de requisições (S17) não age nesses testes porque eles saem de IP privado; resumo de fonte ~475 req/s; visão geral ~370 req/s (era ~225 antes do D4); página inicial ~2.500 req/s. Os cabeçalhos de segurança do S2 não têm custo mensurável (uma medição logo após o S2 deu `/health` ~6.000, mas era variação da máquina: repetida, voltou a ~8.500). Compare sempre mais de uma rodada antes de concluir regressão; 300 visitas simultâneas sem falha. Teste longo de 110 min a 40 req/s: 0 erros, memória do backend estável (~67 MB).
 

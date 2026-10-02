@@ -4,6 +4,7 @@ import type {
   AdminLoginPayload,
   AdminSyncAllResponse,
   AdminSyncHistoryResponse,
+  SourceHealthResponse,
   AdminSyncResult,
   CategoryPoint,
   ChartPoint,
@@ -130,6 +131,10 @@ export function logoutAdmin() {
 
 export function getAdminSyncHistory() {
   return fetchAdminJson<AdminSyncHistoryResponse>("/api/admin/sync-history");
+}
+
+export function getAdminSourceHealth() {
+  return fetchAdminJson<SourceHealthResponse>("/api/admin/source-health");
 }
 
 export function getAdminAuditLogs() {

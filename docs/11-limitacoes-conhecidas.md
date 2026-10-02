@@ -7,11 +7,11 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 | Tema | Alta | Média | Baixa | Total |
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 0 | 1 | 1 |
-| Implantação e operação (O) | 0 | 3 | 2 | 5 |
+| Implantação e operação (O) | 0 | 3 | 1 | 4 |
 | Segurança (S) | 0 | 0 | 2 | 2 |
 | Interface e usabilidade (U) | 0 | 2 | 4 | 6 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **6** | **12** | **18** |
+| **Total** | **0** | **6** | **11** | **17** |
 
 ---
 
@@ -37,10 +37,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ### O4. Gravação da coleta sem transação. **Média**
 - **Sintoma:** falha no meio deixa registros associados ao job que falhou (os valores continuam corretos, verificado em teste de injeção de falhas).
 - **Correção:** gravar em lote dentro de uma transação por sincronização.
-
-### O5. Falhas de coleta silenciosas. **Baixa**
-- **Sintoma:** fonte que falha é retentada todo dia pelo agendador, sem alerta para ninguém; sem retry com espera para falhas temporárias.
-- **Correção:** retry com backoff + alerta (e-mail/log destacado/aviso no admin).
 
 ### O6. Infraestrutura e código sem uso. **Baixa**
 - `tuberculosis-sinan.collector.ts` (não importado), dependência `zod`, variável `VITE_API_URL`, status `PENDING/PARTIAL_SUCCESS/SKIPPED` e coluna `month` sem uso.

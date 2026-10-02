@@ -87,6 +87,7 @@ Todas respondem com cabeçalhos anti-cache e de segurança. Requisições que **
 | `POST /api/admin/sync/:sourceSlug` | sessão | Sincroniza uma fonte e **espera terminar** (pode levar ~10 s) |
 | `POST /api/admin/sync-all` | sessão | Sincroniza todas as fontes em sequência (~45 s) |
 | `GET /api/admin/sync-history` | sessão | Últimos 50 jobs |
+| `GET /api/admin/source-health` | sessão | Situação de cada fonte sincronizável: `level` (`ok`, `warning`, `error`), falhas seguidas, último sucesso, último erro e `problems` (frases). `error` = nunca sincronizou ou 3+ falhas seguidas; `warning` = alguma falha, mais de intervalo do agendador + 7 dias sem atualizar, ou aviso da descoberta de anos |
 | `GET /api/admin/audit-logs` | sessão | Últimos 100 eventos de auditoria |
 | `GET /api/admin/records/export.csv` | sessão | CSV com os mesmos filtros e a mesma regra de visão de `/api/records` (sem paginação); coluna `aggregation` |
 | `GET /api/admin/dashboard/export.html` | sessão | Relatório HTML autocontido de uma fonte (`source` obrigatório) |

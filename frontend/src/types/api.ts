@@ -198,6 +198,22 @@ export type AdminAuditLog = {
   createdAt: string;
 };
 
+export type SourceHealth = {
+  slug: string;
+  name: string;
+  level: "ok" | "warning" | "error";
+  consecutiveFailures: number;
+  lastSuccessAt: string | null;
+  lastAttemptAt: string | null;
+  lastError: string | null;
+  availabilityMessage: string | null;
+  problems: string[];
+};
+
+export type SourceHealthResponse = {
+  sources: SourceHealth[];
+};
+
 export type AdminAuditLogsResponse = {
   auditLogs: AdminAuditLog[];
 };
