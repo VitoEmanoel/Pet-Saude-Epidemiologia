@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import helmet from "helmet";
 import { ALLOWED_CITY, ALLOWED_DATASUS_CATEGORY } from "./config/city";
 import { adminRouter } from "./routes/admin";
 import { chartsRouter } from "./routes/charts";
@@ -11,6 +12,20 @@ import { sendError } from "./utils/api-response";
 export function createServer() {
   const app = express();
 
+  // A API só devolve JSON, CSV e HTML para download: nada nela precisa carregar recursos.
+  // As rotas do admin reforçam esses cabeçalhos em setAdminSecurityHeaders.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: false,
+        directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"], baseUri: ["'none'"] }
+      },
+      // O frontend roda em outra porta/subdomínio do mesmo site.
+      crossOriginResourcePolicy: { policy: "same-site" },
+      strictTransportSecurity: { maxAge: 31536000, includeSubDomains: false },
+      xFrameOptions: { action: "deny" }
+    })
+  );
   app.use(
     cors({
       origin: process.env.CORS_ORIGIN?.split(",") ?? true,

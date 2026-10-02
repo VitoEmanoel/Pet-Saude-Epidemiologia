@@ -37,4 +37,28 @@ Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda 
 
 ## 7.4 Variável importante
 
-`NEXT_PUBLIC_API_URL` é **embutida no build**. Se mudar o endereço da API, rode `npm run start` de novo (ele refaz o build do frontend).
+`NEXT_PUBLIC_API_URL` é **embutida no build**. Se mudar o endereço da API, rode `npm run start` de novo (ele refaz o build do frontend). Ela também define o `connect-src` da CSP (§7.5): sem rebuild, o navegador bloqueia as chamadas para o endereço novo.
+
+## 7.5 Cabeçalhos de segurança
+
+Definidos em `headers()` no [`next.config.ts`](../frontend/next.config.ts), valem para todas as páginas:
+
+| Cabeçalho | Valor | Para quê |
+|---|---|---|
+| `Content-Security-Policy` | ver abaixo | Limita de onde a página carrega scripts, imagens e dados |
+| `X-Frame-Options` | `DENY` | Impede o site de ser embutido em outro (*clickjacking*) |
+| `X-Content-Type-Options` | `nosniff` | O navegador não "adivinha" o tipo dos arquivos |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Não envia o endereço completo da página para outros sites |
+| `Permissions-Policy` | câmera, microfone e localização desligados | O site não usa |
+| `Strict-Transport-Security` | `max-age=31536000` | Em HTTPS, força o navegador a usar sempre HTTPS (ignorado em HTTP) |
+
+O `X-Powered-By` está desligado (`poweredByHeader: false`).
+
+**CSP.** O que está liberado e por quê:
+
+- `script-src 'self' 'unsafe-inline'`: o Next.js injeta scripts inline para montar as páginas, e o `layout.tsx` tem o script do tema. Trocar por *nonce* exigiria renderizar todas as páginas no servidor a cada acesso. Em `npm run dev` entra também `'unsafe-eval'` (exigido pelo modo de desenvolvimento).
+- `img-src ... https://*.tile.openstreetmap.org`: imagens do mapa.
+- `connect-src 'self' <origem de NEXT_PUBLIC_API_URL>`: chamadas à API. Em desenvolvimento entra `ws:` para a recarga automática.
+- `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`.
+
+**Ao adicionar algo externo** (outro provedor de mapa, fonte do Google, script de análise de acesso), inclua o domínio na diretiva certa do `next.config.ts`. Sintoma de esquecimento: o recurso não aparece e o console do navegador mostra "Content Security Policy" ou "Refused to load". O teste de interface (`npm run test:ui`) falha com "bloqueios da CSP".

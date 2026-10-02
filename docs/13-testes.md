@@ -23,7 +23,7 @@ Credenciais e URLs são lidas do `.env` da raiz. Para apontar para outro ambient
 |---|---|---|
 | `npm run test:backend` | Testes do backend (13) | segundos |
 | `npm run test:e2e` | API: funcional, integração, regressão, validação, admin; segurança: sessão, login, CSRF/CORS, injeção, XSS, exposição, cabeçalhos | ~2 s |
-| `npm run test:ui` | Interface no Chromium: 8 páginas × desktop/celular, gráficos, mapa, acessibilidade (axe), filtros, paginação, menu, tema, fluxo do admin, API fora do ar | ~1 min |
+| `npm run test:ui` | Interface no Chromium: 8 páginas × desktop/celular, gráficos, mapa, bloqueios da CSP, acessibilidade (axe), filtros, paginação, menu, tema, fluxo do admin, API fora do ar | ~1 min |
 | `QA_BROWSER=firefox npm run test:ui` | O mesmo no Firefox | ~1 min |
 | `npm run test:ui:webkit` | O mesmo no WebKit (motor do Safari), emulando iPhone 15. Roda na imagem Docker oficial do Playwright, porque o WebKit não roda direto no Arch Linux | ~2 min |
 | `npm run test:resilience` | Simula falhas do TABNET (rede, HTTP 503, layout alterado, falha no meio) e confere que os dados antigos são mantidos e que a coleta se recupera. Usa o `backend/.env` e a internet | ~15 s |
@@ -53,7 +53,7 @@ Cada problema de [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md) que 
 
 | Suíte | Testes `todo` hoje |
 |---|---|
-| `test:e2e` | S2 (×2), S4, S6, S7, S8 (×2) |
+| `test:e2e` | S4, S6, S7 |
 | `test:ui` | U1, U2 |
 
 Para ver os `todo` e se estão falhando:
@@ -62,17 +62,17 @@ Para ver os `todo` e se estão falhando:
 cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs | grep "# TODO"
 ```
 
-## 13.4 Resultado de referência (02/10/2026, após o D1, fim da Fase 1)
+## 13.4 Resultado de referência (02/10/2026, após o S2)
 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
 | `test:backend` | 13 | 0 | 0 | 0 |
-| `test:e2e` | 79 | 0 | 3 (TABNET ×2, bloqueio) | 7 |
+| `test:e2e` | 86 | 0 | 3 (TABNET ×2, bloqueio) | 3 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 50 | 0 | 0 | 2 |
 | `test:resilience` | 6/6 | | | |
 
-Carga (16 núcleos): `/health` ~8.800 req/s; resumo de fonte ~470 req/s; visão geral ~355 req/s (era ~225 antes do D4); 300 visitas simultâneas sem falha. Teste longo de 110 min a 40 req/s: 0 erros, memória do backend estável (~67 MB).
+Carga (16 núcleos): `/health` ~6.000 req/s (era ~8.800 antes do S2: custo fixo dos cabeçalhos de segurança, só aparece numa rota que não faz nada); resumo de fonte ~420 req/s; visão geral ~325 req/s (era ~225 antes do D4); 300 visitas simultâneas sem falha. Teste longo de 110 min a 40 req/s: 0 erros, memória do backend estável (~67 MB).
 
 ## 13.5 Cuidados
 

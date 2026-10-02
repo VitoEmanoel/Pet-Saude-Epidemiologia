@@ -24,13 +24,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
-| 2 | Segurança mínima para publicar | 7 | 1 |
+| 2 | Segurança mínima para publicar | 7 | 3 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 7 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **9** |
+| | **Total** | **47** | **11** |
 
 ---
 
@@ -103,11 +103,11 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] Atualizar `sharp` (0.35.5), `postcss` (8.5.28, inclusive a cópia interna do `next` via `overrides`), `nanoid` (3.3.19), `express` (4.22.3), `body-parser` (1.20.8), `qs` (6.16.0)
   - [x] `npm audit --omit=dev` e `npm audit` (com dependências de desenvolvimento): **0 vulnerabilidades** (era 7: 1 crítica, 3 altas, 3 moderadas)
   - [x] Pacote `tests/`: 3 moderadas no `autocannon` aceitas (só testes; ver [09 §9.6](09-guia-de-manutencao.md#96-atualizar-dependências))
-- [ ] **S2** Cabeçalhos de segurança
-  - [ ] Next.js: CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, HSTS (via `headers()` em `next.config.ts`)
-  - [ ] Express: `helmet` (ou equivalente) na API pública
-  - [ ] Conferir que mapa (tiles OpenStreetMap) e gráficos continuam funcionando com a CSP
-  - [ ] Teste de segurança dos cabeçalhos passando
+- [x] **S2** Cabeçalhos de segurança (02/10/2026, branch `fix/s2-cabecalhos`)
+  - [x] Next.js: CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, HSTS e `Permissions-Policy` (via `headers()` em `next.config.ts`; ver [07 §7.5](07-frontend.md#75-cabeçalhos-de-segurança))
+  - [x] Express: `helmet` na API (CSP `default-src 'none'`, `X-Frame-Options: DENY`, HSTS sem `includeSubDomains`)
+  - [x] Conferir que mapa (tiles OpenStreetMap) e gráficos continuam funcionando com a CSP: Chromium, Firefox e WebKit, e também em `npm run dev`
+  - [x] Teste de segurança dos cabeçalhos passando (+3 testes novos: diretivas da CSP, cabeçalhos da API, CORS); o teste de interface agora falha se a CSP bloquear qualquer recurso
 - [ ] **S3** Containers sem root
   - [ ] `USER node` nos estágios finais do `Dockerfile`; ajustar permissões de `backend/storage`
   - [ ] `docker compose exec backend id` ≠ `uid=0`
@@ -118,7 +118,7 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [ ] Testes: `X-Forwarded-For` falso não é gravado; senha correta funciona após tentativas de terceiros
 - [ ] **S6** Handler de erro do Express com 4 parâmetros, antes do 404
   - [ ] Teste: JSON inválido → resposta JSON 400
-- [ ] **S8** Remover `X-Powered-By` (Express e Next.js)
+- [x] **S8** Remover `X-Powered-By` (Express e Next.js) (02/10/2026, feito junto com o S2: `helmet` e `poweredByHeader: false`)
 - [ ] **S9** Documentar e validar `ADMIN_COOKIE_SECURE=true` no checklist de publicação (Fase 6)
 
 ---

@@ -33,6 +33,13 @@ after(async () => {
 
 async function openPage(profile, path) {
   const context = await browser.newContext({ ...PROFILES[profile], locale: "pt-BR" });
+  // Registra bloqueios da CSP (S2): um recurso bloqueado indica regra apertada demais.
+  await context.addInitScript(() => {
+    window.__cspViolations = [];
+    document.addEventListener("securitypolicyviolation", (event) =>
+      window.__cspViolations.push(`${event.effectiveDirective} ${event.blockedURI}`)
+    );
+  });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -54,10 +61,12 @@ for (const profile of Object.keys(PROFILES)) {
             canvases: [...document.querySelectorAll("canvas")].filter((c) => c.width > 0).length,
             tiles: document.querySelectorAll(".leaflet-tile-loaded").length,
             apiError: /API indisponivel/i.test(document.body.innerText),
-            lang: document.documentElement.lang
+            lang: document.documentElement.lang,
+            cspViolations: window.__cspViolations
           }));
           await page.screenshot({ path: shotName(profile, path), fullPage: true });
           assert.deepEqual(errors, [], "erros de JavaScript");
+          assert.deepEqual(info.cspViolations, [], "bloqueios da CSP");
           assert.equal(info.overflow, false, "rolagem horizontal");
           assert.equal(info.apiError, false, "página mostra API indisponível");
           assert.equal(info.lang, "pt-BR");

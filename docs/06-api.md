@@ -2,6 +2,8 @@
 
 Base: `http://localhost:3333` (ou `NEXT_PUBLIC_API_URL`). Todas as respostas são JSON, salvo as exportações.
 
+**Cabeçalhos de segurança** (`helmet` em [`server.ts`](../backend/src/server.ts), em todas as rotas): `Content-Security-Policy: default-src 'none'` (a API não serve páginas), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Strict-Transport-Security`, `Cross-Origin-Resource-Policy: same-site` (o frontend e a API precisam estar no mesmo site, ex.: `painel.x.gov.br` e `api.x.gov.br`, ou atrás do mesmo proxy). Sem `X-Powered-By`. As rotas do admin acrescentam os seus ([08](08-area-administrativa.md)).
+
 Erros seguem sempre o formato ([`api-response.ts`](../backend/src/utils/api-response.ts)):
 
 ```json

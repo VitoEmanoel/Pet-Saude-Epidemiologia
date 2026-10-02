@@ -181,11 +181,11 @@ describe("Exposição de informação", () => {
     assert.ok(!/at .*\(\/app\//.test(r.text));
   });
 
-  test("S8: backend não anuncia X-Powered-By", { todo: "S8 — Fase 2" }, async () => {
+  test("S8: backend não anuncia X-Powered-By", async () => {
     assert.equal((await api("/health")).headers.get("x-powered-by"), null);
   });
 
-  test("S8: frontend não anuncia X-Powered-By", { todo: "S8 — Fase 2" }, async () => {
+  test("S8: frontend não anuncia X-Powered-By", async () => {
     assert.equal((await request(WEB + "/")).headers.get("x-powered-by"), null);
   });
 
@@ -204,14 +204,35 @@ describe("Cabeçalhos de segurança", () => {
     assert.ok(headers.get("content-security-policy"));
   });
 
-  test("S2: site público envia CSP, X-Frame-Options, nosniff e Referrer-Policy", { todo: "S2 — Fase 2" }, async () => {
+  test("S2: site público envia CSP, X-Frame-Options, nosniff e Referrer-Policy", async () => {
     const headers = (await request(WEB + "/")).headers;
     for (const name of ["content-security-policy", "x-frame-options", "x-content-type-options", "referrer-policy"]) {
       assert.ok(headers.get(name), `${name} ausente`);
     }
   });
 
-  test("S2: API pública envia X-Content-Type-Options", { todo: "S2 — Fase 2" }, async () => {
+  test("S2: API pública envia X-Content-Type-Options", async () => {
     assert.equal((await api("/api/sources")).headers.get("x-content-type-options"), "nosniff");
+  });
+
+  test("S2: CSP do site impede ser embutido, plugins e envio de dados para fora", async () => {
+    const csp = (await request(WEB + "/")).headers.get("content-security-policy") ?? "";
+    assert.match(csp, /frame-ancestors 'none'/);
+    assert.match(csp, /object-src 'none'/);
+    assert.match(csp, /form-action 'self'/);
+    assert.doesNotMatch(csp, /connect-src[^;]*\*/, "connect-src sem curinga");
+    assert.doesNotMatch(csp, /unsafe-eval/, "unsafe-eval só no modo de desenvolvimento");
+  });
+
+  test("S2: API pública envia CSP restritiva, X-Frame-Options e HSTS", async () => {
+    const headers = (await api("/api/sources")).headers;
+    assert.match(headers.get("content-security-policy") ?? "", /default-src 'none'/);
+    assert.ok(headers.get("x-frame-options"));
+    assert.match(headers.get("strict-transport-security") ?? "", /max-age=\d+/);
+  });
+
+  test("S2: CORS continua liberando o frontend", async () => {
+    const r = await request(API + "/api/sources", { headers: { origin: ORIGIN } });
+    assert.equal(r.headers.get("access-control-allow-origin"), ORIGIN);
   });
 });

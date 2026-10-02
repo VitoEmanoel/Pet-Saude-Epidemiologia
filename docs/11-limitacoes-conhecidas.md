@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 1 | 4 | 4 | 9 |
+| Segurança (S) | 0 | 4 | 3 | 7 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **1** | **12** | **14** | **27** |
+| **Total** | **0** | **12** | **13** | **25** |
 
 ---
 
@@ -51,10 +51,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 ## S. Segurança
 
-### S2. Site público sem cabeçalhos de segurança. **Alta**
-- Faltam CSP, `X-Frame-Options` (clickjacking), `X-Content-Type-Options`, `Referrer-Policy`, HSTS no Next.js; a API pública também não envia `nosniff`.
-- **Correção:** `headers()` no `next.config.ts`; `helmet` no Express.
-
 ### S3. Containers rodam como `root`. **Média**
 - Backend e frontend com `uid=0`. **Correção:** `USER node` no `Dockerfile`.
 
@@ -72,9 +68,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 ### S7. POST no admin sem `Origin` passa pela checagem de origem. **Baixa**
 - Mitigado pelo cookie `SameSite=Strict`. **Correção:** exigir `Origin`/`Referer` em métodos que alteram estado.
-
-### S8. Tecnologia anunciada nos cabeçalhos. **Baixa**
-- `X-Powered-By: Express` e `X-Powered-By: Next.js`. **Correção:** `app.disable("x-powered-by")`; `poweredByHeader: false`.
 
 ### S9. Cookie sem `Secure`. **Baixa (configuração)**
 - Correto em HTTP local; **obrigatório** `ADMIN_COOKIE_SECURE=true` ao publicar com HTTPS.
