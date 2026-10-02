@@ -39,7 +39,7 @@ import {
   runAdminSyncAll,
   runAdminSyncSource
 } from "@/lib/api";
-import { formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
+import { AGGREGATION_LABELS, formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
 import { ApiRequestError } from "@/lib/api";
 import type {
   AdminAuditLogsResponse,
@@ -501,7 +501,8 @@ export function AdminDashboard() {
         sex: exportFilters.sex,
         ageGroup: exportFilters.ageGroup,
         raceColor: exportFilters.raceColor,
-        condition: exportFilters.condition
+        condition: exportFilters.condition,
+        aggregation: exportFormat === "records_csv" ? exportFilters.aggregation : undefined
       };
       const { blob, filename } =
         exportFormat === "dashboard_html"
@@ -717,7 +718,7 @@ export function AdminDashboard() {
           </button>
         </div>
 
-        <div className="grid gap-3 p-4 lg:grid-cols-2 xl:grid-cols-6">
+        <div className="grid gap-3 p-4 lg:grid-cols-2 xl:grid-cols-7">
           <label className="block">
             <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Tipo</span>
             <select
@@ -820,6 +821,24 @@ export function AdminDashboard() {
                 : null}
             </select>
           </label>
+
+          {exportFormat === "records_csv" ? (
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Visão</span>
+              <select
+                value={exportFilters.aggregation ?? ""}
+                onChange={(event) => updateExportFilter("aggregation", event.target.value)}
+                className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50"
+              >
+                <option value="">Automática (pelo filtro)</option>
+                {(["yearly", "sex", "age_group", "race_color", "all"] as const).map((view) => (
+                  <option key={view} value={view}>
+                    {AGGREGATION_LABELS[view]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
         </div>
 
         {exportFiltersState.status === "error" ? (

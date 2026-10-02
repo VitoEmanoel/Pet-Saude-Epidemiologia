@@ -6,12 +6,12 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 | Tema | Alta | Média | Baixa | Total |
 |---|---|---|---|---|
-| Dados exibidos (D) | 3 | 2 | 1 | 6 |
+| Dados exibidos (D) | 2 | 2 | 1 | 5 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
 | Segurança (S) | 2 | 4 | 4 | 10 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **5** | **13** | **14** | **32** |
+| **Total** | **4** | **13** | **14** | **31** |
 
 ---
 
@@ -28,11 +28,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 - **Causa:** o TABNET só fornece totais de uma dimensão por vez ([04 §4.2](04-banco-de-dados.md#42-ponto-essencial-as-4-agregações-convivem-na-mesma-tabela)); `buildChartWhere` em `public-data.service.ts` aplica todos os filtros a todos os gráficos.
 - **Evidência:** `GET /api/charts/by-age-group?source=tuberculose_sinan&sex=Masculino` → `series: []`; visto na tela em 3 navegadores.
 - **Correção:** cada gráfico aplica só o filtro da própria dimensão (+ ano), ou a interface permite um filtro demográfico por vez, com aviso.
-
-### D3. Tabela e CSV contam cada caso 4 vezes. **Alta**
-- **Sintoma:** tuberculose 2024 = 86 casos, mas a soma da tabela/CSV dá 344.
-- **Causa:** `/api/records` e o CSV listam juntas as 4 agregações (anual, sexo, faixa etária, raça/cor).
-- **Correção:** expor/filtrar o tipo de agregação (`source_table`); mostrar a fatia anual por padrão; deixar explícito no CSV.
 
 ### D4. "Total de casos" da página inicial não tem significado. **Média**
 - **Sintoma:** 6.476 = soma de doenças diferentes, métricas diferentes (confirmados + prováveis + frequência) e **187 casos de zika** (fonte interna, não exibida).
@@ -121,7 +116,7 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 - "Parnaíba - PI" no cabeçalho (`#459cd7` sobre `#143a60` = 3,87:1) e botão "Limpar" (`#e8531e` sobre branco = 3,69:1). Mínimo: 4,5:1.
 
 ### U3. Linguagem técnica e textos sem acento. **Média**
-- Tabela mostra `tabnet_tuberculose_by_age_group_residence`; status "SUCCESS" em inglês; rótulos "Ultimo ano", "Faixa etaria", "Sifilis congenita", "Atualizacao".
+- Status "SUCCESS" em inglês; "1 registros" (plural errado); rótulos "Ultimo ano", "Faixa etaria", "Sifilis congenita", "Atualizacao".
 
 ### U4. Mesmo título em todas as páginas. **Baixa**
 - `<title>` e `<h1>` iguais; abas e leitores de tela não distinguem as páginas.

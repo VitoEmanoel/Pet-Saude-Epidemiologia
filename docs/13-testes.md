@@ -53,7 +53,7 @@ Cada problema de [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md) que 
 
 | Suíte | Testes `todo` hoje |
 |---|---|
-| `test:e2e` | D1, D2, D3, D4, S2 (×2), S4, S6, S7, S8 (×2) |
+| `test:e2e` | D1, D2, D4, S2 (×2), S4, S6, S7, S8 (×2) |
 | `test:ui` | D2 (desktop e celular), U1, U2 |
 
 Para ver os `todo` e se estão falhando:
@@ -62,14 +62,14 @@ Para ver os `todo` e se estão falhando:
 cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs | grep "# TODO"
 ```
 
-## 13.4 Resultado de referência (01/10/2026)
+## 13.4 Resultado de referência (02/10/2026, após o D3)
 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
 | `test:backend` | 13 | 0 | 0 | 0 |
-| `test:e2e` | 66 | 0 | 3 (TABNET ×2, bloqueio) | 11 |
+| `test:e2e` | 72 | 0 | 3 (TABNET ×2, bloqueio) | 10 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
-| `test:ui` (Chromium, Firefox, WebKit) | 44 | 0 | 0 | 4 |
+| `test:ui` (Chromium, Firefox, WebKit) | 46 | 0 | 0 | 4 |
 | `test:resilience` | 6/6 | | | |
 
 Carga (16 núcleos): `/health` ~8.800 req/s; resumo de fonte ~470 req/s; visão geral ~225 req/s; 300 visitas simultâneas sem falha. Teste longo de 110 min a 40 req/s: 0 erros, memória do backend estável (~67 MB).

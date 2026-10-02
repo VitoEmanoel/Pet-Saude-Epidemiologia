@@ -67,8 +67,8 @@ describe("Integração: dados sincronizados", () => {
       assert.equal(sum(byAge), sum(yearly), "soma por faixa etária = total");
       assert.equal(sum(byRace), sum(yearly), "soma por raça/cor = total");
 
-      const records = (await api(`/api/records?source=${slug}&pageSize=5`)).json;
-      assert.equal(records.pagination.total, summary.totalRecords);
+      const records = (await api(`/api/records?source=${slug}&pageSize=5&aggregation=all`)).json;
+      assert.equal(records.pagination.total, summary.totalRecords, "aggregation=all traz todas as visões");
       assert.ok(records.records.every((r) => r.city.ibgeCode === "2207702"));
     });
   }
@@ -87,6 +87,30 @@ describe("Integração: dados sincronizados", () => {
         assert.equal(sum(bySex), value, `${slug} ${year}`);
       }
     }
+  });
+
+  test("D3: tabela usa uma visão por vez e cada visão soma o total", async () => {
+    const total = (await api("/api/charts/yearly-evolution?source=tuberculose_sinan&year=2024")).json.series[0].value;
+    const byDefault = (await api("/api/records?source=tuberculose_sinan&year=2024&pageSize=500")).json;
+    assert.equal(byDefault.aggregation, "yearly", "sem filtro, a visão padrão é o total do ano");
+    assert.ok(byDefault.records.every((r) => r.aggregation === "yearly"));
+    for (const view of ["yearly", "sex", "age_group", "race_color"]) {
+      const r = (await api(`/api/records?source=tuberculose_sinan&year=2024&pageSize=500&aggregation=${view}`)).json;
+      assert.ok(r.records.every((record) => record.aggregation === view), view);
+      assert.equal(sum(r.records), total, `soma da visão ${view}`);
+    }
+  });
+
+  test("D3: com filtro demográfico, a visão segue o filtro", async () => {
+    const r = (await api("/api/records?source=tuberculose_sinan&sex=Masculino&pageSize=500")).json;
+    assert.equal(r.aggregation, "sex");
+    assert.ok(r.records.length > 0 && r.records.every((record) => record.sex === "Masculino"));
+  });
+
+  test("D3: visão inválida, visão incompatível com o filtro e dois filtros demográficos: 400", async () => {
+    assert.equal((await api("/api/records?aggregation=xyz")).status, 400);
+    assert.equal((await api("/api/records?source=tuberculose_sinan&sex=Masculino&aggregation=age_group")).status, 400);
+    assert.equal((await api("/api/records?source=tuberculose_sinan&sex=Masculino&ageGroup=20-39")).status, 400);
   });
 
   test("Paginação: páginas não se repetem e respeitam pageSize", async () => {
@@ -153,13 +177,25 @@ describe("Área administrativa", () => {
     assert.ok(Array.isArray((await admin("/api/admin/audit-logs")).json.auditLogs));
   });
 
-  test("Exportação CSV: cabeçalho e linhas = total de registros da fonte", async () => {
+  test("Exportação CSV: padrão = total do ano, com coluna de visão", async () => {
     const r = await admin("/api/admin/records/export.csv?source=sifilis_congenita_sinan");
     assert.match(r.headers.get("content-type"), /text\/csv/);
-    const lines = r.text.trim().split("\n");
-    assert.match(lines[0], /^source_slug,source_name,city/);
+    const [header, ...rows] = r.text.trim().split("\n");
+    assert.match(header, /^source_slug,source_name,city/);
+    assert.match(header, /,aggregation,/);
+    const years = (await api("/api/charts/yearly-evolution?source=sifilis_congenita_sinan")).json.series.length;
+    assert.equal(rows.length, years, "uma linha por ano");
+    assert.ok(rows.every((row) => row.includes(",yearly,")));
+  });
+
+  test("Exportação CSV com aggregation=all traz todas as visões", async () => {
+    const r = await admin("/api/admin/records/export.csv?source=sifilis_congenita_sinan&aggregation=all");
     const total = (await api("/api/sources/sifilis_congenita_sinan/summary")).json.summary.totalRecords;
-    assert.equal(lines.length - 1, total);
+    assert.equal(r.text.trim().split("\n").length - 1, total);
+  });
+
+  test("Exportação CSV com visão incompatível com o filtro: 400", async () => {
+    assert.equal((await admin("/api/admin/records/export.csv?source=tuberculose_sinan&sex=Masculino&aggregation=age_group")).status, 400);
   });
 
   test("Exportação HTML do dashboard", async () => {
@@ -203,7 +239,12 @@ describe("Área administrativa", () => {
 });
 
 describe("Regressão: números conhecidos (validados no TABNET)", () => {
-  test("Tuberculose 2024 = 86 casos", async () => {
+  test("Tuberculose 2024 = 86 casos, também somando a tabela (D3)", async () => {
+    const records = (await api("/api/records?source=tuberculose_sinan&year=2024&pageSize=500")).json.records;
+    assert.equal(sum(records), 86);
+  });
+
+  test("Tuberculose 2024 = 86 casos no gráfico anual", async () => {
     const series = (await api("/api/charts/yearly-evolution?source=tuberculose_sinan&year=2024")).json.series;
     assert.equal(series[0].value, 86);
   });
@@ -229,10 +270,6 @@ describe("Defeitos conhecidos", () => {
     assert.ok(s.length > 0, "gráfico vazio");
   });
 
-  test("D3: soma da tabela de um ano = total do ano", { todo: "D3 — Fase 1" }, async () => {
-    const r = (await api("/api/records?source=tuberculose_sinan&year=2024&pageSize=500")).json.records;
-    assert.equal(sum(r), 86, `soma = ${sum(r)}`);
-  });
 
   test("D4: total geral não inclui a zika (fonte interna)", { todo: "D4 — Fase 1" }, async () => {
     const overall = (await api("/api/dashboard/overview")).json.summary.totalCases;

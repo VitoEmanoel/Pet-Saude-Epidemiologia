@@ -4,13 +4,14 @@ import {
   parseFilters,
   parsePagination
 } from "../modules/public/public-data.service";
-import { validateRecordsQuery } from "./records-query";
+import { validateRecordsAggregation, validateRecordsQuery } from "./records-query";
 import { sendError } from "../utils/api-response";
 
 export const recordsRouter = Router();
 
 recordsRouter.get("/", async (request, response) => {
-  const validationError = validateRecordsQuery(request.query, true);
+  const validationError =
+    validateRecordsQuery(request.query, true) ?? validateRecordsAggregation(request.query);
 
   if (validationError) {
     return validationError(response);

@@ -94,6 +94,7 @@ O TABNET devolve totais por **uma dimensão de cada vez**. Para cada fonte e ano
 Consequências:
 
 - **Nunca some** a coluna `value` de todas as linhas: cada caso aparece 4 vezes. Para totais, filtre `source_table LIKE '%_yearly_%'`.
+- Por isso a API (`/api/records` e o CSV) mostra **uma visão por vez** (parâmetro `aggregation`, ver [06](06-api.md)): sem filtro, o total do ano; com filtro de sexo, a visão por sexo; e assim por diante.
 - **Não existe cruzamento** (ex.: homens de 20-39 anos). Não dá para obter isso com os dados atuais.
 
 Distribuição real após uma sincronização completa (01/10/2026):

@@ -3,6 +3,12 @@ import { ALLOWED_CITY } from "../../config/city";
 import { allowedSources, getPublicSourceBySlug, getSourceBySlug, publicSources } from "../../config/sources";
 import { prisma } from "../../database/prisma";
 
+// Cada caso é gravado em 4 visões (agregações) diferentes: total do ano, por sexo,
+// por faixa etária e por raça/cor. Somar visões diferentes conta o mesmo caso várias vezes.
+export const RECORD_AGGREGATIONS = ["yearly", "sex", "age_group", "race_color", "all"] as const;
+export type RecordAggregation = (typeof RECORD_AGGREGATIONS)[number];
+export type ResolvedAggregation = Exclude<RecordAggregation, "all">;
+
 export type PublicFilters = {
   source?: string;
   year?: number;
@@ -11,6 +17,7 @@ export type PublicFilters = {
   ageGroup?: string;
   raceColor?: string;
   condition?: string;
+  aggregation?: RecordAggregation;
 };
 
 export type Pagination = {
@@ -36,6 +43,7 @@ export type SerializedRecord = {
   raceColor: string | null;
   dimensions: Prisma.JsonValue;
   sourceTable: string | null;
+  aggregation: ResolvedAggregation | null;
   importedAt: Date;
 };
 
@@ -43,6 +51,12 @@ const YEARLY_SOURCE_TABLE_FRAGMENT = "_yearly_";
 const SEX_SOURCE_TABLE_FRAGMENT = "_by_sex_";
 const AGE_GROUP_SOURCE_TABLE_FRAGMENT = "_by_age_group_";
 const RACE_COLOR_SOURCE_TABLE_FRAGMENT = "_by_race_color_";
+const AGGREGATION_SOURCE_TABLE_FRAGMENTS: Record<ResolvedAggregation, string> = {
+  yearly: YEARLY_SOURCE_TABLE_FRAGMENT,
+  sex: SEX_SOURCE_TABLE_FRAGMENT,
+  age_group: AGE_GROUP_SOURCE_TABLE_FRAGMENT,
+  race_color: RACE_COLOR_SOURCE_TABLE_FRAGMENT
+};
 const AGE_GROUP_ORDER = [
   "Menor de 1 ano",
   "1-4",
@@ -313,6 +327,7 @@ export async function getRecords(filters: PublicFilters, pagination: Pagination)
   return {
     city: ALLOWED_CITY,
     filters,
+    aggregation: resolveRecordAggregation(filters),
     pagination: {
       ...pagination,
       total,
@@ -453,8 +468,57 @@ export function parseFilters(query: Record<string, unknown>): PublicFilters {
     sex: parseString(query.sex),
     ageGroup: parseString(query.ageGroup),
     raceColor: parseString(query.raceColor),
-    condition: parseString(query.condition)
+    condition: parseString(query.condition),
+    aggregation: parseAggregation(query.aggregation)
   };
+}
+
+/**
+ * Visão usada na tabela e no CSV. Sem escolha explícita, segue o filtro demográfico
+ * (sexo, faixa etária ou raça/cor); sem filtro demográfico, usa o total do ano.
+ */
+export function resolveRecordAggregation(filters: PublicFilters): RecordAggregation {
+  if (filters.aggregation) {
+    return filters.aggregation;
+  }
+
+  return getDemographicAggregation(filters) ?? "yearly";
+}
+
+/**
+ * Retorna uma mensagem de erro quando a visão pedida não combina com o filtro demográfico
+ * (ex.: filtro de sexo com visão por faixa etária, que sempre viria vazio).
+ */
+export function getAggregationConflict(filters: PublicFilters): string | null {
+  const demographicFilters = [filters.sex, filters.ageGroup, filters.raceColor].filter(Boolean);
+
+  if (demographicFilters.length > 1) {
+    return "O DATASUS nao fornece dados cruzados: filtre por apenas uma dimensao (sexo, faixa etaria ou raca/cor).";
+  }
+
+  const demographic = getDemographicAggregation(filters);
+
+  if (filters.aggregation && filters.aggregation !== "all" && demographic && filters.aggregation !== demographic) {
+    return "A visao escolhida nao combina com o filtro aplicado. Use a visao da mesma dimensao do filtro.";
+  }
+
+  return null;
+}
+
+function getDemographicAggregation(filters: PublicFilters): ResolvedAggregation | null {
+  if (filters.sex) {
+    return "sex";
+  }
+
+  if (filters.ageGroup) {
+    return "age_group";
+  }
+
+  if (filters.raceColor) {
+    return "race_color";
+  }
+
+  return null;
 }
 
 export function toRecordsCsv(records: SerializedRecord[]): string {
@@ -473,6 +537,7 @@ export function toRecordsCsv(records: SerializedRecord[]): string {
     "age_group",
     "race_color",
     "source_table",
+    "aggregation",
     "imported_at"
   ];
 
@@ -491,6 +556,7 @@ export function toRecordsCsv(records: SerializedRecord[]): string {
     record.ageGroup,
     record.raceColor,
     record.sourceTable,
+    record.aggregation,
     record.importedAt.toISOString()
   ]);
 
@@ -499,6 +565,13 @@ export function toRecordsCsv(records: SerializedRecord[]): string {
 
 async function buildRecordWhere(filters: PublicFilters): Promise<Prisma.EpidemiologicalRecordWhereInput> {
   const where: Prisma.EpidemiologicalRecordWhereInput = baseCityRecordWhere();
+  const aggregation = resolveRecordAggregation(filters);
+
+  if (aggregation !== "all") {
+    where.sourceTable = {
+      contains: AGGREGATION_SOURCE_TABLE_FRAGMENTS[aggregation]
+    };
+  }
 
   if (filters.source) {
     const sourceIds = await getResolvedSourceIds(filters.source);
@@ -739,8 +812,21 @@ function serializeRecord(
     raceColor: record.raceColor,
     dimensions: record.dimensions,
     sourceTable: record.sourceTable,
+    aggregation: getAggregationFromSourceTable(record.sourceTable),
     importedAt: record.importedAt
   };
+}
+
+function getAggregationFromSourceTable(sourceTable: string | null): ResolvedAggregation | null {
+  if (!sourceTable) {
+    return null;
+  }
+
+  const match = (Object.entries(AGGREGATION_SOURCE_TABLE_FRAGMENTS) as Array<[ResolvedAggregation, string]>).find(
+    ([, fragment]) => sourceTable.includes(fragment)
+  );
+
+  return match?.[0] ?? null;
 }
 
 function emptySourceSummary(municipalityDataAvailable: boolean) {
@@ -769,6 +855,10 @@ function parseString(value: unknown): string | undefined {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function parseAggregation(value: unknown): RecordAggregation | undefined {
+  return RECORD_AGGREGATIONS.find((aggregation) => aggregation === value);
 }
 
 function parseOptionalInteger(value: unknown): number | undefined {

@@ -31,7 +31,7 @@ Erros seguem sempre o formato ([`api-response.ts`](../backend/src/utils/api-resp
 | `GET /api/sources/:slug/summary` | idem | Cartões: total de casos, anos, último ano, última sincronização |
 | `GET /api/sources/:slug/filters` | idem | Valores possíveis de ano, sexo, faixa etária e raça/cor |
 | `GET /api/dashboard/overview` | `routes/dashboard.ts` | Resumo geral + evolução anual somando todas as fontes |
-| `GET /api/records` | `routes/records.ts` | Registros paginados |
+| `GET /api/records` | `routes/records.ts` | Registros paginados de **uma visão** (`aggregation`); cada registro traz o campo `aggregation` |
 | `GET /api/charts/yearly-evolution` | `routes/charts.ts` | `series: [{year, value}]` |
 | `GET /api/charts/by-sex` | idem | `series: [{label, value}]` |
 | `GET /api/charts/by-age-group` | idem | idem (ordenado por faixa) |
@@ -43,11 +43,12 @@ Erros seguem sempre o formato ([`api-response.ts`](../backend/src/utils/api-resp
 |---|---|---|
 | `source` | slug | **Obrigatório** nos gráficos |
 | `year`, `month` | número | `month` não tem dados hoje |
-| `sex`, `ageGroup`, `raceColor`, `condition` | texto | Valor exato (use os valores de `/filters`) |
+| `sex`, `ageGroup`, `raceColor`, `condition` | texto | Valor exato (use os valores de `/filters`). Só **uma** dimensão demográfica por vez na tabela/CSV |
+| `aggregation` | `yearly`, `sex`, `age_group`, `race_color`, `all` | Só tabela e CSV. Visão dos casos. Sem o parâmetro: segue o filtro demográfico ou, sem filtro, `yearly`. `all` traz as 4 visões (cuidado: a soma conta cada caso 4 vezes) |
 | `page` | número | Só em `/api/records` (padrão 1) |
 | `pageSize` | número | Só em `/api/records` (padrão 50, máx. 500) |
 
-Qualquer outro parâmetro devolve **400**. Os parâmetros `city`, `cidade`, `municipality`, `municipio`, `ibgeCode`, `ibge_code`, `cityIbgeCode`, `city_ibge_code`, `uf`, `state`, `estado` são bloqueados de propósito.
+Qualquer outro parâmetro devolve **400**. Na tabela e no CSV, também devolvem 400: `aggregation` inválido, visão que não combina com o filtro (ex.: `sex=Masculino&aggregation=age_group`) e mais de um filtro demográfico (o DATASUS não fornece dados cruzados). Os parâmetros `city`, `cidade`, `municipality`, `municipio`, `ibgeCode`, `ibge_code`, `cityIbgeCode`, `city_ibge_code`, `uf`, `state`, `estado` são bloqueados de propósito.
 
 Como os filtros funcionam nos gráficos:
 
@@ -76,7 +77,7 @@ Todas respondem com cabeçalhos anti-cache e de segurança. Requisições que **
 | `POST /api/admin/sync-all` | sessão | Sincroniza todas as fontes em sequência (~45 s) |
 | `GET /api/admin/sync-history` | sessão | Últimos 50 jobs |
 | `GET /api/admin/audit-logs` | sessão | Últimos 100 eventos de auditoria |
-| `GET /api/admin/records/export.csv` | sessão | CSV com os mesmos filtros de `/api/records` (sem paginação) |
+| `GET /api/admin/records/export.csv` | sessão | CSV com os mesmos filtros e a mesma regra de visão de `/api/records` (sem paginação); coluna `aggregation` |
 | `GET /api/admin/dashboard/export.html` | sessão | Relatório HTML autocontido de uma fonte (`source` obrigatório) |
 
 Uso por linha de comando:

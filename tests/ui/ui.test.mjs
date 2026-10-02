@@ -106,6 +106,28 @@ for (const profile of Object.keys(PROFILES)) {
       }
     });
 
+    test("D3: tabela mostra uma visão por vez; filtro de sexo trava o \"Detalhar por\" em sexo", async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      try {
+        const viewSelect = page.getByLabel("Detalhar por");
+        assert.equal(await viewSelect.inputValue(), "yearly");
+        assert.match(await page.innerText("main"), /Total do ano/);
+        await viewSelect.selectOption("race_color");
+        await page.waitForLoadState("networkidle");
+        await page.waitForTimeout(400);
+        assert.match(await page.innerText("main"), /Por raça\/cor/);
+
+        const sexOptions = await page.locator("select").nth(1).locator("option").evaluateAll((o) => o.map((x) => x.value).filter(Boolean));
+        await page.locator("select").nth(1).selectOption(sexOptions[0]);
+        await page.waitForLoadState("networkidle");
+        await page.waitForTimeout(400);
+        assert.equal(await viewSelect.inputValue(), "sex");
+        assert.ok(await viewSelect.isDisabled());
+      } finally {
+        await context.close();
+      }
+    });
+
     test("Todos os filtros têm rótulo acessível", async () => {
       const { context, page } = await openPage(profile, "/tuberculose");
       try {

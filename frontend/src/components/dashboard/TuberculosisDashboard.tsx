@@ -21,12 +21,19 @@ import {
   getSourceSummary,
   getYearlyEvolution
 } from "@/lib/api";
-import { formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
+import {
+  AGGREGATION_LABELS,
+  formatAggregation,
+  formatDateTime,
+  formatNumber,
+  formatYearRange
+} from "@/lib/format";
 import type {
   CategoryPoint,
   ChartPoint,
   RecordFilters,
   RecordsResponse,
+  ResolvedAggregation,
   SourceFiltersResponse,
   SourceSummaryResponse
 } from "@/types/api";
@@ -65,6 +72,30 @@ type SelectedFilters = {
   raceColor: string;
 };
 
+const RECORD_VIEWS: ResolvedAggregation[] = ["yearly", "sex", "age_group", "race_color"];
+
+const DEMOGRAPHIC_LABELS: Record<Exclude<ResolvedAggregation, "yearly">, string> = {
+  sex: "sexo",
+  age_group: "faixa etária",
+  race_color: "raça/cor"
+};
+
+function getDemographicView(filters: SelectedFilters): Exclude<ResolvedAggregation, "yearly"> | null {
+  if (filters.sex) {
+    return "sex";
+  }
+
+  if (filters.ageGroup) {
+    return "age_group";
+  }
+
+  if (filters.raceColor) {
+    return "race_color";
+  }
+
+  return null;
+}
+
 type DiseaseDashboardProps = {
   source: string;
   title: string;
@@ -80,6 +111,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     raceColor: ""
   });
   const [page, setPage] = useState(1);
+  const [recordView, setRecordView] = useState<ResolvedAggregation>("yearly");
   const [recordsState, setRecordsState] = useState<
     | { status: "loading" }
     | { status: "loaded"; data: RecordsResponse }
@@ -126,14 +158,20 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     [selectedFilters]
   );
 
-  const recordFilters = useMemo(
+  // Com filtro demográfico, a tabela mostra a visão da mesma dimensão (a API escolhe sozinha);
+  // sem filtro, mostra a visão escolhida em "Detalhar por".
+  const demographicView = getDemographicView(selectedFilters);
+  const effectiveRecordView = demographicView ?? recordView;
+
+  const recordFilters = useMemo<RecordFilters>(
     () => ({
       source,
       ...activeFilters,
+      aggregation: demographicView ? undefined : recordView,
       page,
       pageSize: 12
     }),
-    [activeFilters, page, source]
+    [activeFilters, demographicView, page, recordView, source]
   );
 
   useEffect(() => {
@@ -210,6 +248,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
       ageGroup: "",
       raceColor: ""
     });
+    setRecordView("yearly");
     setPage(1);
   }
 
@@ -353,7 +392,30 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
             <Filter size={17} className="text-slate-500" aria-hidden="true" />
             <h2 className="text-sm font-semibold text-slate-950">Registros</h2>
           </div>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <span className="whitespace-nowrap text-xs font-medium uppercase text-slate-500">Detalhar por</span>
+            <select
+              value={effectiveRecordView}
+              disabled={demographicView !== null}
+              onChange={(event) => {
+                setRecordView(event.target.value as ResolvedAggregation);
+                setPage(1);
+              }}
+              className="h-9 rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-institutional-600 focus:ring-2 focus:ring-institutional-50 disabled:cursor-not-allowed disabled:bg-slate-50"
+            >
+              {RECORD_VIEWS.map((view) => (
+                <option key={view} value={view}>
+                  {AGGREGATION_LABELS[view]}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
+        <p className="border-b border-slate-100 px-4 py-2 text-xs text-slate-600">
+          {demographicView
+            ? `Com o filtro de ${DEMOGRAPHIC_LABELS[demographicView]}, a tabela mostra os casos por ${DEMOGRAPHIC_LABELS[demographicView]}.`
+            : "Total do ano, por sexo, por faixa etária e por raça/cor são visões diferentes dos mesmos casos. A tabela mostra uma visão por vez, para que a soma dos valores corresponda ao total."}
+        </p>
 
         <RecordsTable state={recordsState} page={page} setPage={setPage} />
       </section>
@@ -476,10 +538,8 @@ function RecordsTable({
                 <dd className="mt-1 text-slate-700">{record.ageGroup ?? "-"}</dd>
               </div>
               <div className="col-span-2">
-                <dt className="text-xs uppercase text-slate-500">Tabela</dt>
-                <dd className="mt-1 break-all font-mono text-xs text-slate-500">
-                  {record.sourceTable ?? "-"}
-                </dd>
+                <dt className="text-xs uppercase text-slate-500">Visão</dt>
+                <dd className="mt-1 text-slate-700">{formatAggregation(record.aggregation)}</dd>
               </div>
             </dl>
           </article>
@@ -495,7 +555,7 @@ function RecordsTable({
               <th className="px-4 py-3 font-semibold">Sexo</th>
               <th className="px-4 py-3 font-semibold">Faixa etaria</th>
               <th className="px-4 py-3 font-semibold">Raca/cor</th>
-              <th className="px-4 py-3 font-semibold">Tabela</th>
+              <th className="px-4 py-3 font-semibold">Visão</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -507,7 +567,7 @@ function RecordsTable({
                 <td className="px-4 py-3 text-slate-700">{record.sex ?? "-"}</td>
                 <td className="px-4 py-3 text-slate-700">{record.ageGroup ?? "-"}</td>
                 <td className="px-4 py-3 text-slate-700">{record.raceColor ?? "-"}</td>
-                <td className="px-4 py-3 font-mono text-xs text-slate-500">{record.sourceTable}</td>
+                <td className="px-4 py-3 text-slate-700">{formatAggregation(record.aggregation)}</td>
               </tr>
             ))}
           </tbody>

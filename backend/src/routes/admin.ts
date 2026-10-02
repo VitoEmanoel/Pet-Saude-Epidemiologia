@@ -36,7 +36,7 @@ import {
   toRecordsCsv
 } from "../modules/public/public-data.service";
 import { sendError } from "../utils/api-response";
-import { validateRecordsQuery } from "./records-query";
+import { validateRecordsAggregation, validateRecordsQuery } from "./records-query";
 
 export const adminRouter = Router();
 
@@ -128,7 +128,8 @@ adminRouter.post("/auth/logout", async (request, response) => {
 });
 
 adminRouter.get("/records/export.csv", async (request, response) => {
-  const validationError = validateRecordsQuery(request.query, false);
+  const validationError =
+    validateRecordsQuery(request.query, false) ?? validateRecordsAggregation(request.query);
 
   if (validationError) {
     return validationError(response);

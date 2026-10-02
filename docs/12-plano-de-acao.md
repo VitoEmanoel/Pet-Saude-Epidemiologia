@@ -23,14 +23,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | Fase | Objetivo | Itens | Concluídos |
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
-| 1 | Dados corretos | 4 | 0 |
+| 1 | Dados corretos | 4 | 1 |
 | 2 | Segurança mínima para publicar | 7 | 0 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 7 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **4** |
+| | **Total** | **47** | **5** |
 
 ---
 
@@ -63,13 +63,14 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 
 **Antes de mostrar o painel a qualquer pessoa.** Hoje ele pode levar a conclusões erradas.
 
-- [ ] **D3** Tabela e CSV contam cada caso 4 vezes
-  - [ ] Definir a solução: filtro "tipo de agregação" na tabela, padrão = total anual
-  - [ ] Backend: parâmetro de agregação em `/api/records` e no CSV
-  - [ ] Frontend: seletor de agregação na tabela pública e no admin
-  - [ ] Coluna/texto que explique o tipo de agregação em linguagem simples
-  - [ ] Teste: soma da tabela de tuberculose 2024 = 86
-  - [ ] Atualizar docs 04, 06 e 07
+- [x] **D3** Tabela e CSV contam cada caso 4 vezes (02/10/2026, branch `fix/d3-agregacao-registros`)
+  - [x] Definir a solução: uma visão por vez; padrão = total do ano; com filtro demográfico, a visão da mesma dimensão
+  - [x] Backend: parâmetro `aggregation` (`yearly`, `sex`, `age_group`, `race_color`, `all`) em `/api/records` e no CSV; 400 para visão inválida, incompatível ou dois filtros demográficos
+  - [x] Frontend: seletor "Detalhar por" na tabela pública e "Visão" na exportação do admin
+  - [x] Coluna "Visão" em português no lugar do nome técnico da tabela; coluna `aggregation` no CSV
+  - [x] Teste: soma da tabela de tuberculose 2024 = 86 (e soma de cada visão = total)
+  - [x] Atualizar docs 04, 06, 07 e 10
+
 - [ ] **D2** Filtros cruzados zeram gráficos
   - [ ] Decidir a abordagem: (a) cada gráfico ignora filtros de outras dimensões, ou (b) só um filtro demográfico por vez
   - [ ] Implementar em `buildChartWhere` (`public-data.service.ts`) e/ou no `DiseaseDashboard`
@@ -143,7 +144,7 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 ## Fase 4: Usabilidade e acessibilidade (média)
 
 - [ ] **U3** Linguagem para o público
-  - [ ] Esconder `source_table` técnico (mostrar "Total do ano", "Por sexo"...)
+  - [x] Esconder `source_table` técnico (mostrar "Total do ano", "Por sexo"...) (feito junto com o D3)
   - [ ] Traduzir status ("SUCCESS" → "Atualizado")
   - [ ] Revisar acentuação de todos os textos da interface
 - [ ] **U1** Login do admin dentro de `<form>` (Enter envia; gerenciador de senhas funciona)

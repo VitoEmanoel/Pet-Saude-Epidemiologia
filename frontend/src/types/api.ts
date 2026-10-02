@@ -108,12 +108,18 @@ export type EpidemiologicalRecord = {
   raceColor: string | null;
   dimensions: Record<string, unknown>;
   sourceTable: string | null;
+  aggregation: ResolvedAggregation | null;
   importedAt: string;
 };
+
+// Visões dos mesmos casos: total do ano, por sexo, por faixa etária, por raça/cor
+export type RecordAggregation = "yearly" | "sex" | "age_group" | "race_color" | "all";
+export type ResolvedAggregation = Exclude<RecordAggregation, "all">;
 
 export type RecordsResponse = {
   city: City;
   filters: Record<string, string | number | undefined>;
+  aggregation: RecordAggregation;
   pagination: {
     page: number;
     pageSize: number;
@@ -130,6 +136,7 @@ export type RecordFilters = {
   ageGroup?: string;
   raceColor?: string;
   condition?: string;
+  aggregation?: RecordAggregation;
   page?: number;
   pageSize?: number;
 };
