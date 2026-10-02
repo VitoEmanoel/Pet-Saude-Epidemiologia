@@ -60,6 +60,8 @@ Toda a configuração fica no objeto `collectorConfigs` em [`sinan-tabnet.collec
 
 **Registros que somem.** Ao fim de uma coleta completa, o coletor apaga os registros da fonte que a coleta não renovou (ex.: um ano que ficou sem casos depois de uma revisão do DATASUS). Se a coleta falha no meio, nada é apagado.
 
+**Anos novos automáticos (D5).** Os arquivos de período da tabela acima são o mínimo. A cada coleta, o último segmento de cada fonte recebe os arquivos mais novos que o formulário oferecer (`withDiscoveredPeriodFiles`, `listPeriodFilesInForm`, `newerPeriodFiles`). Se o formulário não carregar, segue a lista configurada.
+
 Campos de `SinanTabnetCollectorConfig`:
 
 | Campo | Para que serve |

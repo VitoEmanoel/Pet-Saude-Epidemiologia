@@ -21,7 +21,7 @@ Credenciais e URLs são lidas do `.env` da raiz. Para apontar para outro ambient
 
 | Comando | O que testa | Duração |
 |---|---|---|
-| `npm run test:backend` | Testes do backend (25) | segundos |
+| `npm run test:backend` | Testes do backend (27, incluindo `period-files.test.ts`) | segundos |
 | `npm run test:e2e` | API: funcional, integração, regressão, validação, admin; segurança: sessão, login, CSRF/CORS, injeção, XSS, exposição, cabeçalhos | ~2 s |
 | `npm run test:ui` | Interface no Chromium: 8 páginas × desktop/celular, gráficos, mapa, bloqueios da CSP, acessibilidade (axe), filtros, paginação, menu, tema, fluxo do admin, API fora do ar | ~1 min |
 | `QA_BROWSER=firefox npm run test:ui` | O mesmo no Firefox | ~1 min |
@@ -69,7 +69,7 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
-| `test:backend` | 25 | 0 | 0 | 0 |
+| `test:backend` | 27 | 0 | 0 | 0 |
 | `test:e2e` | 97 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 61 | 0 | 0 | 1 |

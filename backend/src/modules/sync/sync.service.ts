@@ -138,6 +138,15 @@ async function syncSourceUnlocked(
     );
     const status =
       collectorResult.recordsImported > 0 ? SyncJobStatus.SUCCESS : SyncJobStatus.UNAVAILABLE;
+    // Anos novos descobertos no TABNET e avisos da descoberta (D5) ficam na mensagem da fonte.
+    const discoveryNote = [
+      collectorResult.newPeriodFiles.length > 0
+        ? `Anos alem da lista configurada, incluidos automaticamente: ${collectorResult.newPeriodFiles.join(", ")}.`
+        : null,
+      ...collectorResult.discoveryWarnings.map((warning) => `Aviso: ${warning}`)
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     const finishedJob = await client.syncJob.update({
       where: {
@@ -163,10 +172,14 @@ async function syncSourceUnlocked(
           collectorResult.recordsImported > 0
             ? SourceAvailabilityStatus.AVAILABLE
             : SourceAvailabilityStatus.NO_RECORDS_FOR_CITY,
-        message:
+        message: [
           collectorResult.recordsImported > 0
             ? "Fonte validada e sincronizada para Parnaiba."
             : "Fonte permite filtro municipal, mas nao retornou registros para Parnaiba.",
+          discoveryNote
+        ]
+          .filter(Boolean)
+          .join(" "),
         checkedAt: new Date()
       },
       create: {
@@ -175,10 +188,14 @@ async function syncSourceUnlocked(
           collectorResult.recordsImported > 0
             ? SourceAvailabilityStatus.AVAILABLE
             : SourceAvailabilityStatus.NO_RECORDS_FOR_CITY,
-        message:
+        message: [
           collectorResult.recordsImported > 0
             ? "Fonte validada e sincronizada para Parnaiba."
             : "Fonte permite filtro municipal, mas nao retornou registros para Parnaiba.",
+          discoveryNote
+        ]
+          .filter(Boolean)
+          .join(" "),
         checkedAt: new Date()
       }
     });

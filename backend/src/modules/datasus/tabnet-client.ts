@@ -47,3 +47,24 @@ export async function postTabnetPrn(
   }
 }
 
+
+/** Baixa o formulário de um .def (deftohtm.exe), usado para descobrir os arquivos de ano disponíveis. */
+export async function fetchTabnetForm(formUrl: string): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  try {
+    const response = await fetch(formUrl, {
+      headers: { "accept": "text/html", "user-agent": "painel-epidemiologico-parnaiba/0.1" },
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`Formulario TABNET retornou HTTP ${response.status}.`);
+    }
+
+    return Buffer.from(await response.arrayBuffer()).toString("latin1");
+  } finally {
+    clearTimeout(timeout);
+  }
+}

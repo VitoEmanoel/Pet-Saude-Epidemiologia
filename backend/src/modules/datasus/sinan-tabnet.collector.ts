@@ -3,7 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { ALLOWED_CITY } from "../../config/city";
-import { postTabnetPrn } from "./tabnet-client";
+import { fetchTabnetForm, postTabnetPrn } from "./tabnet-client";
 import { parsePrnTable } from "./tabnet-prn";
 
 const TABNET_CITY_CODE = "220770";
@@ -67,6 +67,10 @@ type NormalizedRecord = {
 export type SinanCollectorResult = {
   recordsImported: number;
   rawImportsCreated: number;
+  /** Arquivos de ano novos descobertos no formulário do TABNET nesta coleta (D5). */
+  newPeriodFiles: string[];
+  /** Falhas ao ler o formulário; a coleta segue com a lista configurada. */
+  discoveryWarnings: string[];
 };
 
 const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
@@ -206,8 +210,9 @@ export async function collectSinanTabnetSource(
 
   let recordsImported = 0;
   let rawImportsCreated = 0;
+  const { segments, newPeriodFiles, discoveryWarnings } = await withDiscoveredPeriodFiles(config);
 
-  for (const [segmentIndex, segment] of config.segments.entries()) {
+  for (const [segmentIndex, segment] of segments.entries()) {
     for (const queryDefinition of buildQueryDefinitions(config)) {
       const encodedFormBody = buildEncodedFormBody(config, segment, queryDefinition);
       const tabnetResponse = await postTabnetPrn(segment.tabnetQueryUrl, encodedFormBody);
@@ -280,8 +285,68 @@ export async function collectSinanTabnetSource(
 
   return {
     recordsImported,
-    rawImportsCreated
+    rawImportsCreated,
+    newPeriodFiles,
+    discoveryWarnings
   };
+}
+
+const PERIOD_FILE_PATTERN = /^([a-z]+)(\d{2})\.dbf$/i;
+
+/** Arquivos de ano (`prefixoNN.dbf`) oferecidos no formulário de um .def. */
+export function listPeriodFilesInForm(formHtml: string, prefix: string): string[] {
+  const pattern = new RegExp(`VALUE="(${prefix}\\d{2}\\.dbf)"`, "gi");
+  return [...new Set([...formHtml.matchAll(pattern)].map((match) => match[1].toLowerCase()))].sort();
+}
+
+/** Arquivos do formulário com o mesmo prefixo e número maior que o último configurado. */
+export function newerPeriodFiles(configured: string[], available: string[]): string[] {
+  const last = configured[configured.length - 1]?.match(PERIOD_FILE_PATTERN);
+
+  if (!last) {
+    return [];
+  }
+
+  const [, prefix, number] = last;
+  return available.filter((file) => {
+    const match = file.match(PERIOD_FILE_PATTERN);
+    return match !== null && match[1] === prefix && Number(match[2]) > Number(number);
+  });
+}
+
+/**
+ * Anos novos automáticos (D5): o último segmento de cada fonte é "aberto" e recebe os arquivos
+ * de ano que o DATASUS publicar depois dos configurados (ex.: dengbr27.dbf em 2027).
+ * Se o formulário não puder ser lido, a coleta segue com a lista configurada.
+ */
+async function withDiscoveredPeriodFiles(config: SinanTabnetCollectorConfig) {
+  const segments = config.segments.map((segment) => ({ ...segment, periodFiles: [...segment.periodFiles] }));
+  const lastSegment = segments[segments.length - 1];
+  const prefix = lastSegment?.periodFiles[0]?.match(PERIOD_FILE_PATTERN)?.[1];
+  const discoveryWarnings: string[] = [];
+  let newPeriodFiles: string[] = [];
+
+  if (lastSegment && prefix) {
+    try {
+      const formHtml = await fetchTabnetForm(lastSegment.tabnetQueryUrl.replace("tabcgi.exe", "deftohtm.exe"));
+      newPeriodFiles = newerPeriodFiles(lastSegment.periodFiles, listPeriodFilesInForm(formHtml, prefix));
+      lastSegment.periodFiles.push(...newPeriodFiles);
+    } catch (error) {
+      discoveryWarnings.push(
+        `Nao foi possivel ler os anos disponiveis no formulario TABNET: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  if (newPeriodFiles.length > 0) {
+    console.log(`${config.sourceSlug}: anos alem da lista configurada, incluidos automaticamente: ${newPeriodFiles.join(", ")}`);
+  }
+
+  for (const warning of discoveryWarnings) {
+    console.warn(`${config.sourceSlug}: ${warning}`);
+  }
+
+  return { segments, newPeriodFiles, discoveryWarnings };
 }
 
 function buildQueryDefinitions(config: SinanTabnetCollectorConfig): QueryDefinition[] {

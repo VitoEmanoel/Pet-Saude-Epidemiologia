@@ -4,25 +4,15 @@ Receitas para as tarefas mais comuns. Depois de qualquer mudança de código no 
 
 ---
 
-## 9.1 Incluir um ano novo de dados
+## 9.1 Ano novo de dados (automático desde o D5)
 
-O TABNET publica um arquivo por ano (ex.: `tubebr26.dbf` para 2026). A lista de anos coletados está **fixa no código**: quando o DATASUS publica um ano novo, é preciso incluí-lo.
+O TABNET publica um arquivo por ano (ex.: `dengbr27.dbf` para 2027). **Não é preciso mexer no código**: a cada sincronização, o coletor lê o formulário da fonte (`deftohtm.exe?...`) e acrescenta ao último segmento os arquivos de ano mais novos que o último configurado. O ano novo aparece no site na primeira sincronização depois da publicação (o agendador roda sozinho; ou use o botão no admin).
 
-1. Abra o formulário da fonte (URL `deftohtm.exe?...`, ver [05-coleta-de-dados.md](05-coleta-de-dados.md#53-configuração-de-cada-fonte)) e confira o último arquivo da lista "Período".
-2. Em [`backend/src/modules/datasus/sinan-tabnet.collector.ts`](../backend/src/modules/datasus/sinan-tabnet.collector.ts), aumente o último número do segmento mais recente da fonte:
+- **Onde ver:** Admin → Fontes, ou a mensagem da fonte em `data_availability`: "Anos além da lista configurada, incluídos automaticamente: …". O log do backend também registra.
+- **Se o formulário não puder ser lido** (TABNET instável), a coleta segue com a lista configurada e a mensagem da fonte traz um "Aviso". Nada se perde; o ano novo entra na próxima sincronização.
+- **Quando atualizar o código mesmo assim:** só se o DATASUS criar um **formulário novo** para uma faixa de anos (como fez com a dengue em 2014). Aí acrescente um segmento em [`sinan-tabnet.collector.ts`](../backend/src/modules/datasus/sinan-tabnet.collector.ts). Opcionalmente, suba o último número de `numberedFiles` para registrar o ano como "conhecido".
 
-   ```ts
-   segments: [{ tabnetQueryUrl: "...tubercbr.def", periodFiles: numberedFiles("tubebr", 1, 25) }],  // antes: 2001–2025
-   segments: [{ tabnetQueryUrl: "...tubercbr.def", periodFiles: numberedFiles("tubebr", 1, 26) }],  // depois: 2001–2026
-   ```
-
-   Na dengue, o ano novo entra no **2º segmento** (`denguebbr.def`). Se o DATASUS criar um formulário novo para uma faixa de anos, acrescente outro segmento.
-
-3. Sincronize a fonte (`npm run sync:data` ou o botão no admin) e confira o novo ano no site.
-
-> Se você incluir um arquivo que ainda não existe, o TABNET devolve erro e a sincronização fica `FAILED`. Os dados antigos são mantidos.
-
-Para saber quais fontes estão desatualizadas: **Admin → Dashboard da fonte** ou `GET /api/sources/<slug>/summary` (campo `lastAvailableYear`).
+> Em 02/10/2026, na primeira sincronização com o D5, entraram sozinhos os dados de **2025** de sífilis congênita (`sifcbr25.dbf`, 33 casos) e sífilis gestacional (`sifgpi25.dbf`, 36 casos), que o painel não mostrava.
 
 ---
 

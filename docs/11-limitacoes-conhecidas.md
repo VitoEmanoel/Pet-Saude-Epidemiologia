@@ -6,20 +6,16 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 | Tema | Alta | Média | Baixa | Total |
 |---|---|---|---|---|
-| Dados exibidos (D) | 0 | 1 | 1 | 2 |
+| Dados exibidos (D) | 0 | 0 | 1 | 1 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
 | Segurança (S) | 0 | 0 | 2 | 2 |
 | Interface e usabilidade (U) | 0 | 2 | 4 | 6 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **7** | **12** | **19** |
+| **Total** | **0** | **6** | **12** | **18** |
 
 ---
 
 ## D. Dados exibidos
-
-### D5. Anos de coleta fixos no código. **Média**
-- **Sintoma:** ano novo publicado no DATASUS não aparece até alguém editar `periodFiles`.
-- **Correção:** ler a lista de arquivos do formulário TABNET automaticamente, ou ao menos alertar quando existir arquivo novo.
 
 ### D6. Cartão "Registros" ignora filtros. **Baixa**
 - **Sintoma:** com qualquer filtro, continua mostrando o total (ex.: 500).
