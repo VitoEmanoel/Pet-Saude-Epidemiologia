@@ -24,13 +24,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
-| 2 | Segurança mínima para publicar | 7 | 6 |
+| 2 | Segurança mínima para publicar | 7 | 7 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **48** | **14** |
+| | **Total** | **48** | **15** |
 
 ---
 
@@ -121,7 +121,10 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 - [x] **S6** Handler de erro do Express com 4 parâmetros, antes do 404 (02/10/2026, branch `fix/s6-handler-de-erro`)
   - [x] Teste: JSON inválido → resposta JSON 400 (`invalid_body`); corpo acima de 100 KB → 413 (`payload_too_large`)
 - [x] **S8** Remover `X-Powered-By` (Express e Next.js) (02/10/2026, feito junto com o S2: `helmet` e `poweredByHeader: false`)
-- [ ] **S9** Documentar e validar `ADMIN_COOKIE_SECURE=true` no checklist de publicação (Fase 6)
+- [x] **S9** Documentar e validar `ADMIN_COOKIE_SECURE=true` no checklist de publicação (Fase 6) (02/10/2026, branch `fix/s9-cookie-secure`)
+  - [x] Checklist de publicação em [02 §2.8](02-instalacao-e-execucao.md#28-checklist-de-publicação)
+  - [x] `npm run start` recusa `FRONTEND_URL` em HTTPS sem `ADMIN_COOKIE_SECURE=true` (e avisa no caso inverso); o backend escreve `AVISO DE SEGURANCA` no log quando `CORS_ORIGIN` é HTTPS e o cookie não é `Secure` (cobre a VPS, que não usa o `start`)
+  - [x] Teste: com `true` o cookie sai com `Secure`, `HttpOnly` e `SameSite=Strict`; sem, sai sem `Secure`
 
 ---
 
@@ -184,7 +187,7 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
 ## Fase 6: Implantação em produção
 
 - [ ] **6.1** Definir servidor, domínio e responsável pela operação. Uma VPS de 1 CPU / 2 GB / 20 GB basta ([02 §2.7](02-instalacao-e-execucao.md#27-servidor-pequeno-vps-e-imagens-construídas-fora-dele)); criar 2 GB de swap
-- [ ] **6.2** HTTPS com proxy reverso (nginx/Caddy) + `TRUST_PROXY` conforme o proxy, conferindo o IP real na auditoria (S4) + `ADMIN_COOKIE_SECURE=true` (S9)
+- [ ] **6.2** Seguir o [checklist de publicação](02-instalacao-e-execucao.md#28-checklist-de-publicação). HTTPS com proxy reverso (nginx/Caddy) + `TRUST_PROXY` conforme o proxy, conferindo o IP real na auditoria (S4) + `ADMIN_COOKIE_SECURE=true` (S9)
 - [ ] **6.3** Expor só 80/443; backend e frontend atrás do proxy
 - [ ] **6.4** Backup automático diário do banco + teste de restauração mensal ([04 §4.4](04-banco-de-dados.md#44-migrations-seed-e-backup))
 - [ ] **6.5** Monitoramento: `/health`, espaço em disco, status das sincronizações

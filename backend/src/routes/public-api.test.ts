@@ -3,7 +3,7 @@ import type { Server } from "node:http";
 import { after, before, test } from "node:test";
 import { prisma } from "../database/prisma";
 import { parseTrustProxy } from "../config/proxy";
-import { resetAdminSecurityState } from "../middleware/admin-auth";
+import { getAdminCookieSecurityWarning, resetAdminSecurityState } from "../middleware/admin-auth";
 import { createServer } from "../server";
 
 let server: Server;
@@ -355,5 +355,58 @@ test("S6: corpo grande demais devolve 413 em JSON", async () => {
 
   assert.equal(response.status, 413);
   assert.equal(body.error.code, "payload_too_large");
+});
+
+test("S9: ADMIN_COOKIE_SECURE=true marca o cookie de sessao como Secure", async () => {
+  const previous = process.env.ADMIN_COOKIE_SECURE;
+  resetAdminSecurityState();
+
+  try {
+    for (const [value, expectSecure] of [["false", false], ["true", true]] as const) {
+      process.env.ADMIN_COOKIE_SECURE = value;
+      const response = await fetch(`${baseUrl}/api/admin/auth/login`, {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "http://localhost:3000" },
+        body: JSON.stringify({ username: "test-admin", password: "test-admin-password" })
+      });
+      const cookie = response.headers.get("set-cookie") ?? "";
+
+      assert.equal(response.status, 200);
+      assert.equal(/;\s*Secure/i.test(cookie), expectSecure, `ADMIN_COOKIE_SECURE=${value}: ${cookie}`);
+      assert.match(cookie, /HttpOnly/i);
+      assert.match(cookie, /SameSite=Strict/i);
+    }
+  } finally {
+    if (previous === undefined) {
+      delete process.env.ADMIN_COOKIE_SECURE;
+    } else {
+      process.env.ADMIN_COOKIE_SECURE = previous;
+    }
+  }
+});
+
+test("S9: avisa quando o site usa HTTPS e o cookie nao e Secure", () => {
+  const previousOrigin = process.env.CORS_ORIGIN;
+  const previousSecure = process.env.ADMIN_COOKIE_SECURE;
+
+  try {
+    process.env.CORS_ORIGIN = "https://painel.exemplo.gov.br";
+    process.env.ADMIN_COOKIE_SECURE = "false";
+    assert.ok(getAdminCookieSecurityWarning());
+
+    process.env.ADMIN_COOKIE_SECURE = "true";
+    assert.equal(getAdminCookieSecurityWarning(), null);
+
+    process.env.CORS_ORIGIN = "http://localhost:3000";
+    process.env.ADMIN_COOKIE_SECURE = "false";
+    assert.equal(getAdminCookieSecurityWarning(), null);
+  } finally {
+    process.env.CORS_ORIGIN = previousOrigin;
+    if (previousSecure === undefined) {
+      delete process.env.ADMIN_COOKIE_SECURE;
+    } else {
+      process.env.ADMIN_COOKIE_SECURE = previousSecure;
+    }
+  }
 });
 

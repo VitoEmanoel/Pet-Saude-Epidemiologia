@@ -231,6 +231,17 @@ function isAdminSecurityConfigured() {
   return Boolean(getAdminCredentials() && process.env.ADMIN_SESSION_SECRET);
 }
 
+/** Aviso para o log quando o site está em HTTPS mas o cookie do admin não tem `Secure` (S9). */
+export function getAdminCookieSecurityWarning() {
+  const usesHttps = getAllowedAdminOrigins().some((origin) => origin.startsWith("https://"));
+
+  if (usesHttps && !isSecureAdminCookieEnabled()) {
+    return "CORS_ORIGIN usa HTTPS, mas ADMIN_COOKIE_SECURE nao e true: defina ADMIN_COOKIE_SECURE=true.";
+  }
+
+  return null;
+}
+
 function isSecureAdminCookieEnabled() {
   return process.env.ADMIN_COOKIE_SECURE === "true";
 }

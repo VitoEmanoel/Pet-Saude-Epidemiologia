@@ -1,5 +1,6 @@
 import "./config/env";
 import { prisma } from "./database/prisma";
+import { getAdminCookieSecurityWarning } from "./middleware/admin-auth";
 import { startSyncScheduler } from "./modules/sync/sync-scheduler";
 import { createServer } from "./server";
 
@@ -10,6 +11,12 @@ const syncScheduler = startSyncScheduler();
 
 const server = app.listen(port, host, () => {
   console.log(`Backend do Painel Epidemiologico de Parnaiba rodando em http://${host}:${port}`);
+
+  const cookieWarning = getAdminCookieSecurityWarning();
+
+  if (cookieWarning) {
+    console.warn(`AVISO DE SEGURANCA: ${cookieWarning}`);
+  }
 });
 
 async function shutdown() {

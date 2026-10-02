@@ -172,7 +172,7 @@ Use quando for **programar**: o backend e o frontend recarregam sozinhos ao salv
 | `ADMIN_USERNAME` | `admin` | Usuário do admin |
 | `ADMIN_PASSWORD` | — | Senha do admin (**obrigatório trocar**) |
 | `ADMIN_SESSION_SECRET` | — | Segredo que assina o cookie de sessão. Trocar = derruba todas as sessões |
-| `ADMIN_COOKIE_SECURE` | `false` | Use `true` quando o site estiver em HTTPS |
+| `ADMIN_COOKIE_SECURE` | `false` | **`true` obrigatório com HTTPS**: o cookie do admin só trafega criptografado. O `npm run start` recusa subir com `FRONTEND_URL` em `https://` e isto desligado, e o backend avisa no log. Em HTTP deixe `false`: o navegador não guarda cookie `Secure` e o login não funciona |
 | `TRUST_PROXY` | vazio | De quais proxies o backend aceita o `X-Forwarded-For` para saber o IP real do visitante (auditoria e bloqueio de login). Vazio = backend exposto direto. Atrás de proxy: número de proxies (ex.: `1`) ou IPs/redes deles (ex.: `loopback, 172.16.0.0/12`). `true` é recusado (permitiria forjar o IP) |
 | `ADMIN_ALLOW_BEARER_TOKEN` / `ADMIN_TOKEN` | desativado | Acesso por `Authorization: Bearer <token>` para scripts. Só funciona com `ADMIN_ALLOW_BEARER_TOKEN=true` |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` / `postgres` / `pet_saude` | Credenciais do banco. Mudar depois de criado o volume exige `db:reset` |
@@ -260,4 +260,18 @@ Não use `npm run start` na VPS nesse modo: ele faz o build lá. A VPS só preci
 Para atualizar: repita os dois blocos (o `prisma:deploy` aplica migrations novas; o seed não apaga dados).
 
 **Alternativa automática:** publicar as imagens no GitHub Container Registry (gratuito) a cada push na `main` via GitHub Actions; na VPS basta `docker compose pull` e `up -d`. Previsto no plano (Fase 6, item 6.8).
+
+## 2.8 Checklist de publicação
+
+Antes de abrir o sistema para a internet (detalhes no [plano, Fase 6](12-plano-de-acao.md#fase-6-implantação-em-produção)):
+
+- [ ] Site e API em **HTTPS**, atrás de proxy reverso (Caddy ou nginx); só as portas 80 e 443 abertas
+- [ ] `.env` de produção com os endereços `https://` em `FRONTEND_URL`, `BACKEND_URL`, `NEXT_PUBLIC_API_URL` e `CORS_ORIGIN` (frontend construído com eles, ver §2.7)
+- [ ] `ADMIN_COOKIE_SECURE=true`
+- [ ] `TRUST_PROXY` conforme o proxy (ex.: `1`); depois de um login, conferir na auditoria do admin que aparece o **seu** IP, não o do proxy
+- [ ] `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` fortes e diferentes dos de desenvolvimento (ex.: `openssl rand -base64 32`)
+- [ ] `POSTGRES_PASSWORD` diferente de `postgres`
+- [ ] Log do backend sem `AVISO DE SEGURANCA` (`docker compose --env-file .env logs backend`)
+- [ ] `npm audit --omit=dev` sem vulnerabilidades críticas ou altas
+- [ ] Backup automático do banco configurado ([04 §4.4](04-banco-de-dados.md#44-migrations-seed-e-backup))
 

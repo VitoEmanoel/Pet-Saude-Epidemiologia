@@ -207,6 +207,16 @@ if [ "$APP_BIND_HOST" = "127.0.0.1" ] && [ "$DEPLOYMENT_TARGET" = "servidor" ]; 
   exit 1
 fi
 
+if [[ "$FRONTEND_URL" == https://* ]] && [ "${ADMIN_COOKIE_SECURE:-false}" != "true" ]; then
+  echo "FRONTEND_URL usa HTTPS, mas ADMIN_COOKIE_SECURE nao e true."
+  echo "Defina ADMIN_COOKIE_SECURE=true no .env: sem isso o cookie do admin tambem trafega sem criptografia."
+  exit 1
+fi
+
+if [[ "$FRONTEND_URL" == http://* ]] && [ "${ADMIN_COOKIE_SECURE:-false}" = "true" ] && [ "$DEPLOYMENT_TARGET" = "servidor" ]; then
+  echo "Aviso: ADMIN_COOKIE_SECURE=true com FRONTEND_URL em HTTP. O navegador nao guarda o cookie e o login do admin nao funciona."
+fi
+
 if grep -Eq "SEU_IP|SEU_IP_OU_DOMINIO" .env; then
   echo "Substitua os placeholders de IP no .env antes de iniciar o sistema."
   exit 1

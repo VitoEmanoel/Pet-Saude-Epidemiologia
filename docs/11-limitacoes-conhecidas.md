@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 0 | 3 | 3 |
+| Segurança (S) | 0 | 0 | 2 | 2 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **8** | **13** | **21** |
+| **Total** | **0** | **8** | **12** | **20** |
 
 ---
 
@@ -53,9 +53,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 ### S7. POST no admin sem `Origin` passa pela checagem de origem. **Baixa**
 - Mitigado pelo cookie `SameSite=Strict`. **Correção:** exigir `Origin`/`Referer` em métodos que alteram estado.
-
-### S9. Cookie sem `Secure`. **Baixa (configuração)**
-- Correto em HTTP local; **obrigatório** `ADMIN_COOKIE_SECURE=true` ao publicar com HTTPS.
 
 ### S10. Testes gravam na auditoria do banco real. **Baixa**
 - `npm run test:backend` insere logins falsos em `admin_audit_logs` do banco configurado.
