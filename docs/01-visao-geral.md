@@ -44,7 +44,7 @@ A especificação original completa (com as 13 fontes previstas inicialmente) es
 | Zika | `zika_sinan` | primária (casos prováveis: notificações exceto descartadas) | `sinannet/cnv/zikabr.def` |
 | Chikungunya | `chikungunya_sinan` | primária (casos prováveis; 2015 sem classificação entra inteiro) | `sinannet/cnv/chikunbr.def` |
 | Sífilis gestacional | `sifilis_gestacional_sinan` | primária | `sinannet/cnv/sifilisgestantepi.def` |
-| Arboviroses | `arboviroses_sinan` | **derivada** (soma dengue + zika) | — |
+| Arboviroses | `arboviroses_sinan` | **derivada** (soma dengue + zika + chikungunya) | — |
 
 - **primária**: coletada diretamente do TABNET e exibida no site.
 - **derivada**: não é coletada; é montada somando outras fontes.

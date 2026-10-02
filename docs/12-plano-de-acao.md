@@ -39,14 +39,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
-| 2C | Arboviroses e indicadores de saúde | 10 | 3 |
+| 2C | Arboviroses e indicadores de saúde | 10 | 4 |
 | 3 | Operação confiável | 4 | 0 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 1 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **27** |
+| | **Total** | **64** | **28** |
 
 ---
 
@@ -179,7 +179,7 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
 - [x] **A2** Incluir a **chikungunya** (02/10/2026, branch `feat/a2-chikungunya`): `chikunbr.def`, Parnaíba = 827, página `/chikungunya` e item no menu
   - [x] Evidências em `docs/evidencias/chikungunya_sinan/` (2.306 notificações, 592 descartadas; **1.714 casos prováveis**; epidemias em 2017 e 2022–2023)
   - [x] 2015 (51 casos) sem classificação: entra inteiro como provável (nenhum caso descartado), em um segmento sem filtro
-- [ ] **A3** **Arboviroses** = dengue + zika + chikungunya, todas por casos prováveis
+- [x] **A3** **Arboviroses** = dengue + zika + chikungunya, todas por casos prováveis (02/10/2026, branch `feat/a3-arboviroses-completa`): **9.459** casos (7.712 + 33 + 1.714); teste confere a soma ano a ano
 - [ ] **D5** Anos novos automáticos (subiu da Fase 3: sem ele, 2027 não entra sozinho em nenhuma doença)
   - [ ] Ler os arquivos de período disponíveis no formulário TABNET
   - [ ] Ou, no mínimo, alerta quando houver arquivo de ano novo não configurado

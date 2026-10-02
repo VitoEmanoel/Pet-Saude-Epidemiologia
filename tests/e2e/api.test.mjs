@@ -307,7 +307,8 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
   test("D7: zika entra em arboviroses só com casos prováveis (33, validado no TABNET em 02/10/2026)", async () => {
     const arbo = (await api("/api/sources/arboviroses_sinan/summary")).json.summary.totalCases;
     const dengue = (await api("/api/sources/dengue_sinan/summary")).json.summary.totalCases;
-    assert.equal(arbo - dengue, 33, "zika deveria somar 33 casos prováveis (187 com descartados)");
+    const chik = (await api("/api/sources/chikungunya_sinan/summary")).json.summary.totalCases;
+    assert.equal(arbo - dengue - chik, 33, "zika deveria somar 33 casos prováveis (187 com descartados)");
     assert.equal((await api("/api/sources/zika_sinan/summary")).json.summary.totalCases, 33);
   });
 
@@ -315,6 +316,17 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
     assert.equal((await api("/api/sources/chikungunya_sinan/summary")).json.summary.totalCases, 1714);
     const series = (await api("/api/charts/yearly-evolution?source=chikungunya_sinan&year=2017")).json.series;
     assert.equal(series[0].value, 841);
+  });
+
+  test("A3: arboviroses = dengue + zika + chikungunya, ano a ano", async () => {
+    const yearly = async (slug) =>
+      Object.fromEntries((await api(`/api/charts/yearly-evolution?source=${slug}`)).json.series.map((point) => [point.year, point.value]));
+    const [arbo, dengue, zika, chik] = await Promise.all(
+      ["arboviroses_sinan", "dengue_sinan", "zika_sinan", "chikungunya_sinan"].map(yearly)
+    );
+    for (const year of Object.keys(arbo)) {
+      assert.equal(arbo[year], (dengue[year] ?? 0) + (zika[year] ?? 0) + (chik[year] ?? 0), `ano ${year}`);
+    }
   });
 
   test("Tuberculose 2024 = 86 casos, também somando a tabela (D3)", async () => {

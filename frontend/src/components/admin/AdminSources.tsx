@@ -193,7 +193,7 @@ export function AdminSources() {
         </table>
       </div>
       <p className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-        Arboviroses é derivada (soma de dengue e zika): sincronize essas fontes para atualizá-la.
+        Arboviroses é derivada (soma de dengue, zika e chikungunya): sincronize essas fontes para atualizá-la.
       </p>
     </Panel>
   );

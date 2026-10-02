@@ -28,6 +28,8 @@ Para saber quais fontes estão desatualizadas: **Admin → Dashboard da fonte** 
 
 ## 9.2 Adicionar uma fonte nova (ex.: chikungunya)
 
+> A chikungunya foi incluída em 02/10/2026 seguindo estes passos (item A2; evidências em `docs/evidencias/chikungunya_sinan/`). O roteiro vale para qualquer fonte nova.
+
 1. **Valide no TABNET** seguindo [05-coleta-de-dados.md §5.5](05-coleta-de-dados.md#55-como-descobrir-os-parâmetros-de-uma-fonte-nova-ou-que-mudou). Anote a URL do `.def`, os arquivos de período, a linha, o incremento, o nome da coluna de faixa etária e o valor da opção de Parnaíba.
 2. **Cadastre a fonte** em [`backend/src/config/sources.ts`](../backend/src/config/sources.ts):
 

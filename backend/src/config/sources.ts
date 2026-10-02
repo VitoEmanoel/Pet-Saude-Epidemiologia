@@ -93,7 +93,7 @@ export const allowedSources: readonly AllowedSource[] = [
     active: true,
     syncEnabled: false,
     kind: "derived",
-    composedOf: ["dengue_sinan", "zika_sinan"]
+    composedOf: ["dengue_sinan", "zika_sinan", "chikungunya_sinan"]
   },
   {
     slug: "sifilis_gestacional_sinan",

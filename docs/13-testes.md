@@ -70,7 +70,7 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
 | `test:backend` | 25 | 0 | 0 | 0 |
-| `test:e2e` | 96 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
+| `test:e2e` | 97 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 61 | 0 | 0 | 1 |
 | `test:security` | 48 | 0 | 1 (TABNET) | 0 |
