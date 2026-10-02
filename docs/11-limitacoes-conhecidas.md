@@ -6,16 +6,20 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 | Tema | Alta | Média | Baixa | Total |
 |---|---|---|---|---|
-| Dados exibidos (D) | 0 | 1 | 1 | 2 |
+| Dados exibidos (D) | 0 | 2 | 1 | 3 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
 | Segurança (S) | 0 | 0 | 2 | 2 |
 | Interface e usabilidade (U) | 0 | 2 | 4 | 6 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **7** | **12** | **19** |
+| **Total** | **0** | **8** | **12** | **20** |
 
 ---
 
 ## D. Dados exibidos
+
+### D7. Zika contada com notificações descartadas. **Média**
+- **Evidência (02/10/2026, consulta ao TABNET por classificação):** a zika usa o incremento "Todos os casos", o único que o formulário `zikabr.def` oferece. Das 187 notificações de Parnaíba, **154 foram descartadas**, 19 confirmadas, 12 inconclusivas e 2 sem classificação. A dengue usa "casos prováveis" (todas as notificações exceto descartadas), então a soma de arboviroses (7.899) mistura duas regras e está inflada em 154.
+- **Correção:** pedir ao TABNET os casos por "Classificação" e calcular **prováveis = total − descartados** (e guardar os **confirmados**). Vale também para a chikungunya, que tem o mesmo formulário (2.306 notificações, 592 descartadas). Plano: Fase 2C.
 
 ### D5. Anos de coleta fixos no código. **Média**
 - **Sintoma:** ano novo publicado no DATASUS não aparece até alguém editar `periodFiles`.
@@ -23,6 +27,8 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 ### D6. Cartão "Registros" ignora filtros. **Baixa**
 - **Sintoma:** com qualquer filtro, continua mostrando o total (ex.: 500).
+
+**Limitações da fonte (não são defeitos):** o TABNET só chega ao nível de **município**: não há bairro em nenhum formulário, então indicadores por bairro precisam do SINAN local da Secretaria de Saúde. O formulário de zika não tem campo de **gestante**, então a incidência de zika em gestantes também não sai do TABNET. Ver [INDICADORES DE SAÚDE DAS ARBOVIROSES](INDICADORES%20DE%20SA%C3%9ADE%20DAS%20ARBOVIROSES.md) e a Fase 2C do plano.
 
 ---
 

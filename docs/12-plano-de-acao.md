@@ -4,7 +4,7 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 
 ## Como usar
 
-1. Trabalhe **na ordem das fases**. Dentro de uma fase, a ordem dos itens também é a recomendada.
+1. Trabalhe **na ordem da tabela "Ordem de prioridade"** abaixo (os números das fases são só identificadores; a 2C vem antes da 3). Dentro de uma fase, a ordem dos itens também é a recomendada.
 2. Marque cada subtarefa trocando `[ ]` por `[x]` assim que concluída.
 3. Um item só é marcado como concluído quando cumprir a **definição de pronto** abaixo.
 4. Ao concluir um item, anote ao lado: data e hash do commit. Exemplo: `- [x] **O1** ... (02/10/2026, a1b2c3d)`.
@@ -18,6 +18,19 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 - [ ] Documentação atualizada (docs 01–10 afetados; remover o item de `11-limitacoes-conhecidas.md`)
 - [ ] Commit feito com mensagem clara citando o código do item (ex.: `fix(sync): use compiled script in Docker (O1)`)
 
+## Ordem de prioridade (combinada em 02/10/2026)
+
+| Ordem | Fase | Prioridade | Por quê |
+|---|---|---|---|
+| ✅ | 0, 1, 2, 2B | Concluídas | Terreno, dados corretos e segurança para publicar |
+| **1º** | **2C** Arboviroses e indicadores | **Alta (próxima)** | Corrige números que o público vê (zika com descartados), inclui chikungunya e entrega os indicadores do GT1 |
+| 2º | **4** Ajustes visuais e acessibilidade | Média-alta | Deixa o site público no nível do admin (textos, contraste, celular) |
+| 3º | **4B** Telas novas | Média | Contas individuais no admin, ativar/desativar fontes, transparência |
+| 4º | **3** Operação confiável | Média | Volume dos arquivos brutos, coleta em transação, testes do núcleo |
+| 5º | **6** Implantação em produção | Quando houver servidor | Depende da decisão de servidor/domínio |
+| 6º | **5** Qualidade de código | Baixa | Lint, CI, limpeza |
+| 7º | **7** Evolução do produto | Baixa | Teste com usuários e fontes novas |
+
 ## Painel de progresso
 
 | Fase | Objetivo | Itens | Concluídos |
@@ -26,12 +39,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
-| 3 | Operação confiável | 6 | 0 |
-| 4 | Usabilidade e acessibilidade | 8 | 1 |
+| 2C | Arboviroses e indicadores de saúde | 10 | 0 |
+| 3 | Operação confiável | 4 | 0 |
+| 4 | Ajustes visuais e acessibilidade | 9 | 1 |
+| 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
-| 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **56** | **24** |
+| 7 | Evolução do produto | 2 | 0 |
+| | **Total** | **64** | **24** |
 
 ---
 
@@ -148,6 +163,59 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
 
 ---
 
+## Fase 2C: Arboviroses e indicadores de saúde (alta, próxima)
+
+Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE DAS ARBOVIROSES](INDICADORES%20DE%20SA%C3%9ADE%20DAS%20ARBOVIROSES.md). Análise do TABNET feita em 02/10/2026 (formulários `denguebr`, `denguebbr`, `zikabr`, `chikunbr`). Executar na ordem: os indicadores dependem dos números corrigidos e da população.
+
+**Bloco 1: números corretos e chikungunya**
+
+- [ ] **D7** Zika e chikungunya contadas como **casos prováveis** (iguais à dengue)
+  - [ ] Coletar por "Classificação" e guardar prováveis (= total − descartados) e confirmados
+  - [ ] Zika: 187 → ~33 prováveis (19 confirmados); documentar a mudança para quem já viu o número antigo
+  - [ ] Teste: soma de prováveis por ano confere com a consulta manual ao TABNET
+- [ ] **A1** Zika com **página própria** no site (deixa de ser fonte interna; entra no menu e na visão geral)
+- [ ] **A2** Incluir a **chikungunya** (`chikunbr.def`, arquivos `chikbr14..26`, Parnaíba = 827; colunas sexo, faixa etária, raça/cor)
+  - [ ] Evidências em `docs/evidencias/chikungunya_sinan/` (2.306 notificações; epidemias em 2017 e 2022–2023)
+  - [ ] Decidir e documentar os 51 casos de 2015 sem classificação (sugestão: contar como prováveis, pois não foram descartados)
+- [ ] **A3** **Arboviroses** = dengue + zika + chikungunya, todas por casos prováveis
+- [ ] **D5** Anos novos automáticos (subiu da Fase 3: sem ele, 2027 não entra sozinho em nenhuma doença)
+  - [ ] Ler os arquivos de período disponíveis no formulário TABNET
+  - [ ] Ou, no mínimo, alerta quando houver arquivo de ano novo não configurado
+- [ ] **O5** Falhas de coleta visíveis (subiu da Fase 3)
+  - [ ] Retry com espera para falhas temporárias do TABNET
+  - [ ] Aviso no admin (e/ou e-mail) quando uma fonte falhar N vezes seguidas
+
+**Bloco 2: população**
+
+- [ ] **A4** **População por ano** a partir de planilha CSV
+  - [ ] Colunas: `ano`, `populacao` (obrigatórias) e `populacao_60_mais` (opcional, para o indicador de idosos); fonte declarada (ex.: estimativa IBGE)
+  - [ ] Tela no admin para enviar a planilha: valida (anos repetidos, números inválidos), mostra o que mudou e grava; auditoria registra quem enviou
+  - [ ] Modelo de planilha para baixar e instruções em `docs/`
+
+**Bloco 3: indicadores e filtro**
+
+- [ ] **A5** Indicadores calculados automaticamente (a cada sincronização e a cada envio de população)
+
+  | Indicador | Cálculo | Disponível |
+  |---|---|---|
+  | Incidência de dengue | casos prováveis ÷ população × 100.000 | Todos os anos com população |
+  | % dengue com sinais de alarme | casos "com sinais de alarme" ÷ casos prováveis × 100 | **2014+** (classificação nova) |
+  | % dengue grave | casos "grave" ÷ casos prováveis × 100 | **2014+** |
+  | Incidência de chikungunya | prováveis ÷ população × 100.000 | Com A2 |
+  | Incidência de chikungunya em idosos | prováveis 60+ (faixas 60-64, 65-69, 70-79, 80+) ÷ população 60+ × 100.000 | Se o CSV tiver `populacao_60_mais` |
+  | Incidência de zika | prováveis ÷ população × 100.000 | Com D7 |
+
+  - [ ] Decisão do GT1 para **antes de 2014** (classificação antiga: clássico, com complicações, febre hemorrágica, síndrome do choque): mostrar "não se aplica" ou definir equivalência
+  - [ ] Ano sem população cadastrada: indicador aparece como "sem população" (nunca estimar)
+- [ ] **A6** **Filtro por indicador** no painel público e no admin: casos, incidência por 100 mil, % sinais de alarme, % grave, incidência em idosos; gráficos e exportações (CSV/HTML) seguem o indicador escolhido
+  - [ ] Incidência só no total do município (a população não vem por sexo/idade/raça); com filtro demográfico, avisar
+  - [ ] Texto explicativo de cada indicador (descrição e cálculo do documento do GT1)
+- [ ] **A7** (opcional, baixa) Série **mensal** (o TABNET tem "Mês 1º Sintoma(s)")
+
+**Fora do alcance do TABNET** (registrado em [11](11-limitacoes-conhecidas.md)): indicadores **por bairro** e **zika em gestantes**. Caminho, se o GT1 quiser: dados do SINAN local da Secretaria Municipal de Saúde, com outra forma de importação.
+
+---
+
 ## Fase 3: Operação confiável (média)
 
 - [ ] **O2** Volume Docker para `backend/storage`
@@ -157,12 +225,7 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
   - [ ] Trava de sincronização no banco (`pg_advisory_lock`)
   - [ ] Gravação dos registros em lote dentro de transação
   - [ ] Teste de injeção de falhas: falha no meio não altera registros nem histórico
-- [ ] **O5** Falhas visíveis
-  - [ ] Retry com espera para falhas temporárias do TABNET
-  - [ ] Aviso no admin (e/ou e-mail) quando uma fonte falhar N vezes seguidas
-- [ ] **D5** Anos novos automáticos
-  - [ ] Ler os arquivos de período disponíveis no formulário TABNET
-  - [ ] Ou, no mínimo, alerta quando houver arquivo de ano novo não configurado
+- O5 e D5 subiram para a Fase 2C.
 - [ ] **Q1** Testes do núcleo do sistema
   - [ ] Testes do parser PRN com os HTMLs de `docs/evidencias/`
   - [ ] Testes de normalização (sexo, faixa etária, raça/cor, números)
@@ -171,8 +234,11 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
 
 ---
 
-## Fase 4: Usabilidade e acessibilidade (média)
+## Fase 4: Ajustes visuais e acessibilidade (média-alta, depois da 2C)
 
+Ordem sugerida: U8, U3, U2, U4, U5, D6 (rápidos, deixam o site público no nível do admin); depois U7 e U6.
+
+- [ ] **U8** Indicadores em 2 colunas no celular também no site público (no admin já está)
 - [ ] **U3** Linguagem para o público
   - [x] Esconder `source_table` técnico (mostrar "Total do ano", "Por sexo"...) (feito junto com o D3)
   - [ ] Traduzir status ("SUCCESS" → "Atualizado")
@@ -184,6 +250,14 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
 - [ ] **U5** Favicon
 - [ ] **U6** Alvos de toque ≥ 24 px no celular
 - [ ] **U7** Lista de registros mais compacta no celular (ou paginação menor / recolhível)
+
+---
+
+## Fase 4B: Telas novas (média)
+
+- [ ] **7.4** Mais de um administrador: contas individuais, tela de usuários no admin e **auditoria por pessoa** (completa o pedido de "saber quem fez o quê")
+- [ ] **7.5** Ativar/desativar fontes pela área administrativa
+- [ ] **7.3** Transparência no site: última atualização em destaque, período disponível, link da fonte oficial, aviso de dados desatualizados
 
 ---
 
@@ -236,8 +310,5 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
   - [ ] Preparar roteiro (tarefas, observação, questionário SUS)
   - [ ] Aplicar com 5 participantes (agentes de saúde, gestores, estudantes PET)
   - [ ] Registrar resultados e transformar os problemas encontrados em itens deste plano
-- [ ] **7.2** Chikungunya na visão de arboviroses ([09 §9.2](09-guia-de-manutencao.md#92-adicionar-uma-fonte-nova-ex-chikungunya))
-- [ ] **7.3** Transparência: última atualização em destaque, período disponível, link da fonte oficial, aviso de dados desatualizados
-- [ ] **7.4** Mais de um administrador (contas individuais e auditoria por pessoa)
-- [ ] **7.5** Ativar/desativar fontes pela área administrativa
+- 7.2 (chikungunya) virou o item A2 da Fase 2C; 7.3, 7.4 e 7.5 foram para a Fase 4B.
 - [ ] **7.6** Avaliar novas fontes da especificação original ([00](00-especificacao-original.md)) e sífilis adquirida
