@@ -69,7 +69,7 @@ Como repetir: `npm run test:security` (suíte, segundos) e `npm run test:securit
 | Atributos do cookie (`HttpOnly`, `SameSite=Strict`, `Path=/api/admin`, 8 h, `Secure` em HTTPS) | Cinza | **Correto** |
 | Cookie novo a cada login | Cinza | **Correto** |
 | Cookie copiado antes do logout continua valendo | Cinza | **Achado S11**, corrigido: sessão guardada no servidor e revogada no logout |
-| Comparação de senha e token | Branca | **Achado S16** (tamanho revelado por tempo; token Bearer com `===`) |
+| Comparação de senha e token | Branca | **Achado S16**, corrigido: hashes SHA-256 comparados em tempo constante |
 
 ### A05 Configuração e A04 lógica de negócio
 

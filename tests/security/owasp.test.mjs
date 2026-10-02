@@ -305,10 +305,11 @@ describe("A07 Autenticação e sessão", () => {
     assert.equal(entry.metadata.username, payload);
   });
 
-  test("S16 [branca] Comparação de credenciais não revela o tamanho por tempo de resposta", { todo: "S16" }, () => {
+  test("S16 [branca] Comparação de credenciais não revela o tamanho por tempo de resposta", () => {
     const code = read("backend/src/middleware/admin-auth.ts");
     const safeEqual = code.slice(code.indexOf("function safeEqual"), code.indexOf("function safeEqual") + 400);
     assert.doesNotMatch(safeEqual, /length !== /, "safeEqual sai antes ao comparar tamanhos diferentes");
+    assert.match(safeEqual, /createHash\("sha256"\)/);
     assert.doesNotMatch(code, /authorization === expectedAuthorization/, "token Bearer comparado com ===");
   });
 });

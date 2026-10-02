@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { prisma } from "../database/prisma";
 import { sendError } from "../utils/api-response";
 
@@ -187,7 +187,7 @@ function hasValidBearerToken(request: Request) {
   const authorization = request.header("authorization");
   const expectedAuthorization = `Bearer ${configuredToken}`;
 
-  return authorization === expectedAuthorization;
+  return safeEqual(authorization ?? "", expectedAuthorization);
 }
 
 async function findActiveSessionId(request: Request) {
@@ -331,15 +331,15 @@ function isSecureAdminCookieEnabled() {
   return process.env.ADMIN_COOKIE_SECURE === "true";
 }
 
+/**
+ * Compara em tempo constante. Os dois lados viram hashes SHA-256 (sempre 32 bytes), então
+ * nem o tamanho do valor esperado vaza pelo tempo de resposta (S16).
+ */
 function safeEqual(left: string, right: string) {
-  const leftBuffer = Buffer.from(left);
-  const rightBuffer = Buffer.from(right);
+  const leftHash = createHash("sha256").update(left).digest();
+  const rightHash = createHash("sha256").update(right).digest();
 
-  if (leftBuffer.length !== rightBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(leftBuffer, rightBuffer);
+  return timingSafeEqual(leftHash, rightHash);
 }
 
 function getAllowedAdminOrigins() {

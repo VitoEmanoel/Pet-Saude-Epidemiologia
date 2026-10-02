@@ -503,3 +503,28 @@ test("S15: avisa configuracao fraca so quando o sistema parece publicado", () =>
   }
 });
 
+test("S16: token Bearer ligado aceita so o valor exato (comparacao em tempo constante)", async () => {
+  const previousAllow = process.env.ADMIN_ALLOW_BEARER_TOKEN;
+  const previousToken = process.env.ADMIN_TOKEN;
+  process.env.ADMIN_ALLOW_BEARER_TOKEN = "true";
+  process.env.ADMIN_TOKEN = "token-de-teste-1234567890";
+
+  try {
+    const me = (authorization: string) =>
+      fetch(`${baseUrl}/api/admin/auth/me`, { headers: { authorization } });
+
+    assert.equal((await me("Bearer token-de-teste-1234567890")).status, 200);
+    assert.equal((await me("Bearer token-de-teste-1234567891")).status, 401);
+    assert.equal((await me("Bearer x")).status, 401);
+    assert.equal((await me("")).status, 401);
+  } finally {
+    for (const [key, value] of [["ADMIN_ALLOW_BEARER_TOKEN", previousAllow], ["ADMIN_TOKEN", previousToken]] as const) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  }
+});
+

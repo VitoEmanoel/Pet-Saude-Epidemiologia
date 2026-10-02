@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 0 | 4 | 4 |
+| Segurança (S) | 0 | 0 | 3 | 3 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **8** | **14** | **22** |
+| **Total** | **0** | **8** | **13** | **21** |
 
 ---
 
@@ -52,10 +52,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ## S. Segurança
 
 Achados S11–S18 vêm da campanha de testes de segurança de 02/10/2026 ([14](14-testes-de-seguranca.md)).
-
-### S16. Comparação de credenciais revela o tamanho por tempo. **Baixa**
-- `safeEqual` retorna antes se os tamanhos diferem; o token Bearer é comparado com `===`. Exploração prática é muito difícil pela rede.
-- **Correção:** comparar hashes (ex.: HMAC-SHA256 dos dois lados) com `timingSafeEqual`.
 
 ### S18. Endurecimentos menores. **Baixa**
 - Site sem `Cross-Origin-Opener-Policy: same-origin` e `Cross-Origin-Resource-Policy: same-origin`; `Dockerfile` sem `HEALTHCHECK` (o Compose também não verifica backend/frontend).
