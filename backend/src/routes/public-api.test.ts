@@ -410,3 +410,23 @@ test("S9: avisa quando o site usa HTTPS e o cookie nao e Secure", () => {
   }
 });
 
+test("S11: logout invalida a sessao no servidor (cookie copiado deixa de valer)", async () => {
+  resetAdminSecurityState();
+  const loginResponse = await fetch(`${baseUrl}/api/admin/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "http://localhost:3000" },
+    body: JSON.stringify({ username: "test-admin", password: "test-admin-password" })
+  });
+  const sessionCookie = (loginResponse.headers.get("set-cookie") ?? "").split(";")[0];
+  const me = () => fetch(`${baseUrl}/api/admin/auth/me`, { headers: { cookie: sessionCookie } });
+
+  assert.equal((await me()).status, 200);
+
+  const logout = await fetch(`${baseUrl}/api/admin/auth/logout`, {
+    method: "POST",
+    headers: { cookie: sessionCookie, origin: "http://localhost:3000" }
+  });
+  assert.equal(logout.status, 200);
+  assert.equal((await me()).status, 401);
+});
+

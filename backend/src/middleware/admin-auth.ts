@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { prisma } from "../database/prisma";
 import { sendError } from "../utils/api-response";
 
 const ADMIN_SESSION_COOKIE = "painel_admin_session";
@@ -18,13 +19,24 @@ type LoginAttemptState = {
 
 const failedLoginAttempts = new Map<string, LoginAttemptState>();
 
-export function requireAdminAuth(request: Request, response: Response, next: NextFunction) {
+export async function requireAdminAuth(request: Request, response: Response, next: NextFunction) {
   if (!isAdminSecurityConfigured()) {
     return sendAdminNotConfigured(response);
   }
 
-  if (hasValidBearerToken(request) || hasValidSessionCookie(request)) {
+  if (hasValidBearerToken(request)) {
     return next();
+  }
+
+  try {
+    const sessionId = await findActiveSessionId(request);
+
+    if (sessionId) {
+      response.locals.adminSessionId = sessionId;
+      return next();
+    }
+  } catch (error) {
+    return next(error);
   }
 
   return sendError(response, 401, "unauthorized", "Sessao administrativa invalida ou ausente.");
@@ -114,11 +126,20 @@ export function setAdminSecurityHeaders(response: Response) {
   );
 }
 
-export function setAdminSessionCookie(response: Response) {
+/**
+ * Cria a sessão no banco e envia o cookie assinado com o id dela. Guardar a sessão no servidor
+ * permite que o logout a invalide de verdade, mesmo que alguém tenha copiado o cookie (S11).
+ */
+export async function startAdminSession(response: Response) {
   const expiresAt = Date.now() + SESSION_MAX_AGE_MS;
-  const payload = Buffer.from(JSON.stringify({ sub: "admin", exp: expiresAt })).toString(
-    "base64url"
-  );
+  const sessionId = randomBytes(32).toString("base64url");
+
+  await prisma.adminSession.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+  await prisma.adminSession.create({ data: { id: sessionId, expiresAt: new Date(expiresAt) } });
+
+  const payload = Buffer.from(
+    JSON.stringify({ sub: "admin", exp: expiresAt, sid: sessionId })
+  ).toString("base64url");
   const signature = sign(payload);
 
   response.cookie(ADMIN_SESSION_COOKIE, `${payload}.${signature}`, {
@@ -128,6 +149,18 @@ export function setAdminSessionCookie(response: Response) {
     sameSite: "strict",
     secure: isSecureAdminCookieEnabled()
   });
+}
+
+/** Revoga no banco a sessão usada nesta requisição (definida por requireAdminAuth). */
+export async function revokeAdminSession(response: Response) {
+  const sessionId = response.locals.adminSessionId;
+
+  if (typeof sessionId === "string") {
+    await prisma.adminSession.updateMany({
+      where: { id: sessionId, revokedAt: null },
+      data: { revokedAt: new Date() }
+    });
+  }
 }
 
 export function clearAdminSessionCookie(response: Response) {
@@ -157,33 +190,48 @@ function hasValidBearerToken(request: Request) {
   return authorization === expectedAuthorization;
 }
 
-function hasValidSessionCookie(request: Request) {
+async function findActiveSessionId(request: Request) {
   const rawCookie = request.header("cookie") ?? "";
-  const cookieValues = parseCookieValues(rawCookie, ADMIN_SESSION_COOKIE);
+  const sessionIds = parseCookieValues(rawCookie, ADMIN_SESSION_COOKIE)
+    .map(getSignedSessionId)
+    .filter((sessionId): sessionId is string => sessionId !== null);
 
-  if (cookieValues.length === 0) {
-    return false;
+  if (sessionIds.length === 0) {
+    return null;
   }
 
-  return cookieValues.some(isValidSessionCookieValue);
+  const session = await prisma.adminSession.findFirst({
+    where: { id: { in: sessionIds }, revokedAt: null, expiresAt: { gt: new Date() } },
+    select: { id: true }
+  });
+
+  return session?.id ?? null;
 }
 
-function isValidSessionCookieValue(cookieValue: string) {
+/** Id da sessão de um cookie com assinatura válida e não expirado; null se não for. */
+function getSignedSessionId(cookieValue: string) {
   const [payload, signature] = cookieValue.split(".");
 
   if (!payload || !signature || !safeEqual(signature, sign(payload))) {
-    return false;
+    return null;
   }
 
   try {
     const decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
       sub?: string;
       exp?: number;
+      sid?: string;
     };
 
-    return decoded.sub === "admin" && typeof decoded.exp === "number" && decoded.exp > Date.now();
+    const isValid =
+      decoded.sub === "admin" &&
+      typeof decoded.exp === "number" &&
+      decoded.exp > Date.now() &&
+      typeof decoded.sid === "string";
+
+    return isValid ? (decoded.sid as string) : null;
   } catch {
-    return false;
+    return null;
   }
 }
 

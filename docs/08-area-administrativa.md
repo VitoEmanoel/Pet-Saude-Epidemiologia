@@ -21,7 +21,7 @@ Fontes derivadas (arboviroses) não têm botão de sincronizar: sincronize `deng
 
 | Mecanismo | Detalhe |
 |---|---|
-| Sessão | Cookie `painel_admin_session` `httpOnly`, `SameSite=Strict`, restrito a `/api/admin`, válido por **8 horas**, assinado com HMAC-SHA256 usando `ADMIN_SESSION_SECRET` |
+| Sessão | Cookie `painel_admin_session` `httpOnly`, `SameSite=Strict`, restrito a `/api/admin`, válido por **8 horas**, assinado com HMAC-SHA256 usando `ADMIN_SESSION_SECRET`. O cookie carrega o id de uma sessão guardada no banco (`admin_sessions`): o **logout revoga a sessão no servidor**, então um cookie copiado antes deixa de valer |
 | Comparação de senha | Em tempo constante (`timingSafeEqual`) |
 | Cookie `Secure` | `ADMIN_COOKIE_SECURE=true` em HTTPS (obrigatório ao publicar; o `start` e o backend avisam) |
 | Limite de tentativas | 5 erros por IP real → bloqueio de 15 minutos **só para aquele IP** (em memória: reiniciar o backend zera). Tentativas de outra pessoa não trancam o administrador que acessa de outro endereço. Atrás de proxy, depende de `TRUST_PROXY` ([02 §2.5](02-instalacao-e-execucao.md#25-variáveis-de-ambiente-env)) |

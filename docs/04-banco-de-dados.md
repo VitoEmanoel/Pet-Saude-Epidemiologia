@@ -14,6 +14,7 @@ data_sources 1───1 data_availability
      └────────* epidemiological_records *───1 sync_jobs
 
 admin_audit_logs (independente)
+admin_sessions   (independente)
 ```
 
 ### `data_sources`: cadastro das fontes
@@ -79,6 +80,10 @@ Uma linha por consulta (são 4 por sincronização).
 ### `admin_audit_logs`: auditoria da área administrativa
 
 Logins (sucesso/falha), logouts, exportações, sincronizações e requisições bloqueadas, com IP, navegador e detalhes (`metadata`). O IP é o `request.ip` do Express: o `X-Forwarded-For` só é considerado quando vem de um proxy confiável (`TRUST_PROXY`), então não dá para forjá-lo.
+
+### `admin_sessions`: sessões do admin
+
+Uma linha por login: `id` (aleatório, vai dentro do cookie assinado), `created_at`, `expires_at` (8 h depois) e `revoked_at` (preenchido no logout). Uma sessão só vale se existir, não estiver revogada e não tiver expirado. Linhas vencidas são apagadas a cada novo login. Para **derrubar todas as sessões** (ex.: suspeita de cookie roubado): `UPDATE admin_sessions SET revoked_at = now() WHERE revoked_at IS NULL;` (ou trocar `ADMIN_SESSION_SECRET`).
 
 ## 4.2 Ponto essencial: as 4 agregações convivem na mesma tabela
 

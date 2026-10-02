@@ -25,13 +25,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
-| 2B | Achados dos testes de segurança | 8 | 1 |
+| 2B | Achados dos testes de segurança | 8 | 2 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **56** | **16** |
+| | **Total** | **56** | **17** |
 
 ---
 
@@ -138,7 +138,7 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
   - [x] **Sem npm/yarn/corepack nas imagens finais** (backend e frontend): mesmo o npm 12 mais novo traz dependências com falhas. Migrations, seed e sincronização passam a ser chamados com `node` direto (`start.sh`, `sync-data.sh`, serviço `sync-data`)
   - [x] Trivy: backend e frontend **sem nenhuma falha média, alta ou crítica** (antes: 1 crítica + 25 altas)
   - [x] `postgres:16-alpine` (imagem oficial, já a mais recente): 1 crítica + 21 altas no `gosu`, binário que só troca de usuário ao iniciar, sem rede. **Risco aceito**; reavaliar a cada atualização da imagem
-- [ ] **S11** Logout invalida a sessão no servidor (versão de sessão no banco ou lista de revogação)
+- [x] **S11** Logout invalida a sessão no servidor (02/10/2026, branch `fix/s11-logout-revoga-sessao`): tabela `admin_sessions` (migration `20261002170000_add_admin_sessions`); o cookie assinado leva o id da sessão; o logout preenche `revoked_at`. Cookies antigos (sem id) deixam de valer: é preciso entrar de novo uma vez
 - [ ] **S17** Limite de requisições por IP na API pública (proxy ou `express-rate-limit`), sem afetar o uso normal
 - [ ] **S15** `start.sh` recusa `POSTGRES_PASSWORD` padrão no perfil `servidor`
 - [ ] **S12** `/api/records` aceita só fontes públicas

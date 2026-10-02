@@ -274,7 +274,7 @@ describe("A07 Autenticação e sessão", () => {
     assert.match(r.headers.get("set-cookie") ?? "", /painel_admin_session=;/);
   });
 
-  test("S11 [cinza] Cookie copiado antes do logout deixa de valer depois dele", { todo: "S11" }, async () => {
+  test("S11 [cinza] Cookie copiado antes do logout deixa de valer depois dele", async () => {
     const { cookie } = await adminLogin();
     const admin = adminApi(cookie);
     await admin("/api/admin/auth/logout", { method: "POST" });

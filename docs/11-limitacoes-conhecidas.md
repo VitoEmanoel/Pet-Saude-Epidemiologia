@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 3 | 6 | 9 |
+| Segurança (S) | 0 | 2 | 6 | 8 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **11** | **16** | **27** |
+| **Total** | **0** | **10** | **16** | **26** |
 
 ---
 
@@ -52,10 +52,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ## S. Segurança
 
 Achados S11–S18 vêm da campanha de testes de segurança de 02/10/2026 ([14](14-testes-de-seguranca.md)).
-
-### S11. Logout não invalida a sessão. **Média**
-- A sessão é um cookie assinado sem registro no servidor; o logout só apaga o cookie do navegador. Um cookie copiado antes (ex.: computador compartilhado) vale até 8 h.
-- **Correção:** guardar no servidor uma "versão de sessão" (ou lista de sessões revogadas) e incluí-la no cookie; o logout incrementa a versão.
 
 ### S17. API pública sem limite de requisições. **Média**
 - Um script pode disparar centenas de consultas pesadas por segundo (`pageSize=500`); numa VPS de 1 CPU isso deixa o painel lento para todos.

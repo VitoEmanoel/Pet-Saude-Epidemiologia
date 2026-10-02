@@ -10,9 +10,10 @@ import {
   isAllowedAdminOrigin,
   isValidAdminCredentials,
   requireAdminAuth,
+  revokeAdminSession,
   registerFailedAdminLogin,
   setAdminSecurityHeaders,
-  setAdminSessionCookie
+  startAdminSession
 } from "../middleware/admin-auth";
 import { prisma } from "../database/prisma";
 import {
@@ -101,7 +102,13 @@ adminRouter.post("/auth/login", async (request, response) => {
     return sendError(response, 401, "unauthorized", "Credencial administrativa invalida.");
   }
 
-  setAdminSessionCookie(response);
+  try {
+    await startAdminSession(response);
+  } catch (error) {
+    console.error(error);
+    return sendError(response, 500, "internal_error", "Erro ao iniciar a sessao administrativa.");
+  }
+
   clearAdminLoginAttempts(request);
   await recordAdminAudit({
     request,
@@ -118,6 +125,13 @@ adminRouter.get("/auth/me", (_request, response) => {
 });
 
 adminRouter.post("/auth/logout", async (request, response) => {
+  try {
+    await revokeAdminSession(response);
+  } catch (error) {
+    console.error(error);
+    return sendError(response, 500, "internal_error", "Erro ao encerrar a sessao administrativa.");
+  }
+
   clearAdminSessionCookie(response);
   await recordAdminAudit({
     request,
