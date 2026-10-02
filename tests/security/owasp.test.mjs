@@ -344,6 +344,11 @@ describe("A05 Configuração e A04 lógica de negócio", () => {
     assert.equal((await api("/api/sources/hanseniase_sinan/summary")).json.summary.totalRecords, before, "duplicou registros");
   });
 
+  test("S17 [branca] API pública com limite de requisições por IP", () => {
+    assert.match(read("backend/src/server.ts"), /app\.use\("\/api", createApiRateLimiter\(\)\)/);
+    assert.match(read("backend/src/config/rate-limit.ts"), /isPrivateAddress\(request\.ip\)/);
+  });
+
   test("[branca] .env e segredos fora do git", () => {
     const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" }).split("\n");
     assert.ok(!tracked.some((path) => /(^|\/)\.env$/.test(path)), ".env versionado");

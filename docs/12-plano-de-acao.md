@@ -25,13 +25,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
-| 2B | Achados dos testes de segurança | 8 | 2 |
+| 2B | Achados dos testes de segurança | 8 | 3 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **56** | **17** |
+| | **Total** | **56** | **18** |
 
 ---
 
@@ -139,7 +139,7 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
   - [x] Trivy: backend e frontend **sem nenhuma falha média, alta ou crítica** (antes: 1 crítica + 25 altas)
   - [x] `postgres:16-alpine` (imagem oficial, já a mais recente): 1 crítica + 21 altas no `gosu`, binário que só troca de usuário ao iniciar, sem rede. **Risco aceito**; reavaliar a cada atualização da imagem
 - [x] **S11** Logout invalida a sessão no servidor (02/10/2026, branch `fix/s11-logout-revoga-sessao`): tabela `admin_sessions` (migration `20261002170000_add_admin_sessions`); o cookie assinado leva o id da sessão; o logout preenche `revoked_at`. Cookies antigos (sem id) deixam de valer: é preciso entrar de novo uma vez
-- [ ] **S17** Limite de requisições por IP na API pública (proxy ou `express-rate-limit`), sem afetar o uso normal
+- [x] **S17** Limite de requisições por IP na API pública (02/10/2026, branch `fix/s17-limite-de-requisicoes`): `express-rate-limit`, `RATE_LIMIT_PER_MINUTE` (padrão 600/min por IP; 0 desliga), 429 em JSON com cabeçalho `RateLimit`; IPs privados isentos (uso local, testes e proxy sem `TRUST_PROXY`, que de outra forma bloquearia todos os visitantes juntos). Defesa contra ataque distribuído fica para o proxy/provedor (Fase 6)
 - [ ] **S15** `start.sh` recusa `POSTGRES_PASSWORD` padrão no perfil `servidor`
 - [ ] **S12** `/api/records` aceita só fontes públicas
 - [ ] **S14** Filtros inválidos devolvem 400

@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import { ALLOWED_CITY, ALLOWED_DATASUS_CATEGORY } from "./config/city";
 import { parseTrustProxy } from "./config/proxy";
+import { createApiRateLimiter } from "./config/rate-limit";
 import { adminRouter } from "./routes/admin";
 import { chartsRouter } from "./routes/charts";
 import { dashboardRouter } from "./routes/dashboard";
@@ -37,6 +38,7 @@ export function createServer() {
     })
   );
   app.use(express.json());
+  app.use("/api", createApiRateLimiter());
 
   app.get("/health", (_request, response) => {
     return response.json({

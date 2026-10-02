@@ -85,7 +85,7 @@ Como repetir: `npm run test:security` (suíte, segundos) e `npm run test:securit
 | Containers sem root; banco só em `127.0.0.1` | Branca | **Correto** |
 | Imagens Docker | Trivy | **Achado S13**: Node 20 sem suporte; 22 falhas altas/críticas nas imagens |
 | Senhas da configuração | Branca | Admin e segredo de sessão fortes; banco com a senha padrão `postgres` (**achado S15**, só local hoje) |
-| Limite de requisições na API pública | Preta | **Achado S17**: não há |
+| Limite de requisições na API pública | Preta | **Achado S17**, corrigido: 600/min por IP real (configurável) |
 
 ### Varreduras automatizadas
 

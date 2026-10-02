@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 2 | 6 | 8 |
+| Segurança (S) | 0 | 1 | 6 | 7 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **10** | **16** | **26** |
+| **Total** | **0** | **9** | **16** | **25** |
 
 ---
 
@@ -52,10 +52,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ## S. Segurança
 
 Achados S11–S18 vêm da campanha de testes de segurança de 02/10/2026 ([14](14-testes-de-seguranca.md)).
-
-### S17. API pública sem limite de requisições. **Média**
-- Um script pode disparar centenas de consultas pesadas por segundo (`pageSize=500`); numa VPS de 1 CPU isso deixa o painel lento para todos.
-- **Correção:** limite por IP no proxy reverso (Caddy/nginx, Fase 6) ou `express-rate-limit` no backend (depende do `TRUST_PROXY`).
 
 ### S15. Senha padrão do banco aceita em servidor. **Média (produção)**
 - `POSTGRES_PASSWORD=postgres` funciona em qualquer perfil. Hoje o banco só escuta em `127.0.0.1`, mas basta mudar `SERVICE_BIND_HOST` para expô-lo com a senha padrão.

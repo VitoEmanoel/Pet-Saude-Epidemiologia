@@ -3,6 +3,7 @@ import type { Server } from "node:http";
 import { after, before, test } from "node:test";
 import { prisma } from "../database/prisma";
 import { parseTrustProxy } from "../config/proxy";
+import { isPrivateAddress } from "../config/rate-limit";
 import { getAdminCookieSecurityWarning, resetAdminSecurityState } from "../middleware/admin-auth";
 import { createServer } from "../server";
 
@@ -428,5 +429,43 @@ test("S11: logout invalida a sessao no servidor (cookie copiado deixa de valer)"
   });
   assert.equal(logout.status, 200);
   assert.equal((await me()).status, 401);
+});
+
+test("S17: enderecos privados ficam fora do limite de requisicoes", () => {
+  for (const ip of ["127.0.0.1", "::1", "::ffff:172.18.0.1", "10.1.2.3", "192.168.0.10", "fd00::1"]) {
+    assert.equal(isPrivateAddress(ip), true, ip);
+  }
+  for (const ip of ["8.8.8.8", "203.0.113.5", "::ffff:200.1.2.3", "2001:db8::1", undefined]) {
+    assert.equal(isPrivateAddress(ip), false, String(ip));
+  }
+});
+
+test("S17: IP publico acima do limite recebe 429; outro IP segue normal", async () => {
+  const previousLimit = process.env.RATE_LIMIT_PER_MINUTE;
+  process.env.RATE_LIMIT_PER_MINUTE = "3";
+
+  try {
+    await withTrustedProxyServer("loopback", async (url) => {
+      const get = (ip: string) => fetch(`${url}/api/sources`, { headers: { "x-forwarded-for": ip } });
+
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        assert.equal((await get("203.0.113.50")).status, 200);
+      }
+
+      const limited = await get("203.0.113.50");
+      const body = await limited.json();
+      assert.equal(limited.status, 429);
+      assert.equal(body.error.code, "rate_limited");
+      assert.ok(limited.headers.get("ratelimit"), "cabecalho RateLimit ausente");
+      assert.equal((await get("198.51.100.60")).status, 200);
+      assert.equal((await fetch(`${url}/health`, { headers: { "x-forwarded-for": "203.0.113.50" } })).status, 200);
+    });
+  } finally {
+    if (previousLimit === undefined) {
+      delete process.env.RATE_LIMIT_PER_MINUTE;
+    } else {
+      process.env.RATE_LIMIT_PER_MINUTE = previousLimit;
+    }
+  }
 });
 

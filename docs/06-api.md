@@ -4,6 +4,8 @@ Base: `http://localhost:3333` (ou `NEXT_PUBLIC_API_URL`). Todas as respostas sã
 
 **Cabeçalhos de segurança** (`helmet` em [`server.ts`](../backend/src/server.ts), em todas as rotas): `Content-Security-Policy: default-src 'none'` (a API não serve páginas), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Strict-Transport-Security`, `Cross-Origin-Resource-Policy: same-site` (o frontend e a API precisam estar no mesmo site, ex.: `painel.x.gov.br` e `api.x.gov.br`, ou atrás do mesmo proxy). Sem `X-Powered-By`. As rotas do admin acrescentam os seus ([08](08-area-administrativa.md)).
 
+**Limite de requisições** ([`config/rate-limit.ts`](../backend/src/config/rate-limit.ts)): todas as rotas `/api/*` aceitam `RATE_LIMIT_PER_MINUTE` (padrão 600) requisições por minuto por IP real. Acima disso, `429 rate_limited` e o cabeçalho `RateLimit` diz quando liberar. `/health` não é limitado. IPs privados (local, Docker, rede interna) não são limitados: atrás de proxy, o limite só funciona com `TRUST_PROXY` configurado.
+
 Erros seguem sempre o formato ([`api-response.ts`](../backend/src/utils/api-response.ts)):
 
 ```json
