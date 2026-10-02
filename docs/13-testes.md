@@ -72,7 +72,7 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 | `test:backend` | 34 | 0 | 0 | 0 |
 | `test:e2e` | 102 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
-| `test:ui` (Chromium, Firefox, WebKit) | 63 | 0 | 0 | 1 |
+| `test:ui` (Chromium, Firefox, WebKit) | 64 | 0 | 0 | 1 |
 | `test:security` | 48 | 0 | 1 (TABNET) | 0 |
 | `test:resilience` | 7/7 | | | |
 

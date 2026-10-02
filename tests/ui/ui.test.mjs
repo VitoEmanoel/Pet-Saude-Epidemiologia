@@ -235,6 +235,21 @@ for (const profile of Object.keys(PROFILES)) {
   });
 }
 
+describe(`Página inicial (${BROWSER})`, () => {
+  test("Toda fonte da lista \"Fontes permitidas\" tem link para a sua página", async () => {
+    const { context, page } = await openPage("desktop", "/");
+    try {
+      const text = await page.innerText("main");
+      assert.doesNotMatch(text, /Indispon[ií]vel/, "alguma fonte ficou sem página");
+      for (const path of ["/zika", "/chikungunya", "/dengue"]) {
+        assert.ok(await page.locator(`main a[href="${path}"]`).count() > 0, `sem link para ${path}`);
+      }
+    } finally {
+      await context.close();
+    }
+  });
+});
+
 describe(`Indicadores (${BROWSER})`, () => {
   test("A6: painel de indicadores na dengue troca de indicador e explica anos sem valor", async () => {
     const { context, page } = await openPage("desktop", "/dengue");

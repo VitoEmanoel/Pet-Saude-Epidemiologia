@@ -20,6 +20,8 @@ const sourcePages: Record<string, string> = {
   hanseniase_sinan: "/hanseniase",
   sifilis_congenita_sinan: "/sifilis",
   dengue_sinan: "/dengue",
+  zika_sinan: "/zika",
+  chikungunya_sinan: "/chikungunya",
   arboviroses_sinan: "/arboviroses",
   sifilis_gestacional_sinan: "/sifilis-gestacional"
 };
@@ -67,7 +69,7 @@ export function OverviewDashboard() {
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid grid-cols-2 gap-3 xl:grid-cols-5 [&>*:last-child]:col-span-2 xl:[&>*:last-child]:col-span-1">
         <MetricCard
           label="Casos"
           value={formatNumber(overview.summary.totalCases)}
@@ -231,7 +233,7 @@ export function OverviewDashboard() {
 
 function LoadingPanel() {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-5 [&>*:last-child]:col-span-2 xl:[&>*:last-child]:col-span-1">
       {Array.from({ length: 5 }).map((_, index) => (
         <div key={index} className="h-28 animate-pulse rounded border border-slate-200 bg-white" />
       ))}

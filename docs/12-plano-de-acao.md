@@ -41,12 +41,12 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 2B | Achados dos testes de segurança | 8 | 8 |
 | 2C | Arboviroses e indicadores de saúde | 10 | 9 |
 | 3 | Operação confiável | 4 | 0 |
-| 4 | Ajustes visuais e acessibilidade | 9 | 1 |
+| 4 | Ajustes visuais e acessibilidade | 9 | 2 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **33** |
+| | **Total** | **64** | **34** |
 
 ---
 
@@ -246,7 +246,7 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
 
 Ordem sugerida: U8, U3, U2, U4, U5, D6 (rápidos, deixam o site público no nível do admin); depois U7 e U6.
 
-- [ ] **U8** Indicadores em 2 colunas no celular também no site público (no admin já está)
+- [x] **U8** Indicadores em 2 colunas no celular também no site público (02/10/2026, branch `fix/u8-cartoes-celular`): o 5º cartão ocupa a linha toda; ícone dos cartões escondido no celular para o valor caber ("2007-2026" quebrava). Junto: curva dos gráficos de linha passou a ser monotônica (a suavizada desenhava vales abaixo dos pontos reais) e **corrigidos os links de Zika e Chikungunya na página inicial** (apareciam "Indisponível"; falha do A1/A2), com teste
 - [ ] **U3** Linguagem para o público
   - [x] Esconder `source_table` técnico (mostrar "Total do ano", "Por sexo"...) (feito junto com o D3)
   - [ ] Traduzir status ("SUCCESS" → "Atualizado")

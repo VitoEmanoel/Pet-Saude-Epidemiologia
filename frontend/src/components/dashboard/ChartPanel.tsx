@@ -86,7 +86,9 @@ function lineOption(data: ChartPoint[], darkMode: boolean): EChartsOption {
       {
         type: "line",
         data: data.map((point) => point.value),
-        smooth: true,
+        // Monotônica: a curva nunca passa acima/abaixo dos pontos reais entre um ano e outro.
+        smooth: 0.4,
+        smoothMonotone: "x",
         symbolSize: 7,
         lineStyle: { width: 3, color: "#066F9B" },
         itemStyle: { color: "#E8531E" },

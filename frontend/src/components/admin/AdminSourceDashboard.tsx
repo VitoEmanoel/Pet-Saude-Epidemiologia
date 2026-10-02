@@ -230,7 +230,7 @@ export function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
       </Panel>
 
       {summary ? (
-        <section className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+        <section className="grid grid-cols-2 gap-3 xl:grid-cols-5 [&>*:last-child]:col-span-2 xl:[&>*:last-child]:col-span-1">
           <MetricCard label="Casos" value={formatNumber(totalCases)} detail={hasFilters ? "Com os filtros" : selectedSource?.name ?? "Fonte"} icon={Activity} tone="green" />
           <MetricCard label="Último ano" value={formatNumber(latestPoint?.value ?? summary.latestYearValue ?? 0)} detail={String(latestPoint?.year ?? summary.latestYear ?? "")} icon={CalendarDays} tone="blue" />
           <MetricCard label="Registros" value={formatNumber(summary.totalRecords)} detail="No banco" icon={Database} />
@@ -238,7 +238,7 @@ export function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
           <MetricCard label="Atualização" value={summary.lastSyncStatus === "SUCCESS" ? "Sucesso" : summary.lastSyncStatus ?? "Sem status"} detail={formatDateTime(summary.lastUpdate)} icon={RefreshCw} tone="amber" />
         </section>
       ) : (
-        <section className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+        <section className="grid grid-cols-2 gap-3 xl:grid-cols-5 [&>*:last-child]:col-span-2 xl:[&>*:last-child]:col-span-1">
           {Array.from({ length: 5 }).map((_, index) => (
             <div key={index} className="h-28 animate-pulse rounded border border-slate-200 bg-white" />
           ))}
