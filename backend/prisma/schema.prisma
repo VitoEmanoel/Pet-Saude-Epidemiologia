@@ -163,3 +163,18 @@ model EpidemiologicalRecord {
   @@index([importedAt])
   @@map("epidemiological_records")
 }
+
+// População residente de Parnaíba por ano, enviada pelo admin em planilha CSV (A4).
+// Base dos indicadores (incidência por 100 mil habitantes).
+model PopulationEstimate {
+  id               Int      @id @default(autoincrement())
+  year             Int      @unique
+  population       Int
+  population60Plus Int?     @map("population_60_plus")
+  sourceNote       String?  @map("source_note") @db.VarChar(200)
+  updatedBy        String?  @map("updated_by") @db.VarChar(100)
+  updatedAt        DateTime @default(now()) @map("updated_at")
+
+  @@map("population_estimates")
+}
+

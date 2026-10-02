@@ -15,6 +15,7 @@ data_sources 1───1 data_availability
 
 admin_audit_logs (independente)
 admin_sessions   (independente)
+population_estimates (independente)
 ```
 
 ### `data_sources`: cadastro das fontes
@@ -80,6 +81,10 @@ Uma linha por consulta (são 4 por sincronização).
 ### `admin_audit_logs`: auditoria da área administrativa
 
 Logins (sucesso/falha), logouts, exportações, sincronizações e requisições bloqueadas, com IP, navegador e detalhes (`metadata`). O IP é o `request.ip` do Express: o `X-Forwarded-For` só é considerado quando vem de um proxy confiável (`TRUST_PROXY`), então não dá para forjá-lo.
+
+### `population_estimates`: população residente por ano
+
+Uma linha por ano: `year` (único), `population`, `population_60_plus` (opcional), `source_note` (de onde veio o número, ex.: IBGE), `updated_by` e `updated_at`. Preenchida pela tela **População** do admin a partir de uma planilha CSV, que substitui a tabela inteira. É a base dos indicadores por 100 mil habitantes. O sistema **nunca estima** população: ano sem linha aqui fica "sem população".
 
 ### `admin_sessions`: sessões do admin
 

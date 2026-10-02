@@ -39,14 +39,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
-| 2C | Arboviroses e indicadores de saúde | 10 | 6 |
+| 2C | Arboviroses e indicadores de saúde | 10 | 7 |
 | 3 | Operação confiável | 4 | 0 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 1 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **30** |
+| | **Total** | **64** | **31** |
 
 ---
 
@@ -191,10 +191,12 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
 
 **Bloco 2: população**
 
-- [ ] **A4** **População por ano** a partir de planilha CSV
-  - [ ] Colunas: `ano`, `populacao` (obrigatórias) e `populacao_60_mais` (opcional, para o indicador de idosos); fonte declarada (ex.: estimativa IBGE)
-  - [ ] Tela no admin para enviar a planilha: valida (anos repetidos, números inválidos), mostra o que mudou e grava; auditoria registra quem enviou
-  - [ ] Modelo de planilha para baixar e instruções em `docs/`
+- [x] **A4** **População por ano** a partir de planilha CSV (02/10/2026, branch `feat/a4-populacao`)
+  - [x] Tabela `population_estimates` (migration `20261002200000_add_population`); colunas `ano`, `populacao`, `populacao_60_mais` (opcional); campo "Fonte dos dados"
+  - [x] Tela **População** no admin: pré-visualização com erros por linha e o que muda (novos, alterados, apagados), gravação em transação (substitui a tabela), auditoria ("Enviou população")
+  - [x] "Baixar modelo"/"Baixar planilha atual"; instruções em [09 §9.1b](09-guia-de-manutencao.md#91b-atualizar-a-população-todo-ano)
+  - [x] Testes: 4 de unidade (Excel em português, erros, diferença) + e2e (recusa, gravação e restauração) + tela
+  - [ ] **Pendente com o GT1:** enviar a planilha real de população
 
 **Bloco 3: indicadores e filtro**
 

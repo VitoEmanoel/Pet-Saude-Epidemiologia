@@ -5,6 +5,8 @@ import type {
   AdminSyncAllResponse,
   AdminSyncHistoryResponse,
   SourceHealthResponse,
+  PopulationPreviewResponse,
+  PopulationResponse,
   AdminSyncResult,
   CategoryPoint,
   ChartPoint,
@@ -135,6 +137,31 @@ export function getAdminSyncHistory() {
 
 export function getAdminSourceHealth() {
   return fetchAdminJson<SourceHealthResponse>("/api/admin/source-health");
+}
+
+export function getAdminPopulation() {
+  return fetchAdminJson<PopulationResponse>("/api/admin/population");
+}
+
+export function previewAdminPopulation(csv: string) {
+  return fetchAdminJson<PopulationPreviewResponse>("/api/admin/population/preview", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ csv })
+  });
+}
+
+export function saveAdminPopulation(csv: string, sourceNote: string) {
+  return fetchAdminJson<PopulationResponse>("/api/admin/population", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ csv, sourceNote })
+  });
+}
+
+export async function downloadAdminPopulationCsv() {
+  const response = await fetchAdminResponse("/api/admin/population/template.csv");
+  return { blob: await response.blob(), filename: "populacao-parnaiba.csv" };
 }
 
 export function getAdminAuditLogs() {

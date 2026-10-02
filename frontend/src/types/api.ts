@@ -198,6 +198,32 @@ export type AdminAuditLog = {
   createdAt: string;
 };
 
+export type PopulationEstimate = {
+  year: number;
+  population: number;
+  population60Plus: number | null;
+  sourceNote: string | null;
+  updatedBy: string | null;
+  updatedAt: string;
+};
+
+export type PopulationResponse = {
+  population: PopulationEstimate[];
+};
+
+export type PopulationDiff = {
+  added: number[];
+  changed: number[];
+  removed: number[];
+  unchanged: number[];
+};
+
+export type PopulationPreviewResponse = {
+  rows: Array<Pick<PopulationEstimate, "year" | "population" | "population60Plus">>;
+  errors: string[];
+  diff: PopulationDiff;
+};
+
 export type SourceHealth = {
   slug: string;
   name: string;

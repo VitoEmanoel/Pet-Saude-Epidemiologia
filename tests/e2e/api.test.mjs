@@ -209,7 +209,7 @@ describe("Validação de entrada", () => {
 
 describe("Área administrativa", () => {
   test("Sem sessão: 401 em todas as rotas protegidas", async () => {
-    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs", "/api/admin/source-health",
+    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs", "/api/admin/source-health", "/api/admin/population",
       "/api/admin/records/export.csv", "/api/admin/dashboard/export.html?source=dengue_sinan"]) {
       assert.equal((await api(path)).status, 401, path);
     }
@@ -260,6 +260,35 @@ describe("Área administrativa", () => {
       assert.ok(["ok", "warning", "error"].includes(source.level), source.slug);
       assert.ok(Array.isArray(source.problems));
     }
+  });
+
+  test("A4: população — pré-visualização, recusa de planilha com erro, gravação e restauração", async () => {
+    const json = { "content-type": "application/json" };
+    const before = (await admin("/api/admin/population")).json.population;
+    const beforeCsv = (await admin("/api/admin/population/template.csv")).text;
+    try {
+      const bad = await admin("/api/admin/population/preview", { method: "POST", headers: json, body: JSON.stringify({ csv: "ano;populacao\n2020;abc" }) });
+      assert.equal(bad.json.errors.length, 1);
+      const refused = await admin("/api/admin/population", { method: "PUT", headers: json, body: JSON.stringify({ csv: "ano;populacao\n2020;abc" }) });
+      assert.equal(refused.status, 400);
+
+      const csv = "ano;populacao;populacao_60_mais\n2021;153.482;17.000\n2022;162159;";
+      const preview = await admin("/api/admin/population/preview", { method: "POST", headers: json, body: JSON.stringify({ csv }) });
+      assert.deepEqual(preview.json.errors, []);
+      const saved = await admin("/api/admin/population", { method: "PUT", headers: json, body: JSON.stringify({ csv, sourceNote: "teste e2e" }) });
+      assert.equal(saved.status, 200);
+      assert.deepEqual(saved.json.population.map((row) => [row.year, row.population, row.population60Plus]), [[2021, 153482, 17000], [2022, 162159, null]]);
+      const logs = (await admin("/api/admin/audit-logs")).json.auditLogs;
+      assert.equal(logs.find((log) => log.action === "admin_population_upload")?.metadata?.sourceNote, "teste e2e");
+    } finally {
+      // Restaura a tabela de antes (pode estar vazia).
+      if (before.length > 0) {
+        await admin("/api/admin/population", { method: "PUT", headers: json, body: JSON.stringify({ csv: beforeCsv }) });
+      } else {
+        await admin("/api/admin/population", { method: "DELETE" });
+      }
+    }
+    assert.equal((await admin("/api/admin/population")).json.population.length, before.length);
   });
 
   test("Sincronizar fonte derivada (arboviroses): 501", async () => {

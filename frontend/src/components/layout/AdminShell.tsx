@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, History, Home, LayoutDashboard, LogOut, ScrollText, Shield, UserRound } from "lucide-react";
+import { Database, History, Home, LayoutDashboard, LogOut, ScrollText, Shield, UserRound, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 import { AdminSessionProvider, useAdminSession } from "../admin/AdminSession";
@@ -9,6 +9,7 @@ import { MenuButton, SideDrawer } from "./SideDrawer";
 export const ADMIN_PAGES = [
   { href: "/admin", label: "Painel", icon: LayoutDashboard },
   { href: "/admin/fontes", label: "Fontes", icon: Database },
+  { href: "/admin/populacao", label: "População", icon: Users },
   { href: "/admin/sincronizacoes", label: "Sincronizações", icon: History },
   { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText }
 ] as const;

@@ -23,6 +23,15 @@ import {
 import { prisma } from "../database/prisma";
 import { getSourcesHealth } from "../modules/admin/source-health.service";
 import {
+  clearPopulation,
+  diffPopulation,
+  getPopulation,
+  parsePopulationCsv,
+  replacePopulation,
+  toPopulationCsv,
+  toPopulationRows
+} from "../modules/population/population.service";
+import {
   dashboardExportFilename,
   toDashboardHtml
 } from "../modules/admin/dashboard-export.service";
@@ -417,6 +426,69 @@ adminRouter.get("/audit-logs", async (_request, response) => {
   return response.json({
     auditLogs
   });
+});
+
+// População por ano (A4): consulta, pré-visualização da planilha e substituição da tabela.
+adminRouter.get("/population", async (_request, response) => {
+  return response.json({ city: ALLOWED_CITY, population: await getPopulation() });
+});
+
+adminRouter.get("/population/template.csv", async (_request, response) => {
+  response.setHeader("content-type", "text/csv; charset=utf-8");
+  response.setHeader("content-disposition", 'attachment; filename="populacao-parnaiba.csv"');
+  return response.send(toPopulationCsv(toPopulationRows(await getPopulation())));
+});
+
+function readPopulationBody(body: unknown) {
+  const csv = typeof (body as { csv?: unknown })?.csv === "string" ? (body as { csv: string }).csv : "";
+  const rawNote = (body as { sourceNote?: unknown })?.sourceNote;
+  const sourceNote = typeof rawNote === "string" && rawNote.trim() ? rawNote.trim().slice(0, 200) : null;
+  return { csv, sourceNote };
+}
+
+adminRouter.post("/population/preview", async (request, response) => {
+  const { csv } = readPopulationBody(request.body);
+  const parsed = parsePopulationCsv(csv);
+  const current = toPopulationRows(await getPopulation());
+  return response.json({ ...parsed, diff: diffPopulation(current, parsed.rows) });
+});
+
+adminRouter.put("/population", async (request, response) => {
+  const { csv, sourceNote } = readPopulationBody(request.body);
+  const parsed = parsePopulationCsv(csv);
+
+  if (parsed.errors.length > 0) {
+    return sendError(response, 400, "invalid_body", "A planilha tem erros; nada foi gravado.", { errors: parsed.errors });
+  }
+
+  try {
+    const diff = diffPopulation(toPopulationRows(await getPopulation()), parsed.rows);
+    await replacePopulation(parsed.rows, sourceNote, getAdminActor());
+    await recordAdminAudit({
+      request,
+      action: "admin_population_upload",
+      status: "SUCCESS",
+      metadata: {
+        years: parsed.rows.length,
+        firstYear: parsed.rows[0]?.year ?? null,
+        lastYear: parsed.rows[parsed.rows.length - 1]?.year ?? null,
+        added: diff.added,
+        changed: diff.changed,
+        removed: diff.removed,
+        sourceNote
+      }
+    });
+    return response.json({ population: await getPopulation(), diff });
+  } catch (error) {
+    console.error(error);
+    return sendError(response, 500, "internal_error", "Erro ao gravar a populacao.");
+  }
+});
+
+adminRouter.delete("/population", async (request, response) => {
+  const removed = await clearPopulation();
+  await recordAdminAudit({ request, action: "admin_population_clear", status: "SUCCESS", metadata: { removed } });
+  return response.json({ removed });
 });
 
 // Situação de cada fonte: falhas seguidas, último sucesso e avisos (O5).

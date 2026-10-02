@@ -16,6 +16,18 @@ O TABNET publica um arquivo por ano (ex.: `dengbr27.dbf` para 2027). **Não é p
 
 ---
 
+## 9.1b Atualizar a população (todo ano)
+
+Os indicadores por 100 mil habitantes dependem da população de cada ano, que **não vem do TABNET**: vocês informam.
+
+1. Admin → **População** → **Baixar planilha atual** (ou **Baixar modelo**, se estiver vazia).
+2. Abra no Excel/LibreOffice, acrescente o ano novo (ou corrija valores). Colunas: `ano`, `populacao`, `populacao_60_mais` (opcional). Ponto de milhar pode (153.482); vírgula decimal não.
+3. Salve como **CSV** e envie pela mesma tela. Confira a pré-visualização (novos, alterados, **apagados**) e clique em **Gravar população**. Preencha "Fonte dos dados" (ex.: "IBGE, estimativa 2025").
+
+A planilha substitui a tabela inteira: um ano que não estiver no arquivo é apagado (a tela avisa antes).
+
+---
+
 ## 9.2 Adicionar uma fonte nova (ex.: chikungunya)
 
 > A chikungunya foi incluída em 02/10/2026 seguindo estes passos (item A2; evidências em `docs/evidencias/chikungunya_sinan/`). O roteiro vale para qualquer fonte nova.

@@ -24,7 +24,9 @@ const ACTION_LABELS: Record<string, string> = {
   admin_export_csv: "Baixou CSV",
   admin_export_dashboard: "Baixou dashboard",
   admin_sync_source: "Sincronizou fonte",
-  admin_sync_all: "Sincronizou todas"
+  admin_sync_all: "Sincronizou todas",
+  admin_population_upload: "Enviou população",
+  admin_population_clear: "Apagou população"
 };
 
 const UNIDENTIFIED_ACTOR = "nao_identificado";
@@ -112,6 +114,19 @@ export function describeAuditEvent(log: AdminAuditLog, sourceNames: SourceNames)
         failed.length ? `; com problema: ${failed.map((result) => sourceNames.get(String(result.source)) ?? result.source).join(", ")}` : ""
       }.`;
     }
+    case "admin_population_upload": {
+      const list = (key: string) => (Array.isArray(metadata[key]) ? (metadata[key] as unknown[]).join(", ") : "");
+      const changes = [
+        list("added") && `novos: ${list("added")}`,
+        list("changed") && `alterados: ${list("changed")}`,
+        list("removed") && `apagados: ${list("removed")}`
+      ].filter(Boolean);
+      return `Enviou a planilha de população (${text(metadata.years) ?? "?"} anos, ${text(metadata.firstYear) ?? "?"}–${text(metadata.lastYear) ?? "?"})${
+        changes.length ? `; ${changes.join("; ")}` : "; sem mudanças"
+      }.`;
+    }
+    case "admin_population_clear":
+      return `Apagou a tabela de população (${text(metadata.removed) ?? "0"} anos).`;
     default:
       return reason ?? failureMessage ?? "-";
   }

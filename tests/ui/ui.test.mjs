@@ -295,6 +295,8 @@ describe(`Área administrativa (${BROWSER})`, () => {
 
       await openMenuAndGo("Fontes");
       assert.match(await page.innerText("main"), /Sincronizar todas/i);
+      await openMenuAndGo("População");
+      assert.match(await page.innerText("main"), /Enviar planilha de população/i);
       await openMenuAndGo("Sincronizações");
       assert.match(await page.innerText("main"), /Histórico de sincronizações/i);
       await openMenuAndGo("Auditoria");
