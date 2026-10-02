@@ -359,10 +359,26 @@ describe("A05 Configuração e A04 lógica de negócio", () => {
     assert.match(read("docker-compose.yml"), /\$\{SERVICE_BIND_HOST:-127\.0\.0\.1\}:\$\{POSTGRES_PORT/);
   });
 
-  test("S13 [branca] Imagem base com Node.js ainda suportado (Node 20 acabou em 30/04/2026)", { todo: "S13" }, () => {
+  test("S13 [branca] Imagem base com Node.js ainda suportado (Node 20 acabou em 30/04/2026)", () => {
     const versions = [...read("Dockerfile").matchAll(/^FROM node:(\d+)/gm)].map((m) => Number(m[1]));
     assert.ok(versions.length > 0);
     assert.ok(versions.every((v) => v >= 22), `node:${versions.join(", node:")}`);
+  });
+
+  test("S13 [cinza] Containers em produção sem npm (menos superfície de ataque)", (t) => {
+    for (const service of ["backend", "frontend"]) {
+      let found;
+      try {
+        found = execFileSync("docker", ["compose", "--env-file", ".env", "exec", "-T", service, "sh", "-c", "command -v npm || true"], {
+          cwd: ROOT,
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "ignore"]
+        }).trim();
+      } catch {
+        return t.skip("container não acessível pelo docker compose");
+      }
+      assert.equal(found, "", `${service} tem npm`);
+    }
   });
 
   test("S15 [branca] start.sh recusa senha padrão do banco em servidor", { todo: "S15" }, () => {

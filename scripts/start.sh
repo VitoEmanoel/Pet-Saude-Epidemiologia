@@ -232,17 +232,17 @@ echo "Buildando backend e frontend..."
 "${COMPOSE_CMD[@]}" build backend frontend
 
 echo "Aplicando migrations..."
-"${COMPOSE_CMD[@]}" run --rm backend npm --workspace backend run prisma:deploy
+"${COMPOSE_CMD[@]}" run --rm backend node node_modules/prisma/build/index.js migrate deploy --schema backend/prisma/schema.prisma
 
 echo "Executando seed inicial..."
-"${COMPOSE_CMD[@]}" run --rm backend npm --workspace backend run seed:prod
+"${COMPOSE_CMD[@]}" run --rm backend node backend/dist/prisma/seed.js
 
 echo "Subindo backend e frontend..."
 start_app_services
 
 if [[ "${RUN_INITIAL_SYNC:-false}" == "true" ]]; then
   echo "Executando sincronizacao inicial de dados..."
-  "${COMPOSE_CMD[@]}" exec -T backend npm --workspace backend run sync:data:prod
+  "${COMPOSE_CMD[@]}" exec -T backend node backend/dist/scripts/sync-data.js
 fi
 
 cat <<EOF

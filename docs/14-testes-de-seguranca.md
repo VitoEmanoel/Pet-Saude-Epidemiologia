@@ -97,7 +97,7 @@ Como repetir: `npm run test:security` (suíte, segundos) e `npm run test:securit
 | Nuclei | **Nenhuma vulnerabilidade**; só avisos informativos (os mesmos cabeçalhos do ZAP) |
 | nmap | Sistema expõe 3000 e 3333 (rede) e 5433 (só local). As outras portas da máquina são de outros programas |
 | Trivy (código) | **0 vulnerabilidades** em dependências; **0 segredos**; `Dockerfile` 26/27 (falta `HEALTHCHECK`, **S18**) |
-| Trivy (imagens) | Ver S13 |
+| Trivy (imagens) | Ver S13. **Após a correção:** backend e frontend sem falhas médias, altas ou críticas; `postgres:16-alpine` só com falhas no `gosu` (risco aceito, ver plano) |
 | Semgrep | 7 alertas, **todos falsos positivos** ou informativos (XSS nas exportações já escapadas; senhas fictícias do arquivo de teste) |
 
 ## 14.4 Achados

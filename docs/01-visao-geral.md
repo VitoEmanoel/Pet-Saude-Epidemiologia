@@ -64,7 +64,7 @@ Pendente: incluir **chikungunya** em arboviroses (ver [12-plano-de-acao.md](12-p
 | Parte | Tecnologia | Para que serve |
 |---|---|---|
 | Linguagem | TypeScript | Todo o código (backend e frontend) |
-| Backend | Node.js 20 + Express | API HTTP |
+| Backend | Node.js 24 (LTS) + Express | API HTTP |
 | Banco | PostgreSQL 16 + Prisma (ORM) | Armazenamento e migrations |
 | Frontend | Next.js 15 + React 19 + Tailwind CSS | Site |
 | Gráficos | ECharts | Gráficos dos dashboards |

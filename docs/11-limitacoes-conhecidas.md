@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 1 | 3 | 6 | 10 |
+| Segurança (S) | 0 | 3 | 6 | 9 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **1** | **11** | **16** | **28** |
+| **Total** | **0** | **11** | **16** | **27** |
 
 ---
 
@@ -52,10 +52,6 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ## S. Segurança
 
 Achados S11–S18 vêm da campanha de testes de segurança de 02/10/2026 ([14](14-testes-de-seguranca.md)).
-
-### S13. Imagens Docker com Node.js 20, sem suporte. **Alta**
-- O Node 20 deixou de receber correções em 30/04/2026. A imagem `node:20-alpine` usada é de 15/04/2026. O Trivy encontrou 1 falha crítica e 21 altas no `npm` que vem na imagem e 4 altas no OpenSSL do Alpine (frontend).
-- **Correção:** migrar para `node:22-alpine` ou `node:24-alpine` (LTS), reconstruir com `--pull`; no frontend, remover o `npm` da imagem final (não é usado).
 
 ### S11. Logout não invalida a sessão. **Média**
 - A sessão é um cookie assinado sem registro no servidor; o logout só apaga o cookie do navegador. Um cookie copiado antes (ex.: computador compartilhado) vale até 8 h.

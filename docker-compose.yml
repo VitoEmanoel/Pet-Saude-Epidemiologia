@@ -75,7 +75,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-pet_saude}?schema=public
       NPM_CONFIG_UPDATE_NOTIFIER: "false"
-    command: npm --workspace backend run sync:data:prod
+    command: node backend/dist/scripts/sync-data.js
     depends_on:
       postgres:
         condition: service_healthy

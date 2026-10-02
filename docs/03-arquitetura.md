@@ -18,7 +18,7 @@
 - O **backend** é o único que fala com o TABNET e com o banco.
 - O serviço `sync-data` do Compose (perfil `manual`) roda a coleta num container à parte (`docker compose --env-file .env --profile manual run --rm sync-data`); o fluxo normal usa `npm run sync:data`, que roda **dentro** do container do backend.
 - Os containers do backend e do frontend rodam **sem root**, como o usuário `node` (uid 1000) da imagem oficial. O código na imagem é somente leitura para ele; só `backend/storage` (arquivos brutos) e `frontend/.next/cache` pertencem ao usuário.
-- Dentro do Docker a coleta usa o código compilado (`npm --workspace backend run sync:data:prod` → `node dist/scripts/sync-data.js`), porque a imagem de produção não tem `tsx` nem o código-fonte. Fora do Docker (modo dev), `sync:data` usa `tsx` direto no código-fonte.
+- Dentro do Docker a coleta usa o código compilado (`node backend/dist/scripts/sync-data.js`), porque a imagem de produção não tem `tsx` nem o código-fonte. As imagens finais **não têm npm** (S13): migrations, seed e sincronização são chamados direto com `node` (ver `scripts/start.sh`). Fora do Docker (modo dev), `sync:data` usa `tsx` direto no código-fonte.
 
 Diagramas editáveis (abra em https://app.diagrams.net): [diagramas/](diagramas/)
 

@@ -8,11 +8,11 @@ DATASUS/TABNET ──► backend (coletor) ──► PostgreSQL ──► API �
 
 Doenças cobertas: tuberculose, hanseníase, sífilis congênita, sífilis gestacional, dengue e arboviroses (dengue + zika).
 
-**Stack:** Node.js 20 · TypeScript · Express · Prisma · PostgreSQL · Next.js · React · Tailwind · ECharts · Docker Compose
+**Stack:** Node.js 24 · TypeScript · Express · Prisma · PostgreSQL · Next.js · React · Tailwind · ECharts · Docker Compose
 
 ## Início rápido
 
-Pré-requisitos: Linux (ou WSL2), Node.js 20+, Docker Engine oficial com Compose.
+Pré-requisitos: Linux (ou WSL2), Node.js 22+ (recomendado 24), Docker Engine oficial com Compose.
 
 ```bash
 npm install

@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN npm --workspace backend run prisma:generate
 RUN npm --workspace backend run build
 RUN npm --workspace backend run build:seed
 
-FROM node:20-alpine AS backend-deps
+FROM node:24-alpine AS backend-deps
 
 WORKDIR /app
 
@@ -37,11 +37,16 @@ COPY backend/prisma backend/prisma
 RUN npm ci --omit=dev --workspace backend --include-workspace-root
 RUN npm --workspace backend run prisma:generate
 
-FROM node:20-alpine AS backend
+FROM node:24-alpine AS backend
 
 WORKDIR /app
 
-RUN apk add --no-cache openssl
+# Correções do Alpine publicadas depois da imagem base. Sem npm/yarn/corepack na imagem final:
+# eles trazem dependências com falhas conhecidas e nada em produção precisa deles
+# (migrations, seed e sincronização rodam direto com node, ver scripts/start.sh).
+RUN apk upgrade --no-cache && apk add --no-cache openssl \
+  && rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn \
+    /usr/local/bin/yarnpkg /usr/local/bin/corepack /opt/yarn-*
 
 ENV NODE_ENV=production
 
@@ -70,9 +75,15 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN npm --workspace frontend run build
 
-FROM node:20-alpine AS frontend-runner
+FROM node:24-alpine AS frontend-runner
 
 WORKDIR /app
+
+# O servidor do Next.js só precisa do node: remove npm/yarn/corepack (e as falhas deles)
+# e aplica as correções do Alpine publicadas depois da imagem base.
+RUN apk upgrade --no-cache \
+  && rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn \
+    /usr/local/bin/yarnpkg /usr/local/bin/corepack /opt/yarn-*
 
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0

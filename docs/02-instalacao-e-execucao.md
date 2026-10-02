@@ -9,7 +9,7 @@ O fluxo oficial foi feito para **Linux**. No Windows, use **WSL2 com Ubuntu** e 
 | Programa | Versão | Como conferir |
 |---|---|---|
 | git | qualquer | `git --version` |
-| Node.js | **20 ou superior** | `node -v` |
+| Node.js | **22 ou superior** (recomendado 24, o mesmo das imagens) | `node -v` |
 | npm | o que vem com o Node | `npm -v` |
 | Docker Engine (oficial, **não** Snap) | recente | `docker --version` |
 | Docker Compose (plugin) | v2+ | `docker compose version` |
@@ -20,8 +20,8 @@ O fluxo oficial foi feito para **Linux**. No Windows, use **WSL2 com Ubuntu** e 
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y curl ca-certificates gnupg git
 
-# Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# Node.js 24 (LTS)
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Docker oficial
@@ -250,8 +250,8 @@ scp painel-imagens.tar.gz usuario@IP_DA_VPS:/opt/painel/
 cd /opt/painel
 gunzip -c painel-imagens.tar.gz | docker load
 docker compose --env-file .env up -d postgres
-docker compose --env-file .env run --rm backend npm --workspace backend run prisma:deploy
-docker compose --env-file .env run --rm backend npm --workspace backend run seed:prod
+docker compose --env-file .env run --rm backend node node_modules/prisma/build/index.js migrate deploy --schema backend/prisma/schema.prisma
+docker compose --env-file .env run --rm backend node backend/dist/prisma/seed.js
 docker compose --env-file .env up -d --no-build --remove-orphans backend frontend
 ```
 
