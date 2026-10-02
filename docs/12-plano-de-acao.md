@@ -25,12 +25,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
+| 2B | Achados dos testes de segurança | 8 | 0 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **48** | **15** |
+| | **Total** | **56** | **15** |
 
 ---
 
@@ -125,6 +126,21 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] Checklist de publicação em [02 §2.8](02-instalacao-e-execucao.md#28-checklist-de-publicação)
   - [x] `npm run start` recusa `FRONTEND_URL` em HTTPS sem `ADMIN_COOKIE_SECURE=true` (e avisa no caso inverso); o backend escreve `AVISO DE SEGURANCA` no log quando `CORS_ORIGIN` é HTTPS e o cookie não é `Secure` (cobre a VPS, que não usa o `start`)
   - [x] Teste: com `true` o cookie sai com `Secure`, `HttpOnly` e `SameSite=Strict`; sem, sai sem `Secure`
+
+---
+
+## Fase 2B: Achados dos testes de segurança (alta, antes de publicar)
+
+Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item tem um teste `todo` em `tests/security/owasp.test.mjs`; ao corrigir, remova o `todo`.
+
+- [ ] **S13** Migrar as imagens para Node.js LTS suportado (`node:22-alpine` ou `node:24-alpine`); rebuild com `--pull`; tirar o `npm` da imagem do frontend; Trivy sem críticas/altas nas nossas imagens
+- [ ] **S11** Logout invalida a sessão no servidor (versão de sessão no banco ou lista de revogação)
+- [ ] **S17** Limite de requisições por IP na API pública (proxy ou `express-rate-limit`), sem afetar o uso normal
+- [ ] **S15** `start.sh` recusa `POSTGRES_PASSWORD` padrão no perfil `servidor`
+- [ ] **S12** `/api/records` aceita só fontes públicas
+- [ ] **S14** Filtros inválidos devolvem 400
+- [ ] **S16** Comparação de credenciais e token sem vazar tamanho (hash + `timingSafeEqual`)
+- [ ] **S18** COOP/CORP no site; `HEALTHCHECK` nas imagens (ou no Compose)
 
 ---
 

@@ -22,6 +22,8 @@
     "test:backend": "npm --workspace backend run test",
     "test:setup": "npm --prefix tests run setup",
     "test:e2e": "npm --prefix tests run e2e",
+    "test:security": "npm --prefix tests run security",
+    "test:security:scan": "bash ./tests/security/scan.sh",
     "test:ui": "npm --prefix tests run ui",
     "test:ui:webkit": "docker run --rm --network host --ipc=host --user \"$(id -u):$(id -g)\" -e HOME=/tmp -e QA_BROWSER=webkit -v \"$PWD\":/repo -w /repo/tests mcr.microsoft.com/playwright:v1.63.0-noble node --test --test-concurrency=1 ui/ui.test.mjs",
     "test:load": "npm --prefix tests run load",

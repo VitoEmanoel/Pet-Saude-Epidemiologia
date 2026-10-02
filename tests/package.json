@@ -9,7 +9,8 @@
     "e2e": "node --test --test-concurrency=1 e2e/api.test.mjs e2e/security.test.mjs",
     "ui": "node --test --test-concurrency=1 ui/ui.test.mjs",
     "load": "node load/load.mjs",
-    "soak": "node load/soak.mjs"
+    "soak": "node load/soak.mjs",
+    "security": "node --test --test-concurrency=1 security/owasp.test.mjs"
   },
   "devDependencies": {
     "autocannon": "^8.0.0",

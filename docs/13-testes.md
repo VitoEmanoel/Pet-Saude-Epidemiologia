@@ -26,6 +26,8 @@ Credenciais e URLs são lidas do `.env` da raiz. Para apontar para outro ambient
 | `npm run test:ui` | Interface no Chromium: 8 páginas × desktop/celular, gráficos, mapa, bloqueios da CSP, acessibilidade (axe), filtros, paginação, menu, tema, fluxo do admin, API fora do ar | ~1 min |
 | `QA_BROWSER=firefox npm run test:ui` | O mesmo no Firefox | ~1 min |
 | `npm run test:ui:webkit` | O mesmo no WebKit (motor do Safari), emulando iPhone 15. Roda na imagem Docker oficial do Playwright, porque o WebKit não roda direto no Arch Linux | ~2 min |
+| `npm run test:security` | Segurança por categoria OWASP (injeção, controle de acesso, autenticação/sessão, configuração e lógica de negócio), em caixa preta, cinza e branca. Ver [14](14-testes-de-seguranca.md) | ~1 s |
+| `npm run test:security:scan` | Ferramentas de mercado pelas imagens Docker oficiais: OWASP ZAP, sqlmap, Nuclei, Trivy, Semgrep, nmap. Relatórios em `tests/output/security/`. Uma só: `npm run test:security:scan -- trivy`. Reinicia o backend no fim | ~25 min |
 | `npm run test:resilience` | Simula falhas do TABNET (rede, HTTP 503, layout alterado, falha no meio) e confere que os dados antigos são mantidos e que a coleta se recupera. Usa o `backend/.env` e a internet | ~15 s |
 | `npm run test:load` | Carga: req/s e latência por rota; 10/100/300 visitas simultâneas. Imprime métricas (não reprova) | ~1,5 min |
 | `npm run test:soak` | Teste longo: carga constante + memória/latência a cada 30 s em `tests/output/soak.csv` | 110 min (padrão) |
@@ -55,6 +57,7 @@ Cada problema de [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md) que 
 |---|---|
 | `test:e2e` | S7 |
 | `test:ui` | U1, U2 |
+| `test:security` | S11, S12, S13, S14, S15, S16 |
 
 Para ver os `todo` e se estão falhando:
 
@@ -70,6 +73,7 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 | `test:e2e` | 90 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 50 | 0 | 0 | 2 |
+| `test:security` | 36 | 0 | 1 (TABNET) | 6 |
 | `test:resilience` | 6/6 | | | |
 
 Carga (16 núcleos, fim da Fase 2): `/health` ~8.500 req/s; resumo de fonte ~475 req/s; visão geral ~370 req/s (era ~225 antes do D4); página inicial ~2.500 req/s. Os cabeçalhos de segurança do S2 não têm custo mensurável (uma medição logo após o S2 deu `/health` ~6.000, mas era variação da máquina: repetida, voltou a ~8.500). Compare sempre mais de uma rodada antes de concluir regressão; 300 visitas simultâneas sem falha. Teste longo de 110 min a 40 req/s: 0 erros, memória do backend estável (~67 MB).

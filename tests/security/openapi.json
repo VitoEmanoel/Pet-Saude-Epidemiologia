@@ -1,0 +1,639 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Painel Epidemiologico Parnaiba - API (para varreduras de seguranca)",
+    "version": "1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3333"
+    }
+  ],
+  "paths": {
+    "/api/sources": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/sources/{slug}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/sources/{slug}/summary": {
+      "get": {
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/sources/{slug}/filters": {
+      "get": {
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/sources/{slug}/availability": {
+      "get": {
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/dashboard/overview": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/records": {
+      "get": {
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2020"
+          },
+          {
+            "name": "sex",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Masculino"
+          },
+          {
+            "name": "ageGroup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20-39"
+          },
+          {
+            "name": "raceColor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Parda"
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "x"
+          },
+          {
+            "name": "aggregation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "yearly"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "1"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "50"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/charts/yearly-evolution": {
+      "get": {
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2020"
+          },
+          {
+            "name": "sex",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Masculino"
+          },
+          {
+            "name": "ageGroup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20-39"
+          },
+          {
+            "name": "raceColor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Parda"
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "x"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/charts/by-sex": {
+      "get": {
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2020"
+          },
+          {
+            "name": "sex",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Masculino"
+          },
+          {
+            "name": "ageGroup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20-39"
+          },
+          {
+            "name": "raceColor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Parda"
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "x"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/charts/by-age-group": {
+      "get": {
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2020"
+          },
+          {
+            "name": "sex",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Masculino"
+          },
+          {
+            "name": "ageGroup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20-39"
+          },
+          {
+            "name": "raceColor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Parda"
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "x"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/charts/by-race-color": {
+      "get": {
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2020"
+          },
+          {
+            "name": "sex",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Masculino"
+          },
+          {
+            "name": "ageGroup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20-39"
+          },
+          {
+            "name": "raceColor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Parda"
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "x"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/admin/records/export.csv": {
+      "get": {
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2020"
+          },
+          {
+            "name": "sex",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Masculino"
+          },
+          {
+            "name": "ageGroup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20-39"
+          },
+          {
+            "name": "raceColor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Parda"
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "x"
+          },
+          {
+            "name": "aggregation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "yearly"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/admin/dashboard/export.html": {
+      "get": {
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tuberculose_sinan"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2020"
+          },
+          {
+            "name": "sex",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Masculino"
+          },
+          {
+            "name": "ageGroup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20-39"
+          },
+          {
+            "name": "raceColor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Parda"
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "x"
+          },
+          {
+            "name": "aggregation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "yearly"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/admin/auth/me": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/admin/audit-logs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/api/admin/sync-history": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    }
+  }
+}

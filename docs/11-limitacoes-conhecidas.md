@@ -8,10 +8,10 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 |---|---|---|---|---|
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
-| Segurança (S) | 0 | 0 | 2 | 2 |
+| Segurança (S) | 1 | 3 | 6 | 10 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **8** | **12** | **20** |
+| **Total** | **1** | **11** | **16** | **28** |
 
 ---
 
@@ -50,6 +50,38 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 ---
 
 ## S. Segurança
+
+Achados S11–S18 vêm da campanha de testes de segurança de 02/10/2026 ([14](14-testes-de-seguranca.md)).
+
+### S13. Imagens Docker com Node.js 20, sem suporte. **Alta**
+- O Node 20 deixou de receber correções em 30/04/2026. A imagem `node:20-alpine` usada é de 15/04/2026. O Trivy encontrou 1 falha crítica e 21 altas no `npm` que vem na imagem e 4 altas no OpenSSL do Alpine (frontend).
+- **Correção:** migrar para `node:22-alpine` ou `node:24-alpine` (LTS), reconstruir com `--pull`; no frontend, remover o `npm` da imagem final (não é usado).
+
+### S11. Logout não invalida a sessão. **Média**
+- A sessão é um cookie assinado sem registro no servidor; o logout só apaga o cookie do navegador. Um cookie copiado antes (ex.: computador compartilhado) vale até 8 h.
+- **Correção:** guardar no servidor uma "versão de sessão" (ou lista de sessões revogadas) e incluí-la no cookie; o logout incrementa a versão.
+
+### S17. API pública sem limite de requisições. **Média**
+- Um script pode disparar centenas de consultas pesadas por segundo (`pageSize=500`); numa VPS de 1 CPU isso deixa o painel lento para todos.
+- **Correção:** limite por IP no proxy reverso (Caddy/nginx, Fase 6) ou `express-rate-limit` no backend (depende do `TRUST_PROXY`).
+
+### S15. Senha padrão do banco aceita em servidor. **Média (produção)**
+- `POSTGRES_PASSWORD=postgres` funciona em qualquer perfil. Hoje o banco só escuta em `127.0.0.1`, mas basta mudar `SERVICE_BIND_HOST` para expô-lo com a senha padrão.
+- **Correção:** `start.sh` recusar senha padrão quando o perfil for `servidor`.
+
+### S12. Fonte interna (zika) visível em `/api/records`. **Baixa**
+- `/api/sources/zika_sinan`, `/summary` e os gráficos devolvem 404, mas `/api/records?source=zika_sinan` devolve os registros: `validateRecordsQuery` usa `getSourceBySlug` (todas) em vez de `getPublicSourceBySlug`.
+
+### S14. Filtros inválidos ignorados em silêncio. **Baixa**
+- `year=abc`, `year=1e308`, `page=abc` viram "sem filtro" ou valor padrão; o usuário pode achar que filtrou.
+- **Correção:** validar tipo e faixa (ano com 4 dígitos, página e tamanho inteiros positivos) e devolver 400.
+
+### S16. Comparação de credenciais revela o tamanho por tempo. **Baixa**
+- `safeEqual` retorna antes se os tamanhos diferem; o token Bearer é comparado com `===`. Exploração prática é muito difícil pela rede.
+- **Correção:** comparar hashes (ex.: HMAC-SHA256 dos dois lados) com `timingSafeEqual`.
+
+### S18. Endurecimentos menores. **Baixa**
+- Site sem `Cross-Origin-Opener-Policy: same-origin` e `Cross-Origin-Resource-Policy: same-origin`; `Dockerfile` sem `HEALTHCHECK` (o Compose também não verifica backend/frontend).
 
 ### S7. POST no admin sem `Origin` passa pela checagem de origem. **Baixa**
 - Mitigado pelo cookie `SameSite=Strict`. **Correção:** exigir `Origin`/`Referer` em métodos que alteram estado.
