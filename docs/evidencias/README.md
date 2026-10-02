@@ -16,4 +16,12 @@ Cada pasta guarda a prova de que uma fonte foi validada no DATASUS/TABNET: formu
 
 Alguns detalhes desses registros mudaram depois (a exportação CSV foi para o admin, e o acesso por `Bearer` virou login com sessão). O comportamento atual está nos documentos numerados.
 
-As demais fontes (hanseníase, sífilis congênita e gestacional, dengue, zika) foram validadas, mas ainda não têm pasta de evidências. Ao revalidá-las, crie `evidencias/<slug>/`.
+## `dengue_sinan/` (dengue 2014 em diante, 02/10/2026)
+
+| Arquivo | Conteúdo |
+|---|---|
+| [validacao.md](dengue_sinan/validacao.md) | Item D1: formulário `denguebbr.def` (2014–2026), parâmetros, consulta controlada (5.328 casos prováveis 2014–2026) e notas da fonte |
+| `consulta_parnaiba_residencia_2014-2026_prn_2026-10-02.html` | Resposta real do TABNET |
+| `consulta_headers_2026-10-02.txt` | Cabeçalhos HTTP da consulta |
+
+As demais fontes (hanseníase, sífilis congênita e gestacional, zika) foram validadas, mas ainda não têm pasta de evidências. Ao revalidá-las, crie `evidencias/<slug>/`.

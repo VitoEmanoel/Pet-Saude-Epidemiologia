@@ -38,7 +38,7 @@ npm run logs -- backend     # Ctrl+C para sair
 | Ao escolher faixa etária, o filtro de sexo foi limpo | Só um filtro demográfico por vez (não há dados cruzados) | Comportamento esperado |
 | Soma do CSV dá 4× o total | O CSV foi exportado com a visão "Todas as visões" (`aggregation=all`) | Exporte uma visão por vez, ou some só as linhas com `aggregation = yearly` ([04 §4.2](04-banco-de-dados.md#42-ponto-essencial-as-4-agregações-convivem-na-mesma-tabela)) |
 | Erro 400 "A visao escolhida nao combina com o filtro" | Filtro de uma dimensão (ex.: sexo) com visão de outra | Use a visão da mesma dimensão do filtro, ou "Automática" |
-| Dengue sem dados depois de 2013 | Só os arquivos 2007–2013 estão configurados | Ver [11](11-limitacoes-conhecidas.md) |
+| Número de um ano recente mudou depois de sincronizar | O DATASUS revisa os anos recentes (ex.: dengue 2026 "sujeito a revisão") | Normal: o painel mostra a versão mais recente publicada |
 | Ano novo não aparece | Ano não incluído em `periodFiles` | [09 §9.1](09-guia-de-manutencao.md#91-incluir-um-ano-novo-de-dados) |
 | Sincronização falhou | TABNET fora do ar ou parâmetros mudaram | [09 §9.3](09-guia-de-manutencao.md#93-uma-fonte-parou-de-sincronizar) |
 

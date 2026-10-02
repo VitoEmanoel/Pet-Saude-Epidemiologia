@@ -6,22 +6,16 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 | Tema | Alta | Média | Baixa | Total |
 |---|---|---|---|---|
-| Dados exibidos (D) | 1 | 1 | 1 | 3 |
+| Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
 | Segurança (S) | 2 | 4 | 4 | 10 |
 | Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **3** | **12** | **14** | **29** |
+| **Total** | **2** | **12** | **14** | **28** |
 
 ---
 
 ## D. Dados exibidos
-
-### D1. Dengue (e arboviroses) sem dados depois de 2013. **Alta**
-- **Sintoma:** dengue mostra só 2007–2013; arboviroses mostra dengue até 2013 e só zika depois (2016–2025), parecendo uma queda que não existe.
-- **Causa:** `periodFiles: numberedFiles("dengbr", 7, 13)` em `backend/src/modules/datasus/sinan-tabnet.collector.ts`. Os dados de 2014+ ficam em outra tabela TABNET, nunca configurada.
-- **Evidência:** `GET /api/sources/dengue_sinan/summary` → `lastAvailableYear: 2013`.
-- **Correção:** localizar no TABNET o `.def` de dengue 2014+, validar e configurar (provavelmente como fonte nova que também compõe `dengue_sinan`/arboviroses).
 
 ### D5. Anos de coleta fixos no código. **Média**
 - **Sintoma:** ano novo publicado no DATASUS não aparece até alguém editar `periodFiles`.

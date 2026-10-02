@@ -20,12 +20,18 @@ type QueryDefinition = {
   aggregationType: "yearly" | "by_sex" | "by_age_group" | "by_race_color";
 };
 
+// Um formulário TABNET (.def) e os arquivos de ano consultados nele. Uma fonte pode ter
+// vários segmentos quando o DATASUS divide os anos em formulários diferentes (ex.: dengue).
+type TabnetSegment = {
+  tabnetQueryUrl: string;
+  periodFiles: string[];
+};
+
 type SinanTabnetCollectorConfig = {
   sourceSlug: string;
   diseaseOrCondition: string;
   metric: string;
-  tabnetQueryUrl: string;
-  periodFiles: string[];
+  segments: TabnetSegment[];
   lineEncoded?: string;
   lineLabel?: string;
   incrementEncoded: string;
@@ -58,8 +64,7 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     sourceSlug: "tuberculose_sinan",
     diseaseOrCondition: "Tuberculose",
     metric: "casos_confirmados",
-    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/tubercbr.def",
-    periodFiles: numberedFiles("tubebr", 1, 25),
+    segments: [{ tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/tubercbr.def", periodFiles: numberedFiles("tubebr", 1, 25) }],
     incrementEncoded: "Casos_confirmados",
     incrementLabel: "Casos_confirmados",
     sourceTablePrefix: "tabnet_tuberculose",
@@ -70,8 +75,7 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     sourceSlug: "hanseniase_sinan",
     diseaseOrCondition: "Hanseniase",
     metric: "frequencia",
-    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/hanswbr.def",
-    periodFiles: numberedFiles("hansbr", 1, 26),
+    segments: [{ tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/hanswbr.def", periodFiles: numberedFiles("hansbr", 1, 26) }],
     incrementEncoded: "Frequ%EAncia",
     incrementLabel: "Frequencia",
     sourceTablePrefix: "tabnet_hanseniase",
@@ -82,8 +86,7 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     sourceSlug: "sifilis_congenita_sinan",
     diseaseOrCondition: "Sifilis congenita",
     metric: "casos_confirmados",
-    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/sifilisbr.def",
-    periodFiles: numberedFiles("sifcbr", 7, 24),
+    segments: [{ tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/sifilisbr.def", periodFiles: numberedFiles("sifcbr", 7, 24) }],
     incrementEncoded: "Casos_confirmados",
     incrementLabel: "Casos_confirmados",
     sourceTablePrefix: "tabnet_sifilis_congenita",
@@ -94,8 +97,17 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     sourceSlug: "dengue_sinan",
     diseaseOrCondition: "Dengue",
     metric: "casos_provaveis",
-    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/denguebr.def",
-    periodFiles: numberedFiles("dengbr", 7, 13),
+    // O DATASUS divide a dengue em dois formulários: 2007–2013 e 2014 em diante
+    segments: [
+      {
+        tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/denguebr.def",
+        periodFiles: numberedFiles("dengbr", 7, 13)
+      },
+      {
+        tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/denguebbr.def",
+        periodFiles: numberedFiles("dengbr", 14, 26)
+      }
+    ],
     lineEncoded: "Ano_1%BA_Sintoma(s)",
     lineLabel: "Ano_1o_Sintoma(s)",
     incrementEncoded: "Casos_Prov%E1veis",
@@ -108,8 +120,7 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     sourceSlug: "sifilis_gestacional_sinan",
     diseaseOrCondition: "Sifilis gestacional",
     metric: "casos_confirmados",
-    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/sifilisgestantepi.def",
-    periodFiles: numberedFiles("sifgpi", 7, 24),
+    segments: [{ tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/sifilisgestantepi.def", periodFiles: numberedFiles("sifgpi", 7, 24) }],
     lineEncoded: "Ano_de_Diagn%F3stico",
     lineLabel: "Ano de Diagnostico",
     incrementEncoded: "Casos_confirmados",
@@ -123,8 +134,7 @@ const collectorConfigs: Record<string, SinanTabnetCollectorConfig> = {
     sourceSlug: "zika_sinan",
     diseaseOrCondition: "Zika",
     metric: "todos_os_casos",
-    tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/zikabr.def",
-    periodFiles: numberedFiles("zikabr", 15, 26),
+    segments: [{ tabnetQueryUrl: "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinannet/cnv/zikabr.def", periodFiles: numberedFiles("zikabr", 15, 26) }],
     lineEncoded: "Ano_1%BA_Sintoma(s)",
     lineLabel: "Ano_1o_Sintoma(s)",
     incrementEncoded: "Todos_os_casos",
@@ -154,63 +164,67 @@ export async function collectSinanTabnetSource(
   let recordsImported = 0;
   let rawImportsCreated = 0;
 
-  for (const queryDefinition of buildQueryDefinitions(config)) {
-    const encodedFormBody = buildEncodedFormBody(config, queryDefinition);
-    const tabnetResponse = await postTabnetPrn(config.tabnetQueryUrl, encodedFormBody);
-    const normalizedRecords = parseSinanRecords(config, queryDefinition, tabnetResponse.html);
-    const storedPath = await storeRawImport(config.sourceSlug, queryDefinition.name, tabnetResponse.html);
+  for (const [segmentIndex, segment] of config.segments.entries()) {
+    for (const queryDefinition of buildQueryDefinitions(config)) {
+      const encodedFormBody = buildEncodedFormBody(config, segment, queryDefinition);
+      const tabnetResponse = await postTabnetPrn(segment.tabnetQueryUrl, encodedFormBody);
+      const normalizedRecords = parseSinanRecords(config, queryDefinition, tabnetResponse.html);
+      const rawImportName =
+        config.segments.length > 1 ? `${queryDefinition.name}_seg${segmentIndex + 1}` : queryDefinition.name;
+      const storedPath = await storeRawImport(config.sourceSlug, rawImportName, tabnetResponse.html);
 
-    await prisma.rawImport.create({
-      data: {
-        sourceId,
-        syncJobId,
-        requestUrl: tabnetResponse.requestUrl,
-        requestParams: buildRequestParams(config, queryDefinition),
-        responseFormat: tabnetResponse.responseFormat,
-        contentHash: tabnetResponse.contentHash,
-        storedPath,
-        rowCount: normalizedRecords.length
-      }
-    });
-
-    rawImportsCreated += 1;
-
-    for (const record of normalizedRecords) {
-      await prisma.epidemiologicalRecord.upsert({
-        where: {
-          recordKey: record.recordKey
-        },
-        update: {
-          syncJobId,
-          value: record.value,
-          sex: record.sex,
-          ageGroup: record.ageGroup,
-          raceColor: record.raceColor,
-          dimensions: record.dimensions,
-          importedAt: new Date()
-        },
-        create: {
+      await prisma.rawImport.create({
+        data: {
           sourceId,
           syncJobId,
-          state: ALLOWED_CITY.state,
-          stateCode: ALLOWED_CITY.uf,
-          city: ALLOWED_CITY.name,
-          cityIbgeCode: ALLOWED_CITY.ibgeCode,
-          year: record.year,
-          month: null,
-          diseaseOrCondition: config.diseaseOrCondition,
-          metric: config.metric,
-          value: record.value,
-          sex: record.sex,
-          ageGroup: record.ageGroup,
-          raceColor: record.raceColor,
-          dimensions: record.dimensions,
-          sourceTable: record.sourceTable,
-          recordKey: record.recordKey
+          requestUrl: tabnetResponse.requestUrl,
+          requestParams: buildRequestParams(config, segment, queryDefinition),
+          responseFormat: tabnetResponse.responseFormat,
+          contentHash: tabnetResponse.contentHash,
+          storedPath,
+          rowCount: normalizedRecords.length
         }
       });
 
-      recordsImported += 1;
+      rawImportsCreated += 1;
+
+      for (const record of normalizedRecords) {
+        await prisma.epidemiologicalRecord.upsert({
+          where: {
+            recordKey: record.recordKey
+          },
+          update: {
+            syncJobId,
+            value: record.value,
+            sex: record.sex,
+            ageGroup: record.ageGroup,
+            raceColor: record.raceColor,
+            dimensions: record.dimensions,
+            importedAt: new Date()
+          },
+          create: {
+            sourceId,
+            syncJobId,
+            state: ALLOWED_CITY.state,
+            stateCode: ALLOWED_CITY.uf,
+            city: ALLOWED_CITY.name,
+            cityIbgeCode: ALLOWED_CITY.ibgeCode,
+            year: record.year,
+            month: null,
+            diseaseOrCondition: config.diseaseOrCondition,
+            metric: config.metric,
+            value: record.value,
+            sex: record.sex,
+            ageGroup: record.ageGroup,
+            raceColor: record.raceColor,
+            dimensions: record.dimensions,
+            sourceTable: record.sourceTable,
+            recordKey: record.recordKey
+          }
+        });
+
+        recordsImported += 1;
+      }
     }
   }
 
@@ -255,6 +269,7 @@ function buildQueryDefinitions(config: SinanTabnetCollectorConfig): QueryDefinit
 
 function buildEncodedFormBody(
   config: SinanTabnetCollectorConfig,
+  segment: TabnetSegment,
   queryDefinition: QueryDefinition
 ): string {
   const municipalityOptionValue =
@@ -264,7 +279,7 @@ function buildEncodedFormBody(
     `Linha=${config.lineEncoded ?? DEFAULT_LINE_ENCODED}`,
     `Coluna=${queryDefinition.columnEncoded}`,
     `Incremento=${config.incrementEncoded}`,
-    ...config.periodFiles.map((file) => `Arquivos=${file}`),
+    ...segment.periodFiles.map((file) => `Arquivos=${file}`),
     `${config.municipalityResidenceFilterEncoded ?? DEFAULT_MUNICIPALITY_RESIDENCE_FILTER}=${municipalityOptionValue}`,
     "formato=prn",
     "mostre=Mostra"
@@ -273,6 +288,7 @@ function buildEncodedFormBody(
 
 function buildRequestParams(
   config: SinanTabnetCollectorConfig,
+  segment: TabnetSegment,
   queryDefinition: QueryDefinition
 ): Prisma.InputJsonValue {
   const municipalityOptionValue =
@@ -283,7 +299,8 @@ function buildRequestParams(
     line: config.lineLabel ?? DEFAULT_LINE_LABEL,
     column: queryDefinition.columnLabel,
     increment: config.incrementLabel,
-    periodFiles: config.periodFiles,
+    tabnetQueryUrl: segment.tabnetQueryUrl,
+    periodFiles: segment.periodFiles,
     municipalityFilter: {
       type: "municipio_residencia",
       tabnetCode: TABNET_CITY_CODE,

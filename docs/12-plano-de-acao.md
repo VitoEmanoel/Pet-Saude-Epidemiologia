@@ -23,14 +23,14 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | Fase | Objetivo | Itens | Concluídos |
 |---|---|---|---|
 | 0 | Preparar o terreno | 4 | 4 |
-| 1 | Dados corretos | 4 | 3 |
+| 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 0 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 7 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **47** | **7** |
+| | **Total** | **47** | **8** |
 
 ---
 
@@ -84,13 +84,13 @@ Pré-requisitos para trabalhar com segurança nas fases seguintes.
   - [x] Teste: total geral = soma das fontes públicas; casos por doença = resumo de cada página; gráfico soma o total
   - [x] Bônus: visão geral ~60% mais rápida (225 → ~355 req/s) ao trocar ~12 consultas por uma agrupada
 
-- [ ] **D1** Dengue a partir de 2014
-  - [ ] Encontrar no TABNET a tabela de dengue 2014+ (seguir [05 §5.5](05-coleta-de-dados.md#55-como-descobrir-os-parâmetros-de-uma-fonte-nova-ou-que-mudou))
-  - [ ] Validar parâmetros e o valor da opção de Parnaíba; salvar evidências em `docs/evidencias/dengue_sinan/`
-  - [ ] Configurar a coleta (nova configuração/fonte) e incluí-la na composição de dengue e arboviroses
-  - [ ] Sincronizar e conferir a série completa (2007–ano atual) contra o TABNET manualmente
-  - [ ] Teste: `lastAvailableYear` de dengue > 2013
-  - [ ] Atualizar docs 01 e 05
+- [x] **D1** Dengue a partir de 2014 (02/10/2026, branch `fix/d1-dengue-2014`)
+  - [x] Encontrar no TABNET a tabela de dengue 2014+: `denguebbr.def`, arquivos `dengbr14..26`
+  - [x] Validar parâmetros e o valor da opção de Parnaíba (`827`); evidências em `docs/evidencias/dengue_sinan/`
+  - [x] Configurar a coleta: o coletor passou a aceitar vários segmentos (formulário + anos) por fonte; a dengue tem 2
+  - [x] Sincronizar e conferir a série completa (2007–2026) contra o TABNET: os 13 anos novos idênticos à consulta manual (5.328 casos)
+  - [x] Teste: `lastAvailableYear` de dengue > 2013, série sem buraco, dengue 2022 = 2.075
+  - [x] Atualizar docs 01, 04, 05, 09 e evidências
 
 ---
 

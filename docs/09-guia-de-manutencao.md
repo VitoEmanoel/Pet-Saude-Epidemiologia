@@ -9,12 +9,14 @@ Receitas para as tarefas mais comuns. Depois de qualquer mudança de código no 
 O TABNET publica um arquivo por ano (ex.: `tubebr26.dbf` para 2026). A lista de anos coletados está **fixa no código**: quando o DATASUS publica um ano novo, é preciso incluí-lo.
 
 1. Abra o formulário da fonte (URL `deftohtm.exe?...`, ver [05-coleta-de-dados.md](05-coleta-de-dados.md#53-configuração-de-cada-fonte)) e confira o último arquivo da lista "Período".
-2. Em [`backend/src/modules/datasus/sinan-tabnet.collector.ts`](../backend/src/modules/datasus/sinan-tabnet.collector.ts), aumente o último número:
+2. Em [`backend/src/modules/datasus/sinan-tabnet.collector.ts`](../backend/src/modules/datasus/sinan-tabnet.collector.ts), aumente o último número do segmento mais recente da fonte:
 
    ```ts
-   periodFiles: numberedFiles("tubebr", 1, 25),   // antes: 2001–2025
-   periodFiles: numberedFiles("tubebr", 1, 26),   // depois: 2001–2026
+   segments: [{ tabnetQueryUrl: "...tubercbr.def", periodFiles: numberedFiles("tubebr", 1, 25) }],  // antes: 2001–2025
+   segments: [{ tabnetQueryUrl: "...tubercbr.def", periodFiles: numberedFiles("tubebr", 1, 26) }],  // depois: 2001–2026
    ```
+
+   Na dengue, o ano novo entra no **2º segmento** (`denguebbr.def`). Se o DATASUS criar um formulário novo para uma faixa de anos, acrescente outro segmento.
 
 3. Sincronize a fonte (`npm run sync:data` ou o botão no admin) e confira o novo ano no site.
 

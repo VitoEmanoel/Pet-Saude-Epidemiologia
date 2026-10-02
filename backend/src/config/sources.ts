@@ -56,7 +56,7 @@ export const allowedSources: readonly AllowedSource[] = [
     system: "SINAN",
     category: ALLOWED_DATASUS_CATEGORY,
     municipalityFilterStatus: "available",
-    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/denguebr.def",
+    sourceUrl: "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/denguebbr.def",
     active: true,
     syncEnabled: true,
     kind: "primary"

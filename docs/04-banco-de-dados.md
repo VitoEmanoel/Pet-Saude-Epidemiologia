@@ -97,7 +97,7 @@ Consequências:
 - Por isso a API (`/api/records` e o CSV) mostra **uma visão por vez** (parâmetro `aggregation`, ver [06](06-api.md)): sem filtro, o total do ano; com filtro de sexo, a visão por sexo; e assim por diante.
 - **Não existe cruzamento** (ex.: homens de 20-39 anos). Não dá para obter isso com os dados atuais.
 
-Distribuição real após uma sincronização completa (01/10/2026):
+Distribuição real após uma sincronização completa (01/10/2026; dengue atualizada em 02/10/2026):
 
 | Fonte | anual | sexo | faixa etária | raça/cor | anos |
 |---|---|---|---|---|---|
@@ -105,7 +105,7 @@ Distribuição real após uma sincronização completa (01/10/2026):
 | hanseniase_sinan | 30 | 90 | 60 | 180 | 1988–2026 |
 | sifilis_congenita_sinan | 16 | 48 | 48 | 80 | 2008–2024 |
 | sifilis_gestacional_sinan | 17 | 17 | 68 | 102 | 2008–2024 |
-| dengue_sinan | 7 | 21 | 77 | 42 | 2007–2013 |
+| dengue_sinan | 20 | 60 | 233 | 120 | 2007–2026 |
 | zika_sinan | 10 | 20 | 100 | 50 | 2016–2025 |
 
 ## 4.3 Consultas úteis (SQL)

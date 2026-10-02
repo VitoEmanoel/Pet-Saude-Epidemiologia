@@ -53,7 +53,7 @@ Cada problema de [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md) que 
 
 | Suíte | Testes `todo` hoje |
 |---|---|
-| `test:e2e` | D1, S2 (×2), S4, S6, S7, S8 (×2) |
+| `test:e2e` | S2 (×2), S4, S6, S7, S8 (×2) |
 | `test:ui` | U1, U2 |
 
 Para ver os `todo` e se estão falhando:
@@ -62,12 +62,12 @@ Para ver os `todo` e se estão falhando:
 cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs | grep "# TODO"
 ```
 
-## 13.4 Resultado de referência (02/10/2026, após o D4)
+## 13.4 Resultado de referência (02/10/2026, após o D1, fim da Fase 1)
 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
 | `test:backend` | 13 | 0 | 0 | 0 |
-| `test:e2e` | 76 | 0 | 3 (TABNET ×2, bloqueio) | 8 |
+| `test:e2e` | 79 | 0 | 3 (TABNET ×2, bloqueio) | 7 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 50 | 0 | 0 | 2 |
 | `test:resilience` | 6/6 | | | |

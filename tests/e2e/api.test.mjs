@@ -282,6 +282,27 @@ describe("Área administrativa", () => {
 });
 
 describe("Regressão: números conhecidos (validados no TABNET)", () => {
+  test("D1: dengue vai de 2007 até depois de 2013, sem buraco na série", async () => {
+    const s = (await api("/api/sources/dengue_sinan/summary")).json.summary;
+    assert.equal(s.firstAvailableYear, 2007);
+    assert.ok(s.lastAvailableYear > 2013, `último ano = ${s.lastAvailableYear}`);
+    const years = (await api("/api/charts/yearly-evolution?source=dengue_sinan")).json.series.map((p) => p.year);
+    for (let year = 2007; year <= s.lastAvailableYear; year += 1) {
+      assert.ok(years.includes(year), `ano ${year} ausente`);
+    }
+  });
+
+  test("D1: dengue 2022 = 2.075 casos prováveis (validado no TABNET em 02/10/2026)", async () => {
+    const series = (await api("/api/charts/yearly-evolution?source=dengue_sinan&year=2022")).json.series;
+    assert.equal(series[0].value, 2075);
+  });
+
+  test("D1: arboviroses inclui a dengue a partir de 2014", async () => {
+    const dengue = (await api("/api/charts/yearly-evolution?source=dengue_sinan&year=2022")).json.series[0].value;
+    const arbo = (await api("/api/charts/yearly-evolution?source=arboviroses_sinan&year=2022")).json.series[0].value;
+    assert.ok(arbo >= dengue);
+  });
+
   test("Tuberculose 2024 = 86 casos, também somando a tabela (D3)", async () => {
     const records = (await api("/api/records?source=tuberculose_sinan&year=2024&pageSize=500")).json.records;
     assert.equal(sum(records), 86);
@@ -303,11 +324,6 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
 // Defeitos conhecidos (docs/11). Marcados como "todo": rodam e mostram o defeito, mas não
 // derrubam a suíte. Ao corrigir o item, remova o "todo" e o teste passa a ser obrigatório.
 describe("Defeitos conhecidos", () => {
-  test("D1: dengue tem dados depois de 2013", { todo: "D1 — Fase 1" }, async () => {
-    const s = (await api("/api/sources/dengue_sinan/summary")).json.summary;
-    assert.ok(s.lastAvailableYear > 2013, `último ano = ${s.lastAvailableYear}`);
-  });
-
   test("S6: JSON inválido retorna erro em JSON", { todo: "S6 — Fase 2" }, async () => {
     const r = await api("/api/admin/auth/login", {
       method: "POST",

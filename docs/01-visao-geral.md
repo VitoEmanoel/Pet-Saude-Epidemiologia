@@ -40,7 +40,7 @@ A especificação original completa (com as 13 fontes previstas inicialmente) es
 | Tuberculose | `tuberculose_sinan` | primária | `sinannet/cnv/tubercbr.def` |
 | Hanseníase | `hanseniase_sinan` | primária | `sinannet/cnv/hanswbr.def` |
 | Sífilis congênita | `sifilis_congenita_sinan` | primária | `sinannet/cnv/sifilisbr.def` |
-| Dengue | `dengue_sinan` | primária | `sinannet/cnv/denguebr.def` |
+| Dengue | `dengue_sinan` | primária | `sinannet/cnv/denguebr.def` (2007–2013) + `sinannet/cnv/denguebbr.def` (2014 em diante) |
 | Sífilis gestacional | `sifilis_gestacional_sinan` | primária | `sinannet/cnv/sifilisgestantepi.def` |
 | Arboviroses | `arboviroses_sinan` | **derivada** (soma dengue + zika) | — |
 | *(não aparece no menu)* | `zika_sinan` | **interna** (só alimenta arboviroses) | `sinannet/cnv/zikabr.def` |
