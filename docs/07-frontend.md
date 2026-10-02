@@ -13,7 +13,12 @@ Next.js 15 (App Router) + React 19 + Tailwind CSS. Todas as páginas buscam dado
 | `/dengue` | `app/dengue/page.tsx` | `DiseaseDashboard source="dengue_sinan"` |
 | `/arboviroses` | `app/arboviroses/page.tsx` | `DiseaseDashboard source="arboviroses_sinan"` |
 | `/sifilis-gestacional` | `app/sifilis-gestacional/page.tsx` | `DiseaseDashboard source="sifilis_gestacional_sinan"` |
-| `/admin` | `app/admin/page.tsx` | `AdminDashboard` dentro de `AdminShell` |
+| `/admin` | `app/admin/page.tsx` | `AdminOverview`: indicadores gerais e dashboard da fonte com **Baixar CSV** e **Baixar dashboard** |
+| `/admin/fontes` | `app/admin/fontes/page.tsx` | `AdminSources`: situação das fontes, sincronizar uma ou todas |
+| `/admin/sincronizacoes` | `app/admin/sincronizacoes/page.tsx` | `AdminSyncHistory`: últimas 50 sincronizações, com filtros |
+| `/admin/auditoria` | `app/admin/auditoria/page.tsx` | `AdminAudit`: quem fez o quê, quando, IP e navegador |
+
+As telas do admin ficam dentro de `app/admin/layout.tsx` (`AdminShell`), que guarda a sessão e o menu: trocar de tela não recarrega o login.
 
 Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda a lógica está em **`DiseaseDashboard`**, exportado por [`components/dashboard/TuberculosisDashboard.tsx`](../frontend/src/components/dashboard/TuberculosisDashboard.tsx). O nome do arquivo é histórico: o componente serve a todas as doenças.
 
@@ -21,11 +26,15 @@ Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda 
 
 | Componente | Função |
 |---|---|
-| `layout/AppShell.tsx` | Cabeçalho, **menu lateral** (lista `navItems`) e menu mobile do site público |
-| `layout/AdminShell.tsx` | Layout da área administrativa |
+| `layout/SideDrawer.tsx` | **Menu lateral em gaveta**, usado pelo site e pelo admin: fica escondido e abre pelo botão ☰ do cabeçalho; fecha ao escolher um item, ao clicar fora ou com Esc. O botão de **tema claro/escuro** fica no rodapé dele |
+| `layout/AppShell.tsx` | Cabeçalho e itens do menu (lista `navItems`) do site público |
+| `layout/AdminShell.tsx` | Cabeçalho e menu do admin (lista `ADMIN_PAGES`), com "Conectado como …" e **Sair** no rodapé do menu |
 | `dashboard/OverviewDashboard.tsx` | Página inicial: cartões, evolução anual (soma das doenças) e tabela de fontes com casos e período de cada doença |
 | `dashboard/TuberculosisDashboard.tsx` | `DiseaseDashboard`: filtros, cartões, 4 gráficos, mapa e tabela paginada. Só um filtro demográfico por vez: escolher sexo limpa faixa etária e raça/cor (e vice-versa); os gráficos das outras dimensões mostram um aviso ("Mostrando todos os sexos: o DATASUS não separa…"), montado por `lib/demographics.ts`. A tabela tem o seletor **Detalhar por** (total do ano, sexo, faixa etária, raça/cor); com filtro demográfico ele fica travado na mesma dimensão |
-| `dashboard/AdminDashboard.tsx` | Tudo do admin: login, fontes, sincronização, exportação, histórico, auditoria, pré-visualização |
+| `admin/AdminSession.tsx` | Sessão do admin compartilhada pelas telas (`useAdminSession`); sem sessão mostra o formulário de login (`<form>`: Enter envia) |
+| `admin/AdminSourceDashboard.tsx` | Dashboard da fonte no admin; os downloads seguem os filtros da tela |
+| `admin/AdminAudit.tsx` | Tradução dos eventos de auditoria em frases (`describeAuditEvent`) e do navegador (`describeBrowser`) |
+| `admin/admin-ui.tsx`, `admin/useAdminLoader.ts` | Peças comuns das telas do admin (painel, botões, status, paginação) e carregamento com volta ao login se a sessão cair |
 | `dashboard/ChartPanel.tsx` / `EChart.tsx` | Gráficos (linha/barra) com ECharts |
 | `maps/ParnaibaMap.tsx` | Mapa Leaflet centrado em Parnaíba (`[-2.905, -41.776]`), carregado só no navegador. O bloco tem a classe `isolate`: sem ela, as camadas do Leaflet (`z-index` 400–1000) passam por cima do cabeçalho fixo (`z-20`) ao rolar. Qualquer outro mapa ou componente com `z-index` alto precisa do mesmo cuidado |
 | `ui/MetricCard.tsx`, `StatusPill.tsx`, `ThemeToggle.tsx` | Cartão de indicador, selo de status, alternância claro/escuro |

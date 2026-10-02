@@ -12,6 +12,7 @@ import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import {
   ADMIN_PASSWORD,
+  ADMIN_USERNAME,
   ORIGIN,
   ROOT,
   adminApi,
@@ -303,6 +304,19 @@ describe("A07 Autenticação e sessão", () => {
     assert.ok(entry, "tentativa não foi auditada");
     // O texto é guardado como veio; a proteção é o React escapar na tela (conferido no teste de interface).
     assert.equal(entry.metadata.username, payload);
+  });
+
+  test("[cinza] Auditoria identifica quem fez: usuário no login certo, não identificado no errado", async () => {
+    await login({ username: "tentativa-qa", password: "errada" });
+    const { cookie } = await adminLogin();
+    const admin = adminApi(cookie);
+    const me = (await admin("/api/admin/auth/me")).json;
+    assert.equal(me.username, ADMIN_USERNAME);
+    const logs = (await admin("/api/admin/audit-logs")).json.auditLogs;
+    const failed = logs.find((log) => log.action === "admin_login" && log.metadata?.username === "tentativa-qa");
+    const success = logs.find((log) => log.action === "admin_login" && log.status === "SUCCESS");
+    assert.equal(failed?.actor, "nao_identificado");
+    assert.equal(success?.actor, ADMIN_USERNAME);
   });
 
   test("S16 [branca] Comparação de credenciais não revela o tamanho por tempo de resposta", () => {

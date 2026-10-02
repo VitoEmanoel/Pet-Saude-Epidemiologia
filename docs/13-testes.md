@@ -56,7 +56,7 @@ Cada problema de [11-limitacoes-conhecidas.md](11-limitacoes-conhecidas.md) que 
 | Suíte | Testes `todo` hoje |
 |---|---|
 | `test:e2e` | S7 |
-| `test:ui` | U1, U2 |
+| `test:ui` | U2 |
 | `test:security` | nenhum (todos os achados S11–S18 corrigidos) |
 
 Para ver os `todo` e se estão falhando:
@@ -72,8 +72,8 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 | `test:backend` | 25 | 0 | 0 | 0 |
 | `test:e2e` | 90 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
-| `test:ui` (Chromium, Firefox, WebKit) | 52 | 0 | 0 | 2 |
-| `test:security` | 47 | 0 | 1 (TABNET) | 0 |
+| `test:ui` (Chromium, Firefox, WebKit) | 53 | 0 | 0 | 1 |
+| `test:security` | 48 | 0 | 1 (TABNET) | 0 |
 | `test:resilience` | 6/6 | | | |
 
 Carga (16 núcleos, fim da Fase 2B, Node 24): `/health` ~12.800 req/s; resumo de fonte ~470 req/s; visão geral ~365 req/s; página inicial ~2.400 req/s. O limite de requisições (S17) não age nesses testes porque eles saem de IP privado; resumo de fonte ~475 req/s; visão geral ~370 req/s (era ~225 antes do D4); página inicial ~2.500 req/s. Os cabeçalhos de segurança do S2 não têm custo mensurável (uma medição logo após o S2 deu `/health` ~6.000, mas era variação da máquina: repetida, voltou a ~8.500). Compare sempre mais de uma rodada antes de concluir regressão; 300 visitas simultâneas sem falha. Teste longo de 110 min a 40 req/s: 0 erros, memória do backend estável (~67 MB).

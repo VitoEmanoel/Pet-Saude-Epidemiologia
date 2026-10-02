@@ -1,10 +1,8 @@
-import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
-import { AdminShell } from "@/components/layout/AdminShell";
+import type { Metadata } from "next";
+import { AdminOverview } from "@/components/admin/AdminOverview";
+
+export const metadata: Metadata = { title: "Painel — Administração PET-Saúde" };
 
 export default function AdminPage() {
-  return (
-    <AdminShell>
-      <AdminDashboard />
-    </AdminShell>
-  );
+  return <AdminOverview />;
 }

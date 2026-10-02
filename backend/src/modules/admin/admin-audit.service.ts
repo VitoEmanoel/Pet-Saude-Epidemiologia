@@ -2,8 +2,17 @@ import type { Request } from "express";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../database/prisma";
 
+// Quem fez a ação: o usuário administrador configurado. Tentativas sem login (senha errada,
+// bloqueio) usam UNIDENTIFIED_ACTOR; o usuário digitado fica em metadata.username.
+export const UNIDENTIFIED_ACTOR = "nao_identificado";
+
+export function getAdminActor() {
+  return process.env.ADMIN_USERNAME?.trim() || "admin";
+}
+
 type AdminAuditInput = {
   request: Request;
+  actor?: string;
   action: string;
   status: "SUCCESS" | "FAILED";
   metadata?: Prisma.InputJsonValue;
@@ -22,6 +31,7 @@ type AdminAuditLogRow = {
 
 export async function recordAdminAudit({
   request,
+  actor = getAdminActor(),
   action,
   status,
   metadata
@@ -37,7 +47,7 @@ export async function recordAdminAudit({
     await prisma.$executeRaw`
       INSERT INTO admin_audit_logs (actor, action, status, ip_address, user_agent, metadata)
       VALUES (
-        'admin',
+        ${actor.slice(0, 100)},
         ${action},
         ${status},
         ${request.ip ?? null},
@@ -63,7 +73,7 @@ export function getAdminAuditLogs() {
       created_at AS "createdAt"
     FROM admin_audit_logs
     ORDER BY created_at DESC
-    LIMIT 100
+    LIMIT 500
   `;
 }
 

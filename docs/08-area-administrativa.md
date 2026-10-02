@@ -4,14 +4,16 @@ Endereço: `http://<servidor>:3000/admin`. Usuário: `ADMIN_USERNAME` (padrão `
 
 ## 8.1 O que dá para fazer
 
-| Seção da tela | Ação |
-|---|---|
-| Fontes | Ver o status de cada fonte e **sincronizar** uma fonte (botão "Sincronizar fonte") |
-| Sincronizar todas | Coleta todas as fontes em sequência (~1 minuto) |
-| Exportação | Baixar **CSV** dos registros ou **HTML** do dashboard de uma fonte, com filtros |
-| Dashboard da fonte | Pré-visualizar gráficos e tabela com filtros |
-| Histórico de sincronizações | Últimos 50 jobs, com status, registros e erro |
-| Auditoria administrativa | Últimos 100 eventos (logins, exportações, sincronizações) |
+As telas ficam no **menu lateral**, que abre pelo botão ☰ no canto superior esquerdo. No rodapé do menu estão o tema claro/escuro, "Conectado como …" e o botão **Sair**.
+
+| Tela | Endereço | O que tem |
+|---|---|---|
+| Painel | `/admin` | Números gerais (fontes, registros, sincronizações, falhas) e o **dashboard da fonte**: escolha fonte e filtros; ao lado ficam **Baixar CSV** (registros) e **Baixar dashboard** (HTML com indicadores e gráficos). Os dois arquivos seguem exatamente os filtros da tela |
+| Fontes | `/admin/fontes` | Situação de cada fonte, link para a página dela no TABNET, **Sincronizar** cada uma ou **Sincronizar todas** (~1 minuto) |
+| Sincronizações | `/admin/sincronizacoes` | As 50 sincronizações mais recentes: início, fonte, status, registros, duração, origem (agendador, admin, linha de comando) e erro. Filtros por fonte e status |
+| Auditoria | `/admin/auditoria` | Os 500 eventos mais recentes, com **data e hora (com segundos), usuário, IP, ação, status, detalhes** em frase ("Baixou CSV de Casos de Dengue, ano 2024 (25 registros)") e **navegador** ("Firefox 155 · Linux"; passe o mouse para ver o texto completo). Filtros por ação e status e busca por texto |
+
+**Usuário na auditoria:** é o `ADMIN_USERNAME`. Tentativas de login com senha errada e pedidos bloqueados aparecem como **"Não identificado"** (ainda não há sessão), e o usuário digitado aparece nos detalhes. Como há uma única conta de administrador, para saber **qual pessoa** usou a conta é preciso cruzar horário, IP e navegador; contas individuais são o item 7.4 do plano.
 
 Fontes derivadas (arboviroses) não têm botão de sincronizar: sincronize `dengue_sinan` e a zika (pelo "Sincronizar todas").
 

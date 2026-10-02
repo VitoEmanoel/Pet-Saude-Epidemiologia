@@ -27,11 +27,11 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
 | 3 | Operação confiável | 6 | 0 |
-| 4 | Usabilidade e acessibilidade | 8 | 0 |
+| 4 | Usabilidade e acessibilidade | 8 | 1 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **56** | **23** |
+| | **Total** | **56** | **24** |
 
 ---
 
@@ -176,14 +176,23 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
 - [ ] **U3** Linguagem para o público
   - [x] Esconder `source_table` técnico (mostrar "Total do ano", "Por sexo"...) (feito junto com o D3)
   - [ ] Traduzir status ("SUCCESS" → "Atualizado")
-  - [ ] Revisar acentuação de todos os textos da interface
-- [ ] **U1** Login do admin dentro de `<form>` (Enter envia; gerenciador de senhas funciona)
+  - [ ] Revisar acentuação de todos os textos da interface (menu do site e telas do admin já revisados)
+- [x] **U1** Login do admin dentro de `<form>` (Enter envia; gerenciador de senhas funciona) (02/10/2026, junto com a reorganização do admin)
 - [ ] **U2** Corrigir contraste dos 2 elementos (≥ 4,5:1); teste axe sem violações
 - [ ] **D6** Cartão "Registros" reflete os filtros (ou troca o rótulo para "Registros totais")
-- [ ] **U4** Título e `<h1>` próprios por página
+- [ ] **U4** Título e `<h1>` próprios por página (admin já feito: cada tela tem título na aba e no cabeçalho; falta o site público)
 - [ ] **U5** Favicon
 - [ ] **U6** Alvos de toque ≥ 24 px no celular
 - [ ] **U7** Lista de registros mais compacta no celular (ou paginação menor / recolhível)
+
+---
+
+### Pedidos de interface (02/10/2026)
+
+- [x] Admin em telas separadas: Painel (com download ao lado dos filtros), Fontes, Sincronizações e Auditoria; seção "Exportação" removida
+- [x] Auditoria com usuário, IP, detalhes em frase, navegador e filtros
+- [x] Menu lateral em gaveta (☰) no site e no admin; **Sair** e tema claro/escuro no rodapé do menu; cabeçalho mais alto
+- [x] Mapa não passa mais por cima do cabeçalho (`isolate`)
 
 ---
 
@@ -191,7 +200,7 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
 
 - [ ] **Q2** ESLint + Prettier configurados e CI (GitHub Actions) rodando typecheck, lint e testes
 - [ ] **Q3** Refatorações
-  - [ ] Dividir `AdminDashboard.tsx` em componentes
+  - [x] Dividir `AdminDashboard.tsx` em componentes (02/10/2026: telas em `components/admin/`)
   - [ ] Renomear `TuberculosisDashboard.tsx` → `DiseaseDashboard.tsx`
   - [x] Unificar os 4 handlers de `charts.ts` (feito junto com o D2)
 - [ ] **O6** Remover o que não é usado

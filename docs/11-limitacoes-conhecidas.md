@@ -9,9 +9,9 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 | Dados exibidos (D) | 0 | 1 | 1 | 2 |
 | Implantação e operação (O) | 0 | 3 | 2 | 5 |
 | Segurança (S) | 0 | 0 | 2 | 2 |
-| Interface e usabilidade (U) | 0 | 3 | 4 | 7 |
+| Interface e usabilidade (U) | 0 | 2 | 4 | 6 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **8** | **12** | **20** |
+| **Total** | **0** | **7** | **12** | **19** |
 
 ---
 
@@ -66,9 +66,6 @@ Os achados S11–S18 da campanha de testes de segurança de 02/10/2026 ([14](14-
 
 ## U. Interface e usabilidade
 
-### U1. Login do admin não envia com Enter. **Média**
-- Não há `<form>` em `AdminDashboard.tsx`; também prejudica gerenciadores de senha.
-
 ### U2. Contraste insuficiente (WCAG AA). **Média**
 - "Parnaíba - PI" no cabeçalho (`#459cd7` sobre `#143a60` = 3,87:1) e botão "Limpar" (`#e8531e` sobre branco = 3,69:1). Mínimo: 4,5:1.
 
@@ -97,7 +94,7 @@ Os achados S11–S18 da campanha de testes de segurança de 02/10/2026 ([14](14-
 ### Q2. Sem lint, formatação padrão e CI. **Baixa**
 
 ### Q3. Código difícil de manter. **Baixa**
-- `AdminDashboard.tsx` com ~1.700 linhas; `TuberculosisDashboard.tsx` exporta `DiseaseDashboard`.
+- `TuberculosisDashboard.tsx` exporta `DiseaseDashboard` (nome do arquivo engana). O antigo `AdminDashboard.tsx` (~1.700 linhas) já foi dividido em telas.
 
 ### Q4. Sem cache. **Baixa**
 - Backend é o gargalo (1.440% CPU vs 95% do banco) e satura ~2.000 conexões simultâneas. Capacidade atual é suficiente; um cache em memória no backend multiplicaria a folga (o Redis foi removido no O6; volta só se o cache precisar ser compartilhado).

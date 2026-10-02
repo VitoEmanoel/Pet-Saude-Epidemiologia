@@ -115,7 +115,6 @@ Como repetir: `npm run test:security` (suíte, segundos) e `npm run test:securit
 
 **Observações sem defeito:**
 - **Força bruta distribuída:** o bloqueio é por IP. Muitos IPs diferentes poderiam tentar 5 senhas cada, mas a senha do admin é aleatória e longa, o que torna isso inviável.
-- **Senha com espaço:** o frontend remove espaços do começo e do fim da senha digitada, então não use senhas que comecem ou terminem com espaço.
 
 As correções estão no [plano](12-plano-de-acao.md), Fase 2B. **Todos os 8 achados foram corrigidos em 02/10/2026** (§14.5), e os testes deles em `tests/security/owasp.test.mjs` deixaram de ser `todo` e passaram a ser obrigatórios.
 

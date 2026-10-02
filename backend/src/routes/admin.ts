@@ -1,7 +1,12 @@
 import { Router } from "express";
 import { ALLOWED_CITY } from "../config/city";
 import { activeSources, getSourceBySlug, syncableSources } from "../config/sources";
-import { getAdminAuditLogs, recordAdminAudit } from "../modules/admin/admin-audit.service";
+import {
+  UNIDENTIFIED_ACTOR,
+  getAdminActor,
+  getAdminAuditLogs,
+  recordAdminAudit
+} from "../modules/admin/admin-audit.service";
 import {
   assertAdminSecurityConfigured,
   clearAdminLoginAttempts,
@@ -47,6 +52,7 @@ adminRouter.use((request, response, next) => {
   if (request.method !== "GET" && !isAllowedAdminOrigin(request)) {
     void recordAdminAudit({
       request,
+      actor: UNIDENTIFIED_ACTOR,
       action: "admin_request_blocked",
       status: "FAILED",
       metadata: {
@@ -72,6 +78,7 @@ adminRouter.post("/auth/login", async (request, response) => {
     response.setHeader("retry-after", String(rateLimit.retryAfterSeconds));
     await recordAdminAudit({
       request,
+      actor: UNIDENTIFIED_ACTOR,
       action: "admin_login",
       status: "FAILED",
       metadata: {
@@ -92,6 +99,7 @@ adminRouter.post("/auth/login", async (request, response) => {
     registerFailedAdminLogin(request);
     await recordAdminAudit({
       request,
+      actor: UNIDENTIFIED_ACTOR,
       action: "admin_login",
       status: "FAILED",
       metadata: {
@@ -121,7 +129,7 @@ adminRouter.post("/auth/login", async (request, response) => {
 adminRouter.use(requireAdminAuth);
 
 adminRouter.get("/auth/me", (_request, response) => {
-  return response.json({ authenticated: true });
+  return response.json({ authenticated: true, username: getAdminActor() });
 });
 
 adminRouter.post("/auth/logout", async (request, response) => {

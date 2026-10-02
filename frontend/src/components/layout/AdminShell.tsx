@@ -1,70 +1,98 @@
-import Link from "next/link";
-import { Activity, Database, Home, Shield } from "lucide-react";
-import { ThemeToggle } from "../ui/ThemeToggle";
+"use client";
 
-type AdminShellProps = {
-  children: React.ReactNode;
-};
+import { Database, History, Home, LayoutDashboard, LogOut, ScrollText, Shield, UserRound } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useCallback, useState } from "react";
+import { AdminSessionProvider, useAdminSession } from "../admin/AdminSession";
+import { MenuButton, SideDrawer } from "./SideDrawer";
 
-export function AdminShell({ children }: AdminShellProps) {
+export const ADMIN_PAGES = [
+  { href: "/admin", label: "Painel", icon: LayoutDashboard },
+  { href: "/admin/fontes", label: "Fontes", icon: Database },
+  { href: "/admin/sincronizacoes", label: "Sincronizações", icon: History },
+  { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText }
+] as const;
+
+export function AdminShell({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminSessionProvider>
+      <AdminFrame>{children}</AdminFrame>
+    </AdminSessionProvider>
+  );
+}
+
+/** Cabeçalho e menu do admin; só aparece com sessão (sem sessão o provider mostra o login). */
+function AdminFrame({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { username, logout } = useAdminSession();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const currentPage = ADMIN_PAGES.find((page) => page.href === pathname) ?? ADMIN_PAGES[0];
+
+  async function handleLogout() {
+    setLeaving(true);
+
+    try {
+      await logout();
+    } finally {
+      setLeaving(false);
+      setMenuOpen(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-pet-ice">
-      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-pet-light/40 bg-pet-dark text-white lg:block">
-        <div className="flex h-16 items-center gap-3 border-b border-white/10 px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded bg-pet-orange text-white">
-            <Shield size={18} aria-hidden="true" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold">PET-Saúde</div>
-            <div className="text-xs text-white/70">Área administrativa</div>
-          </div>
-        </div>
-
-        <nav className="space-y-1 px-3 py-4">
-          <div className="flex items-center gap-3 rounded border-l-4 border-pet-orange bg-pet-mid px-3 py-2 text-sm font-medium text-white">
-            <Activity size={17} aria-hidden="true" />
-            Operacoes
-          </div>
-          <Link
-            href="/"
-            className="flex items-center gap-3 rounded border-l-4 border-transparent px-3 py-2 text-sm font-medium text-white/75 hover:bg-white/10 hover:text-white"
-          >
-            <Home size={17} aria-hidden="true" />
-            Site publico
-          </Link>
-        </nav>
-
-        <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 p-4">
-          <div className="flex items-center gap-2 text-xs text-white/70">
-            <Database size={14} aria-hidden="true" />
-            Rotas administrativas protegidas
-          </div>
-        </div>
-      </aside>
-
-      <div className="min-w-0 lg:pl-72">
-        <header className="sticky top-0 z-20 border-b border-pet-dark bg-pet-dark text-white shadow-sm">
-          <div className="mx-auto flex min-h-16 max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-0 lg:px-8">
+      <SideDrawer
+        open={menuOpen}
+        onClose={closeMenu}
+        brand={
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded bg-pet-orange text-white">
+              <Shield size={18} aria-hidden="true" />
+            </div>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-pet-light">Informação e Saúde Digital</p>
-              <h1 className="text-lg font-semibold text-white sm:text-xl">
-                Administração PET-Saúde
-              </h1>
-            </div>
-            <div className="flex w-full items-center justify-between gap-3 lg:w-auto lg:justify-end">
-              <ThemeToggle />
-              <Link
-                href="/"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded border border-white/30 bg-white/10 px-3 text-sm font-medium text-white hover:bg-pet-mid sm:min-w-32"
-              >
-                <Home size={16} aria-hidden="true" />
-                Publico
-              </Link>
+              <div className="text-sm font-semibold">PET-Saúde</div>
+              <div className="text-xs text-white/70">Área administrativa</div>
             </div>
           </div>
-        </header>
-        <main className="mx-auto max-w-7xl min-w-0 px-4 py-5 sm:px-6 lg:px-8">{children}</main>
-      </div>
+        }
+        items={[
+          ...ADMIN_PAGES.map((page) => ({ ...page, selected: page.href === currentPage.href })),
+          { href: "/", label: "Site público", icon: Home }
+        ]}
+        footer={
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs text-white/70">
+              <UserRound size={14} aria-hidden="true" />
+              Conectado como <span className="font-semibold text-white">{username ?? "admin"}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              disabled={leaving}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-white/30 bg-white/10 px-3 text-sm font-medium text-white hover:bg-pet-red disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <LogOut size={16} aria-hidden="true" />
+              Sair
+            </button>
+          </div>
+        }
+      />
+
+      <header className="sticky top-0 z-20 border-b border-pet-dark bg-pet-dark text-white shadow-md">
+        <div className="mx-auto flex min-h-20 max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <MenuButton open={menuOpen} onClick={() => setMenuOpen((current) => !current)} />
+          <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded bg-pet-orange text-white sm:flex">
+            <Shield size={22} aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium uppercase tracking-wider text-pet-light sm:text-sm">Administração PET-Saúde</p>
+            <h1 className="text-xl font-semibold leading-tight text-white sm:text-2xl">{currentPage.label}</h1>
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto max-w-7xl min-w-0 px-4 py-5 sm:px-6 lg:px-8">{children}</main>
     </div>
   );
 }

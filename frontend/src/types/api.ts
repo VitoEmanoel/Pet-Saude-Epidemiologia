@@ -179,6 +179,7 @@ export type AdminSyncHistoryResponse = {
 
 export type AdminAuthResponse = {
   authenticated: boolean;
+  username?: string;
 };
 
 export type AdminLoginPayload = {

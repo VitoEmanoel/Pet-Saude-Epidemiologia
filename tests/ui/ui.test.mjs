@@ -162,18 +162,26 @@ for (const profile of Object.keys(PROFILES)) {
       }
     });
 
-    test("Navegação pelo menu", async () => {
+    test("Menu lateral: escondido, abre pelo ☰, fecha com Esc e navega", async () => {
       const { context, page } = await openPage(profile, "/");
       try {
-        if (profile === "celular") {
-          await page.locator('button[aria-label="Abrir menu"]').click();
-          await page.waitForTimeout(300);
-          await page.getByRole("link", { name: /dengue/i }).last().click();
-          await page.waitForURL("**/dengue");
-        } else {
-          await page.getByRole("link", { name: /hansen/i }).first().click();
-          await page.waitForURL("**/hanseniase");
-        }
+        const drawer = page.locator("#menu-lateral");
+        const isOnScreen = async () => ((await drawer.boundingBox())?.x ?? -1000) >= 0;
+        assert.equal(await isOnScreen(), false, "menu deveria começar escondido");
+
+        await page.locator('button[aria-label="Abrir menu"]').first().click();
+        await page.waitForTimeout(400);
+        assert.equal(await isOnScreen(), true, "menu não abriu");
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(400);
+        assert.equal(await isOnScreen(), false, "Esc não fechou o menu");
+
+        await page.locator('button[aria-label="Abrir menu"]').first().click();
+        await page.waitForTimeout(400);
+        await drawer.getByRole("link", { name: /dengue/i }).click();
+        await page.waitForURL("**/dengue");
+        await page.waitForTimeout(400);
+        assert.equal(await isOnScreen(), false, "menu continuou aberto após navegar");
       } finally {
         await context.close();
       }
@@ -182,7 +190,10 @@ for (const profile of Object.keys(PROFILES)) {
     test("Tema escuro persiste após recarregar", async () => {
       const { context, page } = await openPage(profile, "/tuberculose");
       try {
-        await page.locator('button[aria-label="Ativar tema escuro"]').first().click();
+        // O botão de tema fica no menu lateral.
+        await page.locator('button[aria-label="Abrir menu"]').click();
+        await page.waitForTimeout(400);
+        await page.locator('#menu-lateral button[aria-label="Ativar tema escuro"]').click();
         await page.reload({ waitUntil: "networkidle" });
         assert.ok(await page.evaluate(() => document.documentElement.classList.contains("dark")));
       } finally {
@@ -228,7 +239,7 @@ describe(`Mapa e cabeçalho (${BROWSER})`, () => {
       const { context, page } = await openPage(profile, "/tuberculose");
       try {
         // As imagens do Leaflet têm pointer-events: none; sem isto o elementFromPoint as atravessaria.
-        await page.addStyleTag({ content: "* { pointer-events: auto !important; }" });
+        await page.addStyleTag({ content: "* { pointer-events: auto !important; } [data-drawer] { display: none !important; }" });
         const onTop = await page.evaluate(() => {
           const header = document.querySelector("header");
           const map = document.querySelector(".leaflet-container");
@@ -247,10 +258,17 @@ describe(`Mapa e cabeçalho (${BROWSER})`, () => {
 });
 
 describe(`Área administrativa (${BROWSER})`, () => {
-  test("Senha errada mostra mensagem; login abre o painel; sessão persiste; CSV baixa; Sair volta ao login", async () => {
+  test("Senha errada mostra mensagem; login abre o painel; sessão persiste; downloads; telas; Sair no menu", async () => {
     const { context, page } = await openPage("desktop", "/admin");
+    const openMenuAndGo = async (label) => {
+      await page.locator('button[aria-label="Abrir menu"]').click();
+      await page.waitForTimeout(400);
+      await page.locator("#menu-lateral").getByRole("link", { name: label, exact: true }).click();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(1000);
+    };
     try {
-      await page.locator("input").nth(0).fill(ADMIN_USERNAME);
+      await page.locator('input[name="username"]').fill(ADMIN_USERNAME);
       await page.locator('input[type="password"]').fill("senha-errada-teste-ui");
       await page.getByRole("button", { name: /entrar/i }).click();
       await page.waitForTimeout(800);
@@ -260,18 +278,34 @@ describe(`Área administrativa (${BROWSER})`, () => {
       await page.getByRole("button", { name: /entrar/i }).click();
       await page.waitForLoadState("networkidle");
       await page.waitForTimeout(1200);
-      assert.match(await page.innerText("body"), /Historico de sincronizacoes/i);
+      assert.match(await page.innerText("body"), /Dashboard da fonte/i);
+      assert.doesNotMatch(await page.innerText("main"), /Auditoria administrativa|Histórico de sincronizações/i, "painel inicial deve ficar enxuto");
       await page.screenshot({ path: `${SHOTS}desktop_admin_logado.png`, fullPage: true });
 
       await page.reload({ waitUntil: "networkidle" });
       await page.waitForTimeout(800);
-      assert.match(await page.innerText("body"), /Historico de sincronizacoes/i, "sessão persiste");
+      assert.match(await page.innerText("body"), /Dashboard da fonte/i, "sessão persiste");
 
-      const download = page.waitForEvent("download", { timeout: 8000 });
-      await page.getByRole("button", { name: /baixar csv/i }).first().click();
-      assert.match((await download).suggestedFilename(), /\.csv$/);
+      const csv = page.waitForEvent("download", { timeout: 8000 });
+      await page.getByRole("button", { name: /baixar csv/i }).click();
+      assert.match((await csv).suggestedFilename(), /\.csv$/);
+      const html = page.waitForEvent("download", { timeout: 8000 });
+      await page.getByRole("button", { name: /baixar dashboard/i }).click();
+      assert.match((await html).suggestedFilename(), /\.html$/);
 
-      await page.getByRole("button", { name: /sair/i }).first().click();
+      await openMenuAndGo("Fontes");
+      assert.match(await page.innerText("main"), /Sincronizar todas/i);
+      await openMenuAndGo("Sincronizações");
+      assert.match(await page.innerText("main"), /Histórico de sincronizações/i);
+      await openMenuAndGo("Auditoria");
+      const audit = await page.innerText("main");
+      assert.match(audit, /Data e hora/i);
+      assert.match(audit, /Não identificado/, "login errado deveria aparecer sem usuário identificado");
+      assert.match(audit, new RegExp(ADMIN_USERNAME), "login certo deveria mostrar o usuário");
+
+      await page.locator('button[aria-label="Abrir menu"]').click();
+      await page.waitForTimeout(400);
+      await page.locator("#menu-lateral").getByRole("button", { name: /sair/i }).click();
       await page.waitForTimeout(800);
       assert.ok((await page.locator('input[type="password"]').count()) > 0);
     } finally {
@@ -279,7 +313,7 @@ describe(`Área administrativa (${BROWSER})`, () => {
     }
   });
 
-  test("U1: Enter no campo de senha envia o login", { todo: "U1 — Fase 4" }, async () => {
+  test("U1: Enter no campo de senha envia o login", async () => {
     const { context, page } = await openPage("desktop", "/admin");
     try {
       await page.locator("input").nth(0).fill(ADMIN_USERNAME);

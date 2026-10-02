@@ -72,6 +72,11 @@ html.dark .bg-sky-50 {
   background-color: #123F5A !important;
 }
 
+/* Separadores discretos (filtros, rodapés de painel): tom mais suave que as bordas comuns. */
+html.dark .border-slate-100 {
+  border-color: rgba(69, 156, 215, 0.35) !important;
+}
+
 html.dark .border-slate-200,
 html.dark .border-slate-300,
 html.dark .border-white\/10,
