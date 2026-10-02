@@ -62,6 +62,10 @@ RUN mkdir -p backend/storage/raw-imports && chown -R node:node backend/storage
 
 USER node
 
+# O Docker marca o container como "unhealthy" se a API parar de responder (S18).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3333) + '/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+
 EXPOSE 3333
 
 WORKDIR /app
@@ -96,6 +100,9 @@ COPY --from=frontend /app/frontend/.next/static ./frontend/.next/static
 RUN mkdir -p frontend/.next/cache && chown -R node:node frontend/.next/cache
 
 USER node
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 EXPOSE 3000
 

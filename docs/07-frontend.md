@@ -50,6 +50,8 @@ Definidos em `headers()` no [`next.config.ts`](../frontend/next.config.ts), vale
 | `X-Content-Type-Options` | `nosniff` | O navegador não "adivinha" o tipo dos arquivos |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Não envia o endereço completo da página para outros sites |
 | `Permissions-Policy` | câmera, microfone e localização desligados | O site não usa |
+| `Cross-Origin-Opener-Policy` | `same-origin` | Páginas de outros sites abertas a partir daqui (ou que abrem o painel) não acessam a janela do site |
+| `Cross-Origin-Resource-Policy` | `same-origin` | Outros sites não podem embutir os arquivos do painel |
 | `Strict-Transport-Security` | `max-age=31536000` | Em HTTPS, força o navegador a usar sempre HTTPS (ignorado em HTTP) |
 
 O `X-Powered-By` está desligado (`poweredByHeader: false`).

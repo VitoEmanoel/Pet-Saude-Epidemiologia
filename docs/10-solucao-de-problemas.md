@@ -18,6 +18,7 @@ npm run logs -- backend     # Ctrl+C para sair
 | `docker:recover` pede senha / falha com `sudo` | O script reinicia o Docker com `sudo systemctl restart docker` | Rode-o num terminal interativo |
 | `EACCES: permission denied` ao sincronizar, gravando em `backend/storage` | Os containers rodam como o usuário `node` (uid 1000), e a pasta montada pertence a outro usuário (ex.: pasta do servidor montada no lugar de `backend/storage`) | Na máquina hospedeira: `sudo chown -R 1000:1000 <pasta montada>`. Volumes nomeados do Docker herdam o dono certo da imagem |
 | Build mostra `buildx Docker CLI plugin not found: falling back to the classic builder` | Plugin `buildx` não instalado | Inofensivo para build na mesma arquitetura. Para construir imagens para outra arquitetura (ex.: VPS ARM), instale o `buildx` ([02 §2.7](02-instalacao-e-execucao.md#27-servidor-pequeno-vps-e-imagens-construídas-fora-dele)) |
+| `docker compose ps` mostra `(unhealthy)` | A API (`/health`) ou o site (página inicial) não respondeu 3 vezes seguidas | `npm run logs` para ver o erro; `npm run restart`. Logo após subir, `(health: starting)` por até 20 s é normal |
 | Porta em uso (3000, 3333, 5433) | Outro programa usando a porta | Pare o programa ou mude a porta no `.env` |
 
 ## 10.2 Configuração

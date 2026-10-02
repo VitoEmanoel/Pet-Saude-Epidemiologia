@@ -25,13 +25,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 0 | Preparar o terreno | 4 | 4 |
 | 1 | Dados corretos | 4 | 4 |
 | 2 | Segurança mínima para publicar | 7 | 7 |
-| 2B | Achados dos testes de segurança | 8 | 7 |
+| 2B | Achados dos testes de segurança | 8 | 8 |
 | 3 | Operação confiável | 6 | 0 |
 | 4 | Usabilidade e acessibilidade | 8 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 6 | 0 |
-| | **Total** | **56** | **22** |
+| | **Total** | **56** | **23** |
 
 ---
 
@@ -144,7 +144,7 @@ Resultado da campanha de 02/10/2026 ([14](14-testes-de-seguranca.md)). Cada item
 - [x] **S12** `/api/records` aceita só fontes públicas (02/10/2026, branch `fix/s12-fonte-interna`): validação com `getPublicSourceBySlug`; achado extra durante a correção: **sem `source`, a listagem também trazia a zika** (90 registros na 1ª página); agora restrita às primárias públicas
 - [x] **S14** Filtros inválidos devolvem 400 (02/10/2026, branch `fix/s14-validacao-filtros`): `year` com 4 dígitos, `month` 1–12, `page`/`pageSize` inteiros ≥ 1, sem parâmetro repetido ou objeto; vazio = sem filtro; `pageSize` > 500 continua reduzido a 500. Vale para registros, gráficos e exportações do admin
 - [x] **S16** Comparação de credenciais e token sem vazar tamanho (02/10/2026, branch `fix/s16-comparacao-constante`): `safeEqual` compara SHA-256 dos dois lados; token Bearer passou a usar `safeEqual`
-- [ ] **S18** COOP/CORP no site; `HEALTHCHECK` nas imagens (ou no Compose)
+- [x] **S18** COOP/CORP no site; `HEALTHCHECK` nas imagens (02/10/2026, branch `fix/s18-endurecimentos`): `Cross-Origin-Opener-Policy` e `Cross-Origin-Resource-Policy` `same-origin` no `next.config.ts`; `HEALTHCHECK` no backend (`/health`) e no frontend (página inicial); desligado no serviço `sync-data`
 
 ---
 

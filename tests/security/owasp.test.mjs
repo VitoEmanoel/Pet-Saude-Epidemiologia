@@ -363,6 +363,16 @@ describe("A05 Configuração e A04 lógica de negócio", () => {
     assert.match(read("backend/src/config/rate-limit.ts"), /isPrivateAddress\(request\.ip\)/);
   });
 
+  test("S18 [preta] Site isolado de outras origens (COOP e CORP)", async () => {
+    const headers = (await request(WEB + "/")).headers;
+    assert.equal(headers.get("cross-origin-opener-policy"), "same-origin");
+    assert.equal(headers.get("cross-origin-resource-policy"), "same-origin");
+  });
+
+  test("S18 [branca] Imagens com HEALTHCHECK no backend e no frontend", () => {
+    assert.equal((read("Dockerfile").match(/^HEALTHCHECK /gm) ?? []).length, 2);
+  });
+
   test("[branca] .env e segredos fora do git", () => {
     const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" }).split("\n");
     assert.ok(!tracked.some((path) => /(^|\/)\.env$/.test(path)), ".env versionado");
