@@ -13,7 +13,12 @@ const config: Config = {
           mid: "#066F9B",
           light: "#459CD7",
           orange: "#E8531E",
+          // Tons com contraste ≥ 4,5:1 para texto (U2): laranja sobre branco/branco sobre laranja
+          // e azul-claro sobre o cabeçalho azul-escuro.
+          "orange-text": "#C2410C",
+          sky: "#8CC8EE",
           red: "#FF0000",
+          "red-text": "#C81E1E",
           ice: "#E2E0E0",
           text: "#000000"
         },

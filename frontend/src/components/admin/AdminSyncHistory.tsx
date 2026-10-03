@@ -127,7 +127,7 @@ export function AdminSyncHistory() {
                   {job.errorMessage ? (
                     <div className="col-span-2">
                       <dt className="text-xs uppercase text-slate-500">Erro</dt>
-                      <dd className="mt-1 break-words text-pet-red">{job.errorMessage}</dd>
+                      <dd className="mt-1 break-words text-pet-red-text">{job.errorMessage}</dd>
                     </div>
                   ) : null}
                 </dl>
@@ -161,7 +161,7 @@ export function AdminSyncHistory() {
                     <td className="px-4 py-3 text-slate-900">{formatNumber(job.recordsImported)}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-slate-700">{formatDuration(job)}</td>
                     <td className="px-4 py-3 text-slate-700">{formatOrigin(job.requestedBy)}</td>
-                    <td className="max-w-md px-4 py-3 text-pet-red">{job.errorMessage ?? ""}</td>
+                    <td className="max-w-md px-4 py-3 text-pet-red-text">{job.errorMessage ?? ""}</td>
                   </tr>
                 ))}
               </tbody>

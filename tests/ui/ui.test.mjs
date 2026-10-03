@@ -24,7 +24,11 @@ let browser;
 before(async () => {
   await assertSystemUp();
   mkdirSync(SHOTS, { recursive: true });
-  browser = await pw[BROWSER].launch();
+  // "localhost" resolve primeiro para IPv6 (::1), mas o Docker publica as portas só em IPv4:
+  // o Firefox às vezes travava 30 s nessa recuperação. Aqui ele vai direto ao IPv4.
+  browser = await pw[BROWSER].launch(
+    BROWSER === "firefox" ? { firefoxUserPrefs: { "network.dns.disableIPv6": true } } : {}
+  );
 });
 
 after(async () => {
@@ -34,7 +38,7 @@ after(async () => {
 /** Espera a rede assentar, no máximo 10 s (o mapa depende do OpenStreetMap, externo e às vezes lento). */
 const settle = (page) => page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
 
-async function openPage(profile, path) {
+async function newPage(profile) {
   const context = await browser.newContext({ ...PROFILES[profile], locale: "pt-BR" });
   // Registra bloqueios da CSP (S2): um recurso bloqueado indica regra apertada demais.
   await context.addInitScript(() => {
@@ -46,12 +50,28 @@ async function openPage(profile, path) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  // O mapa busca imagens no OpenStreetMap (servidor externo, às vezes lento): esperar "rede ociosa"
-  // sem limite fazia testes aleatórios estourarem 30 s, sobretudo no Firefox.
-  await page.goto(WEB + path, { waitUntil: "domcontentloaded" });
-  await settle(page);
-  await page.waitForTimeout(800);
   return { context, page, errors };
+}
+
+async function openPage(profile, path) {
+  // O Firefox automatizado, em rodadas longas, às vezes trava a navegação (o servidor responde em
+  // ~2 ms; isolado o mesmo teste passa). Se a página não abrir em 15 s, tenta uma vez numa sessão nova.
+  for (let attempt = 1; ; attempt += 1) {
+    const opened = await newPage(profile);
+    try {
+      await opened.page.goto(WEB + path, { waitUntil: "domcontentloaded", timeout: attempt === 1 ? 15_000 : 30_000 });
+    } catch (error) {
+      await opened.context.close();
+      if (attempt === 1 && error?.name === "TimeoutError") {
+        continue;
+      }
+      throw error;
+    }
+    // O mapa busca imagens no OpenStreetMap (externo, às vezes lento): espera limitada.
+    await settle(opened.page);
+    await opened.page.waitForTimeout(800);
+    return opened;
+  }
 }
 
 const shotName = (profile, path) => `${SHOTS}${profile}${path === "/" ? "_inicio" : path.replace(/\//g, "_")}.png`;
@@ -90,13 +110,12 @@ for (const profile of Object.keys(PROFILES)) {
         }
       });
 
-      test(`${path}: acessibilidade WCAG 2 A/AA (exceto contraste, ver U2)`, async () => {
+      test(`${path}: acessibilidade WCAG 2 A/AA (inclui contraste, U2)`, async () => {
         const { context, page } = await openPage(profile, path);
         try {
           await page.addScriptTag({ content: axeSource });
           const violations = await page.evaluate(async () =>
             (await window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa"] })).violations
-              .filter((v) => v.id !== "color-contrast")
               .map((v) => `${v.id} (${v.nodes.length})`)
           );
           assert.deepEqual(violations, []);
@@ -431,14 +450,19 @@ describe(`Resiliência e acessibilidade (${BROWSER})`, () => {
     }
   });
 
-  test("U2: contraste de cores (WCAG AA)", { todo: "U2 — Fase 4" }, async () => {
-    const { context, page } = await openPage("desktop", "/tuberculose");
+  test("U2: contraste de cores (WCAG AA) no tema escuro e com o botão Limpar habilitado", async () => {
+    const context = await browser.newContext({ ...PROFILES.desktop, locale: "pt-BR", colorScheme: "dark" });
+    const page = await context.newPage();
     try {
+      await page.goto(WEB + "/dengue", { waitUntil: "domcontentloaded" });
+      await settle(page);
+      await page.locator("main select").first().selectOption({ index: 2 });
+      await page.waitForTimeout(800);
       await page.addScriptTag({ content: axeSource });
       const violations = await page.evaluate(async () =>
-        (await window.axe.run(document, { runOnly: ["color-contrast"] })).violations.length
+        (await window.axe.run(document, { runOnly: ["color-contrast"] })).violations.flatMap((v) => v.nodes.map((n) => n.html.slice(0, 80)))
       );
-      assert.equal(violations, 0);
+      assert.deepEqual(violations, []);
     } finally {
       await context.close();
     }

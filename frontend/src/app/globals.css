@@ -35,6 +35,19 @@ html.dark body {
   color: #e2e8f0;
 }
 
+/* Laranja de texto (U2) mais claro no escuro, para manter 4,5:1 sobre os cartões (#102F4D). */
+html.dark .text-pet-orange-text {
+  color: #FB8A5C !important;
+}
+
+html.dark .text-pet-red-text {
+  color: #FF8A8A !important;
+}
+
+html.dark .border-pet-orange-text {
+  border-color: #FB8A5C !important;
+}
+
 /* Fundo das telas (AppShell/AdminShell usam bg-pet-ice, que ficava cinza-claro no escuro). */
 html.dark .bg-pet-ice {
   background-color: #091D30 !important;

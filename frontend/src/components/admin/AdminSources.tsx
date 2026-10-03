@@ -141,7 +141,7 @@ export function AdminSources() {
               type="button"
               onClick={() => void sync(source)}
               disabled={busy || !source.syncEnabled}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-pet-orange px-3 text-sm font-medium text-pet-orange hover:bg-pet-orange hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-pet-orange-text px-3 text-sm font-medium text-pet-orange-text hover:bg-pet-orange-text hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Play size={16} aria-hidden="true" />
               {actionState.busyAction === source.slug ? "Sincronizando..." : syncLabel(source)}
@@ -189,7 +189,7 @@ export function AdminSources() {
                     type="button"
                     onClick={() => void sync(source)}
                     disabled={busy || !source.syncEnabled}
-                    className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded border border-pet-orange px-3 text-sm font-medium text-pet-orange hover:bg-pet-orange hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded border border-pet-orange-text px-3 text-sm font-medium text-pet-orange-text hover:bg-pet-orange-text hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Play size={16} aria-hidden="true" />
                     {actionState.busyAction === source.slug ? "Sincronizando..." : syncLabel(source)}

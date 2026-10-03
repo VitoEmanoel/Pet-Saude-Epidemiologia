@@ -166,7 +166,7 @@ export function AdminPopulation() {
           <div className="space-y-3 border-t border-slate-200 p-4 text-sm">
             <p className="font-semibold text-slate-950">Pré-visualização de “{preview.fileName}”</p>
             {preview.errors.length > 0 ? (
-              <div role="alert" className="rounded border border-pet-red/30 bg-pet-red/5 p-3 text-pet-red">
+              <div role="alert" className="rounded border border-pet-red/30 bg-pet-red/5 p-3 text-pet-red-text">
                 <p className="font-medium">A planilha tem erros e não pode ser gravada:</p>
                 <ul className="mt-1 list-disc pl-5">
                   {preview.errors.map((error) => (
@@ -179,7 +179,7 @@ export function AdminPopulation() {
                 <li>Anos na planilha: <strong>{preview.rows.length}</strong> ({preview.rows[0]?.year}–{preview.rows[preview.rows.length - 1]?.year})</li>
                 <li>Novos: {yearsText(preview.diff.added)}</li>
                 <li>Alterados: {yearsText(preview.diff.changed)}</li>
-                <li className={preview.diff.removed.length ? "font-medium text-pet-red" : ""}>Serão apagados: {yearsText(preview.diff.removed)}</li>
+                <li className={preview.diff.removed.length ? "font-medium text-pet-red-text" : ""}>Serão apagados: {yearsText(preview.diff.removed)}</li>
               </ul>
             )}
             <div className="flex flex-wrap gap-2">

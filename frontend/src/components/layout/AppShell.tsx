@@ -63,7 +63,7 @@ export function AppShell({ active, children }: AppShellProps) {
           <MenuButton open={menuOpen} onClick={() => setMenuOpen((current) => !current)} />
           <PetLogoMark size={48} className="hidden sm:inline-flex" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-pet-light sm:text-sm">Parnaíba - PI</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-pet-sky sm:text-sm">Parnaíba - PI</p>
             <h1 className="text-lg font-semibold leading-tight text-white sm:text-2xl">Painel Epidemiológico PET-Saúde</h1>
           </div>
         </div>

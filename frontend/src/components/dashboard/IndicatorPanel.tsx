@@ -54,7 +54,7 @@ export function IndicatorPanel({
   }, [source]);
 
   if (error) {
-    return <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">Indicadores indisponíveis: {error}</div>;
+    return <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">Indicadores indisponíveis: {error}</div>;
   }
 
   if (!data) {

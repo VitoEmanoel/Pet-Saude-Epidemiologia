@@ -85,7 +85,7 @@ function AdminFrame({ children }: { children: React.ReactNode }) {
           <MenuButton open={menuOpen} onClick={() => setMenuOpen((current) => !current)} />
           <PetLogoMark size={48} className="hidden sm:inline-flex" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-pet-light sm:text-sm">Administração PET-Saúde</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-pet-sky sm:text-sm">Administração PET-Saúde</p>
             <h1 className="text-xl font-semibold leading-tight text-white sm:text-2xl">{currentPage.label}</h1>
           </div>
         </div>

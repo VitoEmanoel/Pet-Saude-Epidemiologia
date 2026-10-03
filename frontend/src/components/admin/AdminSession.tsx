@@ -126,7 +126,7 @@ function PublicAdminFrame({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex min-h-20 max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <PetLogoMark size={48} />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-pet-light sm:text-sm">PET-Saúde</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-pet-sky sm:text-sm">PET-Saúde</p>
             <h1 className="text-xl font-semibold leading-tight text-white sm:text-2xl">Área administrativa</h1>
           </div>
           <ThemeToggle />

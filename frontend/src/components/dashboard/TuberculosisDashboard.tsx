@@ -26,7 +26,7 @@ import {
   formatAggregation,
   formatDateTime,
   formatNumber,
-  formatYearRange, formatSyncStatus } from "@/lib/format";
+  formatYearRange, formatSyncStatus, pluralize } from "@/lib/format";
 import type {
   CategoryPoint,
   ChartPoint,
@@ -263,7 +263,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
+      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">
         API indisponível: {state.message}
       </div>
     );
@@ -354,7 +354,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
             type="button"
             onClick={clearFilters}
             disabled={!hasSelectedFilters}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded border border-pet-orange px-3 text-sm font-medium text-pet-orange hover:bg-pet-orange hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded border border-pet-orange-text px-3 text-sm font-medium text-pet-orange-text hover:bg-pet-orange-text hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
             <X size={16} aria-hidden="true" />
             Limpar
@@ -475,7 +475,7 @@ function DashboardCharts({ state }: { state: ChartsState }) {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
+      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">
         {state.message}
       </div>
     );
@@ -520,7 +520,7 @@ function RecordsTable({
   }
 
   if (state.status === "error") {
-    return <div className="border-l-4 border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">{state.message}</div>;
+    return <div className="border-l-4 border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">{state.message}</div>;
   }
 
   return (
@@ -592,7 +592,7 @@ function RecordsTable({
       </div>
       <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-600">
-          {formatNumber(state.data.pagination.total)} registros
+          {pluralize(state.data.pagination.total, "registro", "registros")}
         </p>
         <div className="flex items-center justify-between gap-2 sm:justify-start">
           <button

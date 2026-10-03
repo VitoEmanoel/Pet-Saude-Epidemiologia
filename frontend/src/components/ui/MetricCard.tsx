@@ -21,7 +21,7 @@ export function MetricCard({ label, value, detail, icon: Icon, tone = "slate" }:
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
-          <strong className={`mt-2 block whitespace-nowrap text-xl font-semibold sm:text-2xl ${tone === "amber" ? "text-pet-orange" : "text-pet-dark"}`}>{value}</strong>
+          <strong className={`mt-2 block whitespace-nowrap text-xl font-semibold sm:text-2xl ${tone === "amber" ? "text-pet-orange-text" : "text-pet-dark"}`}>{value}</strong>
         </div>
         {/* No celular os cartões ficam em 2 colunas: o ícone (decorativo) sai para caber o valor. */}
         <div className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded sm:flex ${toneClasses[tone]}`}>

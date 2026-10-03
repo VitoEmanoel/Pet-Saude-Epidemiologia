@@ -45,7 +45,7 @@ Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda 
 
 ## 7.3 Identidade visual e tema
 
-- Cores PET-Saúde definidas como `pet-*` em [`tailwind.config.ts`](../frontend/tailwind.config.ts) e em [`globals.css`](../frontend/src/app/globals.css).
+- Cores PET-Saúde definidas como `pet-*` em [`tailwind.config.ts`](../frontend/tailwind.config.ts) e em [`globals.css`](../frontend/src/app/globals.css). **Para texto, use os tons com contraste ≥ 4,5:1** (U2): `pet-sky` sobre o cabeçalho azul-escuro, `pet-orange-text` e `pet-red-text` sobre fundo claro (no tema escuro o `globals.css` troca por tons claros). `pet-orange`, `pet-light` e `pet-red` ficam para bordas, ícones e fundos. O teste de interface reprova qualquer texto abaixo do mínimo.
 - Tema claro/escuro: script em `app/layout.tsx` lê `localStorage["painel-theme"]` ou a preferência do sistema e aplica a classe `dark` em `<html>`.
 
 ## 7.4 Variável importante

@@ -9,9 +9,9 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 | Dados exibidos (D) | 0 | 0 | 1 | 1 |
 | Implantação e operação (O) | 0 | 3 | 1 | 4 |
 | Segurança (S) | 0 | 0 | 2 | 2 |
-| Interface e usabilidade (U) | 0 | 2 | 4 | 6 |
+| Interface e usabilidade (U) | 0 | 0 | 3 | 3 |
 | Qualidade e desempenho (Q) | 0 | 1 | 3 | 4 |
-| **Total** | **0** | **6** | **11** | **17** |
+| **Total** | **0** | **4** | **10** | **14** |
 
 ---
 
@@ -60,17 +60,8 @@ Os achados S11–S18 da campanha de testes de segurança de 02/10/2026 ([14](14-
 
 ## U. Interface e usabilidade
 
-### U2. Contraste insuficiente (WCAG AA). **Média**
-- "Parnaíba - PI" no cabeçalho (`#459cd7` sobre `#143a60` = 3,87:1) e botão "Limpar" (`#e8531e` sobre branco = 3,69:1). Mínimo: 4,5:1.
-
-### U3. Linguagem técnica e textos sem acento. **Média**
-- Status "SUCCESS" em inglês; "1 registros" (plural errado); rótulos "Ultimo ano", "Faixa etaria", "Sifilis congenita", "Atualizacao".
-
 ### U4. Mesmo título em todas as páginas. **Baixa**
 - `<title>` e `<h1>` iguais; abas e leitores de tela não distinguem as páginas.
-
-### U5. Favicon inexistente. **Baixa**
-- `/favicon.ico` → 404.
 
 ### U6. Alvos de toque pequenos no celular. **Baixa**
 - Elementos clicáveis < 24 px (6 na página inicial, 2 por página de doença).

@@ -3,7 +3,7 @@
 import { RefreshCw, ScrollText, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getAdminAuditLogs, getSources } from "@/lib/api";
-import { AGGREGATION_LABELS, formatDateTimeSeconds, formatNumber } from "@/lib/format";
+import { AGGREGATION_LABELS, formatDateTimeSeconds, formatNumber, pluralize } from "@/lib/format";
 import type { AdminAuditLog, RecordAggregation } from "@/types/api";
 import {
   ActionButton,
@@ -87,7 +87,7 @@ export function describeAuditEvent(log: AdminAuditLog, sourceNames: SourceNames)
         return `Falha ao gerar o CSV${failureMessage ? `: ${failureMessage}` : "."}`;
       }
       const filters = describeFilters(metadata.filters, sourceNames);
-      const count = typeof metadata.recordsExported === "number" ? `${formatNumber(metadata.recordsExported)} registros` : null;
+      const count = typeof metadata.recordsExported === "number" ? pluralize(metadata.recordsExported, "registro", "registros") : null;
       return `Baixou CSV${filters.length ? ` de ${filters.join(", ")}` : ""}${count ? ` (${count})` : ""}.`;
     }
     case "admin_export_dashboard": {
@@ -104,7 +104,7 @@ export function describeAuditEvent(log: AdminAuditLog, sourceNames: SourceNames)
       if (log.status !== "SUCCESS") {
         return `Sincronização de ${sourceName ?? "fonte"} falhou${failureMessage ? `: ${failureMessage}` : "."}`;
       }
-      return `Sincronizou ${sourceName ?? "fonte"}${typeof metadata.recordsImported === "number" ? ` (${formatNumber(metadata.recordsImported)} registros)` : ""}.`;
+      return `Sincronizou ${sourceName ?? "fonte"}${typeof metadata.recordsImported === "number" ? ` (${pluralize(metadata.recordsImported, "registro", "registros")})` : ""}.`;
     case "admin_sync_all": {
       if (reason === "sync_error") {
         return `Sincronização geral parou em ${sourceName ?? "uma fonte"}${failureMessage ? `: ${failureMessage}` : "."}`;

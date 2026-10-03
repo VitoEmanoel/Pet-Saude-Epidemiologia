@@ -3,7 +3,7 @@
 import { CheckCircle2, ChevronLeft, ChevronRight, Clock3, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ApiRequestError } from "@/lib/api";
-import { formatNumber } from "@/lib/format";
+import { pluralize } from "@/lib/format";
 
 // Peças compartilhadas pelas telas da área administrativa.
 
@@ -81,7 +81,7 @@ export function Panel({
 }
 
 const buttonStyles = {
-  primary: "bg-pet-orange text-white hover:bg-pet-dark",
+  primary: "bg-pet-orange-text text-white hover:bg-pet-dark",
   secondary: "border border-slate-300 text-slate-700 hover:bg-slate-50",
   blue: "bg-institutional-600 text-white hover:bg-institutional-800"
 } as const;
@@ -132,7 +132,7 @@ export function JobStatus({ status }: { status: string | null }) {
         success
           ? "border-pet-light bg-pet-light/15 text-pet-dark"
           : failed
-            ? "border-pet-red/30 bg-pet-red/5 text-pet-red"
+            ? "border-pet-red/30 bg-pet-red/5 text-pet-red-text"
             : "border-slate-200 bg-slate-50 text-slate-700"
       }`}
     >
@@ -151,7 +151,7 @@ export function StatusMessages({ actionState }: { actionState: ActionState }) {
         </div>
       ) : null}
       {actionState.error ? (
-        <div role="alert" className="border-t border-pet-red/30 bg-pet-red/5 px-4 py-3 text-sm text-pet-red">
+        <div role="alert" className="border-t border-pet-red/30 bg-pet-red/5 px-4 py-3 text-sm text-pet-red-text">
           {actionState.error}
         </div>
       ) : null}
@@ -193,7 +193,7 @@ export function TablePagination({
   return (
     <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-slate-600">
-        {firstItem}–{lastItem} de {formatNumber(totalItems)} registros
+        {firstItem}–{lastItem} de {pluralize(totalItems, "registro", "registros")}
       </p>
       <div className="flex items-center justify-between gap-2 sm:justify-start">
         <button
@@ -267,7 +267,7 @@ export function LoadingBlocks() {
 
 export function ErrorBox({ message }: { message: string }) {
   return (
-    <div role="alert" className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
+    <div role="alert" className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">
       {message}
     </div>
   );

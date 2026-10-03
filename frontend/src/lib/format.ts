@@ -68,3 +68,8 @@ export function formatSyncStatus(status: string | null | undefined) {
   return status ? SYNC_STATUS_LABELS[status] ?? status : "Sem status";
 }
 
+/** "1 registro", "2 registros" (com número no formato brasileiro). */
+export function pluralize(count: number, singular: string, plural: string) {
+  return `${formatNumber(count)} ${count === 1 ? singular : plural}`;
+}
+

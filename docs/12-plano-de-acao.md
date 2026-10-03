@@ -41,12 +41,12 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 2B | Achados dos testes de segurança | 8 | 8 |
 | 2C | Arboviroses e indicadores de saúde | 10 | 9 |
 | 3 | Operação confiável | 4 | 0 |
-| 4 | Ajustes visuais e acessibilidade | 9 | 4 |
+| 4 | Ajustes visuais e acessibilidade | 9 | 5 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **36** |
+| | **Total** | **64** | **37** |
 
 ---
 
@@ -254,7 +254,7 @@ Ordem sugerida: U8, U3, U2, U4, U5, D6 (rápidos, deixam o site público no nív
   - [x] Números dos gráficos no formato brasileiro (1.200; 8,24) e botão "Escolher arquivo" no lugar do "Choose File" do navegador
   - [x] Teste de interface impede "SUCCESS"/textos sem acento de voltarem
 - [x] **U1** Login do admin dentro de `<form>` (Enter envia; gerenciador de senhas funciona) (02/10/2026, junto com a reorganização do admin)
-- [ ] **U2** Corrigir contraste dos 2 elementos (≥ 4,5:1); teste axe sem violações
+- [x] **U2** Contraste ≥ 4,5:1 em todo texto (02/10/2026, branch `fix/u2-contraste`): tons novos `pet-sky` (subtítulo do cabeçalho, 6,44:1), `pet-orange-text` (5,18:1; botões laranja e valor em laranja dos cartões) e `pet-red-text` (5,25:1; mensagens e selos de erro), com versões claras no tema escuro. Levantamento com axe: **0 violações** no site e no admin, claro e escuro. O teste de acessibilidade de cada página passou a incluir o contraste. Junto: plural "1 registro" (era "1 registros")
 - [ ] **D6** Cartão "Registros" reflete os filtros (ou troca o rótulo para "Registros totais")
 - [ ] **U4** Título e `<h1>` próprios por página (admin já feito: cada tela tem título na aba e no cabeçalho; falta o site público)
 - [x] **U5** Favicon e logo do PET-Saúde (02/10/2026, branch `feat/u5-logo-favicon`): logos enviadas pelo Victor em `img/` (originais); versões reduzidas em `frontend/public/img`; `favicon.ico` (o preto e branco enviado) e `apple-icon.png` (colorido, fundo branco); símbolo no cabeçalho e no menu (fundo branco fixo para não sumir no azul-escuro), logo com texto no login. `Dockerfile` passou a copiar `public/` (o standalone não copia). Junto: fundo cinza-claro no tema escuro corrigido (`bg-pet-ice`)
