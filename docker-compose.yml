@@ -30,6 +30,7 @@ services:
       target: frontend-runner
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3333}
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
     restart: unless-stopped
     env_file:
       - .env

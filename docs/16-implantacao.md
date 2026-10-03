@@ -123,3 +123,57 @@ df -h /                       # espaço em disco
 ## 16.8 Validação desta configuração
 
 Simulada em 03/10/2026 numa pasta local fazendo papel da VPS (porta 8088), com as imagens geradas pelo `deploy-build.sh`: `install.sh` completo (migrations, seed, subida e teste); site, `/dengue`, `/admin`, `/health` e `/api/*` pelo Caddy; CSP apontando para o domínio; gzip; cookie do admin com `Secure`; IP repassado pelo proxy registrado na auditoria; sincronização da tuberculose (500 registros) com os arquivos brutos mantidos ao recriar o backend (O2); backup a cada 20 s e restauração conferida.
+
+## 16.9 Dividir o domínio com outro sistema (painel em `/painel`)
+
+O laboratório entrega **um domínio e só a porta 80** por VPS. Na VPS do Victor já roda o **TSCQuestões** (Next.js direto no systemd, sem Docker). Para os dois ficarem no ar, o Caddy do painel fica na porta 80 e divide pelo caminho:
+
+```
+https://victorsilva0001.cloud.deploy.uespi.br/          → TSCQuestões (porta 3100 da VPS)
+https://victorsilva0001.cloud.deploy.uespi.br/painel    → Painel PET-Saúde
+https://victorsilva0001.cloud.deploy.uespi.br/painel/api → backend do painel
+```
+
+**No `.env` de produção** (já é o padrão do modelo):
+
+| Variável | Valor | Para quê |
+|---|---|---|
+| `NEXT_PUBLIC_BASE_PATH` | `/painel` | Prefixo do site (embutido no build do frontend) |
+| `PUBLIC_BASE_PATH` | `/painel` | Caminho do cookie do admin no backend (`/painel/api/admin`) |
+| `NEXT_PUBLIC_API_URL`, `BACKEND_URL` | `https://…/painel` | Endereço da API visto pelo navegador |
+| `FRONTEND_URL`, `CORS_ORIGIN` | `https://…` (**sem** `/painel`) | Origem do site (o navegador não manda caminho na origem) |
+| `CADDYFILE` | `Caddyfile.subcaminho` | Caddy no modo dividido |
+| `OUTRO_SITE` | `host.docker.internal:3100` | Para onde vai o resto do domínio |
+
+Mudar o prefixo exige gerar as imagens de novo (`deploy-build.sh`). Para o painel ocupar o domínio inteiro (ex.: se o laboratório der um segundo subdomínio), deixe `NEXT_PUBLIC_BASE_PATH`, `PUBLIC_BASE_PATH` e `CADDYFILE` vazios, tire o `/painel` das URLs e gere as imagens de novo.
+
+**Mudar o TSCQuestões para a porta 3100** (uma vez; sem alterar os arquivos dele):
+
+```bash
+# porta nova, por "drop-in" do systemd (o arquivo original do serviço fica intacto)
+sudo mkdir -p /etc/systemd/system/tscquestoes.service.d
+printf '[Service]\nEnvironment=PORT=3100\n' | sudo tee /etc/systemd/system/tscquestoes.service.d/porta-3100.conf
+
+# firewall: a 3100 só aceita a própria VPS e os containers (o Caddy)
+sudo tee /etc/painel-firewall.nft <<'NFT'
+table inet painel {
+  chain entrada {
+    type filter hook input priority filter; policy accept;
+    tcp dport 3100 ip saddr { 127.0.0.1, 172.16.0.0/12 } accept
+    tcp dport 3100 drop
+  }
+}
+NFT
+printf '[Unit]\nDescription=Firewall da porta 3100 (TSCQuestoes atras do Caddy do painel)\nAfter=network-online.target\n[Service]\nType=oneshot\nRemainAfterExit=yes\nExecStart=/usr/sbin/nft -f /etc/painel-firewall.nft\nExecStop=/usr/sbin/nft delete table inet painel\n[Install]\nWantedBy=multi-user.target\n' | sudo tee /etc/systemd/system/painel-firewall.service
+sudo systemctl daemon-reload && sudo systemctl enable --now painel-firewall
+```
+
+**Ordem da troca** (o TSCQuestões fica fora do ar só entre os passos 2 e 3, cerca de 1 minuto):
+
+1. Enviar as imagens e preparar tudo **sem o Caddy** (a porta 80 ainda é do TSCQuestões).
+2. `sudo systemctl restart tscquestoes`: ele passa para a 3100 e libera a 80.
+3. Subir o Caddy (`up -d caddy`) e conferir `/` (TSCQuestões) e `/painel`.
+
+**Voltar ao estado anterior:** `docker compose -f docker-compose.prod.yml --env-file .env stop caddy`, `sudo rm /etc/systemd/system/tscquestoes.service.d/porta-3100.conf`, `sudo systemctl daemon-reload && sudo systemctl restart tscquestoes` (volta para a porta 80). Ou o ponto salvo do painel do laboratório.
+
+**Validado em 03/10/2026:** simulação local com o painel em `/painel` e um "TSCQuestões falso" na raiz: rotas conferidas (`/` e qualquer outro caminho vão para o outro sistema; `/painel`, `/painel/api` e `/painel/health` para o painel), sincronização das 7 fontes, **suíte de interface completa pelo endereço `/painel`** (login do admin, downloads, telas). Na VPS real: container alcançando um serviço da própria VPS pelo `host.docker.internal` (200). A suíte de interface aceita o prefixo: `QA_WEB_URL=http://host/painel QA_API_URL=http://host/painel`.

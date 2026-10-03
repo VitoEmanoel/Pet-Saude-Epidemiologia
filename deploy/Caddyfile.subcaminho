@@ -1,0 +1,44 @@
+# Proxy da VPS no modo "endereço dividido": o painel mora em {$BASE_PATH} (ex.: /painel) e o
+# resto do domínio continua indo para outro sistema da mesma VPS ({$OUTRO_SITE}, ex.: o
+# TSCQuestões em host.docker.internal:3100). Escolhido com CADDYFILE=Caddyfile.subcaminho.
+# O HTTPS fica com o proxy da UESPI, que repassa em HTTP para a porta 80.
+{
+	admin off
+	auto_https off
+	servers {
+		# Aceita o X-Forwarded-For só de proxies da rede interna (o da UESPI): é dele que sai o IP
+		# real do visitante para a auditoria e o limite de requisições. Visitantes não forjam o IP.
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	encode zstd gzip
+
+	# API: o backend atende em /api e /health, sem o prefixo.
+	handle {$BASE_PATH}/api/* {
+		uri strip_prefix {$BASE_PATH}
+		reverse_proxy backend:3333
+	}
+
+	handle {$BASE_PATH}/health {
+		uri strip_prefix {$BASE_PATH}
+		reverse_proxy backend:3333
+	}
+
+	# Site do painel: o Next.js foi construído com o mesmo prefixo (NEXT_PUBLIC_BASE_PATH).
+	@painel path {$BASE_PATH} {$BASE_PATH}/*
+	handle @painel {
+		reverse_proxy frontend:3000
+	}
+
+	# Todo o resto: o outro sistema, como era antes.
+	handle {
+		reverse_proxy {$OUTRO_SITE}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

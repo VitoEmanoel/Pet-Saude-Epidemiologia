@@ -41,8 +41,12 @@ const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=31536000" }
 ];
 
+// Site fora da raiz do domínio (ex.: "/painel"); vazio = raiz. Ver src/lib/base-path.ts.
+const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/+$/, "") || undefined;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  basePath,
   output: "standalone",
   poweredByHeader: false,
   async headers() {

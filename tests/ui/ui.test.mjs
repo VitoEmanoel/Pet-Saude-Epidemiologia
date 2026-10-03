@@ -6,9 +6,11 @@ import { mkdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { after, before, describe, test } from "node:test";
 import pw from "playwright-core";
-import { ADMIN_PASSWORD, ADMIN_USERNAME, OUTPUT, WEB, assertSystemUp } from "../support/env.mjs";
+import { ADMIN_PASSWORD, ADMIN_USERNAME, API, OUTPUT, WEB, assertSystemUp } from "../support/env.mjs";
 
 const BROWSER = process.env.QA_BROWSER ?? "chromium";
+// Prefixo do site quando ele não mora na raiz (ex.: QA_WEB_URL=http://localhost:8088/painel).
+const BASE = new URL(WEB).pathname.replace(/\/+$/, "");
 const SHOTS = `${OUTPUT}screenshots/${BROWSER}/`;
 const axeSource = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 
@@ -334,7 +336,7 @@ describe(`Identidade visual (${BROWSER})`, () => {
     }
     const { context, page } = await openPage("desktop", "/");
     try {
-      const loaded = await page.$$eval('header img[src="/img/logo-simbolo.png"]', (imgs) => imgs.map((img) => img.naturalWidth > 0));
+      const loaded = await page.$$eval(`header img[src="${BASE}/img/logo-simbolo.png"]`, (imgs) => imgs.map((img) => img.naturalWidth > 0));
       assert.ok(loaded.length > 0 && loaded.every(Boolean), "logo do cabeçalho não carregou");
     } finally {
       await context.close();
@@ -380,7 +382,7 @@ describe(`Página inicial (${BROWSER})`, () => {
       const text = await page.innerText("main");
       assert.doesNotMatch(text, /Indispon[ií]vel/, "alguma fonte ficou sem página");
       for (const path of ["/zika", "/chikungunya", "/dengue"]) {
-        assert.ok(await page.locator(`main a[href="${path}"]`).count() > 0, `sem link para ${path}`);
+        assert.ok(await page.locator(`main a[href="${BASE}${path}"]`).count() > 0, `sem link para ${path}`);
       }
     } finally {
       await context.close();
@@ -559,7 +561,7 @@ describe(`Resiliência e acessibilidade (${BROWSER})`, () => {
   test("Com a API fora do ar, a página mostra aviso em vez de quebrar", async () => {
     const context = await browser.newContext();
     try {
-      await context.route(/:3333\//, (route) => route.abort());
+      await context.route((url) => url.href.startsWith(`${API}/api/`), (route) => route.abort());
       const page = await context.newPage();
       await page.goto(WEB + "/tuberculose", { waitUntil: "domcontentloaded" });
       await settle(page);

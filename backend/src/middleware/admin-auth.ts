@@ -4,7 +4,9 @@ import { prisma } from "../database/prisma";
 import { sendError } from "../utils/api-response";
 
 const ADMIN_SESSION_COOKIE = "painel_admin_session";
-const ADMIN_SESSION_COOKIE_PATH = "/api/admin";
+// Com o site fora da raiz do domínio (PUBLIC_BASE_PATH, ex.: "/painel"), o navegador chama
+// /painel/api/admin/...: o cookie precisa desse caminho para ser enviado.
+const ADMIN_SESSION_COOKIE_PATH = `${(process.env.PUBLIC_BASE_PATH ?? "").replace(/\/+$/, "")}/api/admin`;
 const LEGACY_ADMIN_SESSION_COOKIE_PATH = "/";
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;

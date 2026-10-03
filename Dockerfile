@@ -76,6 +76,9 @@ FROM base AS frontend
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:3333
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Prefixo do site fora da raiz do domínio (ex.: /painel); vazio = raiz.
+ARG NEXT_PUBLIC_BASE_PATH=""
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 
 RUN npm --workspace frontend run build
 
@@ -92,6 +95,9 @@ RUN apk upgrade --no-cache \
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+# Usado pela checagem de saúde (com prefixo, a raiz "/" do servidor responde 404).
+ARG NEXT_PUBLIC_BASE_PATH=""
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 
 COPY --from=frontend /app/frontend/.next/standalone ./
 COPY --from=frontend /app/frontend/.next/static ./frontend/.next/static
@@ -104,7 +110,7 @@ RUN mkdir -p frontend/.next/cache && chown -R node:node frontend/.next/cache
 USER node
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:3000' + (process.env.NEXT_PUBLIC_BASE_PATH || '') + '/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 EXPOSE 3000
 

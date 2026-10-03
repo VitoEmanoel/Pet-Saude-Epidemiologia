@@ -11,6 +11,7 @@ ENV_PRODUCAO="${ENV_PRODUCAO:-deploy/.env.producao}"
 [ -f "$ENV_PRODUCAO" ] || { echo "Falta $ENV_PRODUCAO (modelo: deploy/.env.producao.example)." >&2; exit 1; }
 
 API_URL="$(grep -E '^NEXT_PUBLIC_API_URL=' "$ENV_PRODUCAO" | cut -d= -f2-)"
+BASE_PATH="$(grep -E '^NEXT_PUBLIC_BASE_PATH=' "$ENV_PRODUCAO" | cut -d= -f2- || true)"
 case "$API_URL" in
   https://*) ;;
   *) echo "NEXT_PUBLIC_API_URL em $ENV_PRODUCAO deve ser o endereço https público (está: '$API_URL')." >&2; exit 1 ;;
@@ -24,9 +25,10 @@ VERSION="$(git rev-parse --short HEAD)"
 OUT="deploy/out/painel-imagens-$VERSION.tar.gz"
 mkdir -p deploy/out
 
-echo "==> Construindo backend e frontend (NEXT_PUBLIC_API_URL=$API_URL)"
+echo "==> Construindo backend e frontend (NEXT_PUBLIC_API_URL=$API_URL, prefixo '${BASE_PATH:-/}')"
 docker build --target backend -t "painel-backend:$VERSION" -t painel-backend:latest .
 docker build --target frontend-runner --build-arg "NEXT_PUBLIC_API_URL=$API_URL" \
+  --build-arg "NEXT_PUBLIC_BASE_PATH=$BASE_PATH" \
   -t "painel-frontend:$VERSION" -t painel-frontend:latest .
 
 docker pull -q postgres:16-alpine >/dev/null

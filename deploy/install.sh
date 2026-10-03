@@ -28,6 +28,11 @@ if [[ "${FRONTEND_URL:-}" == https://* ]] && [ "${ADMIN_COOKIE_SECURE:-}" != "tr
   fail "FRONTEND_URL em HTTPS exige ADMIN_COOKIE_SECURE=true."
 fi
 [ "${TRUST_PROXY:-}" != "true" ] || fail "TRUST_PROXY=true deixaria qualquer visitante forjar o IP."
+if [ "${CADDYFILE:-Caddyfile}" = "Caddyfile.subcaminho" ]; then
+  [ -n "${NEXT_PUBLIC_BASE_PATH:-}" ] && [ "${PUBLIC_BASE_PATH:-}" = "$NEXT_PUBLIC_BASE_PATH" ] \
+    || fail "Caddyfile.subcaminho exige NEXT_PUBLIC_BASE_PATH e PUBLIC_BASE_PATH iguais (ex.: /painel)."
+  [ -n "${OUTRO_SITE:-}" ] || fail "Caddyfile.subcaminho exige OUTRO_SITE (para onde vai o resto do domínio)."
+fi
 
 echo "==> Carregando imagens ($IMAGES)"
 gunzip -c "$IMAGES" | docker load
@@ -47,7 +52,7 @@ echo "==> Subindo o sistema"
 echo "==> Conferindo"
 for _ in $(seq 1 30); do
   # wget do próprio Caddy: a VPS pode não ter curl.
-  if "${COMPOSE[@]}" exec -T caddy wget -qO- http://127.0.0.1/health >/dev/null 2>&1; then
+  if "${COMPOSE[@]}" exec -T caddy wget -qO- "http://127.0.0.1${PUBLIC_BASE_PATH:-}/health" >/dev/null 2>&1; then
     echo "OK: o sistema respondeu pelo Caddy (porta ${PUBLIC_PORT:-80} da VPS)."
     "${COMPOSE[@]}" ps
     exit 0

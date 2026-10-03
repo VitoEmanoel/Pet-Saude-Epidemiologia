@@ -14,7 +14,7 @@ IMAGES="${1:?Informe o arquivo gerado pelo scripts/deploy-build.sh}"
 
 echo "==> Enviando para $HOST:$DIR"
 ssh "$HOST" "mkdir -p '$DIR'"
-scp deploy/docker-compose.prod.yml deploy/Caddyfile deploy/backup.sh deploy/install.sh \
+scp deploy/docker-compose.prod.yml deploy/Caddyfile deploy/Caddyfile.subcaminho deploy/backup.sh deploy/install.sh \
   deploy/.env.producao.example "$IMAGES" "$HOST:$DIR/"
 
 if ! ssh "$HOST" "test -f '$DIR/.env'"; then
