@@ -18,7 +18,7 @@ export function StatusPill({ status }: StatusPillProps) {
     return (
       <span className="inline-flex items-center gap-1 rounded bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700">
         <XCircle size={13} aria-hidden="true" />
-        Indisponivel
+        Indisponível
       </span>
     );
   }
@@ -26,7 +26,7 @@ export function StatusPill({ status }: StatusPillProps) {
   return (
     <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
       <Clock3 size={13} aria-hidden="true" />
-      Em validacao
+      Em validação
     </span>
   );
 }

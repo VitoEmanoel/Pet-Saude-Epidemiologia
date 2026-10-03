@@ -41,12 +41,12 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 2B | Achados dos testes de segurança | 8 | 8 |
 | 2C | Arboviroses e indicadores de saúde | 10 | 9 |
 | 3 | Operação confiável | 4 | 0 |
-| 4 | Ajustes visuais e acessibilidade | 9 | 2 |
+| 4 | Ajustes visuais e acessibilidade | 9 | 3 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **34** |
+| | **Total** | **64** | **35** |
 
 ---
 
@@ -247,10 +247,12 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
 Ordem sugerida: U8, U3, U2, U4, U5, D6 (rápidos, deixam o site público no nível do admin); depois U7 e U6.
 
 - [x] **U8** Indicadores em 2 colunas no celular também no site público (02/10/2026, branch `fix/u8-cartoes-celular`): o 5º cartão ocupa a linha toda; ícone dos cartões escondido no celular para o valor caber ("2007-2026" quebrava). Junto: curva dos gráficos de linha passou a ser monotônica (a suavizada desenhava vales abaixo dos pontos reais) e **corrigidos os links de Zika e Chikungunya na página inicial** (apareciam "Indisponível"; falha do A1/A2), com teste
-- [ ] **U3** Linguagem para o público
+- [x] **U3** Linguagem para o público: português brasileiro correto em tudo que o usuário vê (02/10/2026, branch `fix/u3-textos-publico`)
   - [x] Esconder `source_table` técnico (mostrar "Total do ano", "Por sexo"...) (feito junto com o D3)
-  - [ ] Traduzir status ("SUCCESS" → "Atualizado")
-  - [ ] Revisar acentuação de todos os textos da interface (menu do site e telas do admin já revisados)
+  - [x] Traduzir status: `formatSyncStatus` ("SUCCESS" → "Atualizado", "synced" → "Dados atualizados")
+  - [x] Acentuação do site, das mensagens de erro do backend (só dentro de textos; identificadores e cabeçalhos de arquivo continuam sem acento), do HTML exportado e do rótulo de dados "Indígena" (registros antigos substituídos na sincronização)
+  - [x] Números dos gráficos no formato brasileiro (1.200; 8,24) e botão "Escolher arquivo" no lugar do "Choose File" do navegador
+  - [x] Teste de interface impede "SUCCESS"/textos sem acento de voltarem
 - [x] **U1** Login do admin dentro de `<form>` (Enter envia; gerenciador de senhas funciona) (02/10/2026, junto com a reorganização do admin)
 - [ ] **U2** Corrigir contraste dos 2 elementos (≥ 4,5:1); teste axe sem violações
 - [ ] **D6** Cartão "Registros" reflete os filtros (ou troca o rótulo para "Registros totais")

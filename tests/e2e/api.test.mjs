@@ -319,7 +319,7 @@ describe("Área administrativa", () => {
     assert.match(r.headers.get("content-type") ?? "", /text\/csv/);
     assert.match(r.text, /indicador;unidade;ano;valor;numerador;denominador;situacao;provisorio/);
     assert.match(r.text, /% com sinais de alarme;%;2024;8,24;42;510;;nao/);
-    assert.match(r.text, /% com sinais de alarme;%;2013;;;244;nao se aplica;nao/);
+    assert.match(r.text, /% com sinais de alarme;%;2013;;;244;não se aplica;nao/);
     assert.equal((await admin("/api/admin/indicators/export.csv?source=inexistente")).status, 404);
   });
 

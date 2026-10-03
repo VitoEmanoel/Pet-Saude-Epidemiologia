@@ -10,7 +10,7 @@ const app = createServer();
 const syncScheduler = startSyncScheduler();
 
 const server = app.listen(port, host, () => {
-  console.log(`Backend do Painel Epidemiologico de Parnaiba rodando em http://${host}:${port}`);
+  console.log(`Backend do Painel Epidemiológico de Parnaíba rodando em http://${host}:${port}`);
 
   const warnings = [getAdminCookieSecurityWarning(), ...getWeakConfigWarnings()];
 

@@ -19,7 +19,7 @@ sourcesRouter.get("/:slug/availability", (request, response) => {
   const source = getPublicSourceBySlug(request.params.slug);
 
   if (!source) {
-    return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+    return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
   }
 
   return response.json({
@@ -40,7 +40,7 @@ sourcesRouter.get("/:slug/summary", async (request, response) => {
     const summary = await getSourceSummary(request.params.slug);
 
     if (!summary) {
-      return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+      return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
     }
 
     return response.json(summary);
@@ -55,7 +55,7 @@ sourcesRouter.get("/:slug/filters", async (request, response) => {
     const filters = await getSourceFilters(request.params.slug);
 
     if (!filters) {
-      return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+      return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
     }
 
     return response.json(filters);
@@ -69,7 +69,7 @@ sourcesRouter.get("/:slug", (request, response) => {
   const source = getPublicSourceBySlug(request.params.slug);
 
   if (!source) {
-    return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+    return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
   }
 
   return response.json({

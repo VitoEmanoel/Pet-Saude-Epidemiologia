@@ -54,7 +54,7 @@ export function toDashboardHtml(input: DashboardExportInput): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${escapeHtml(input.source.name)} - Dashboard epidemiologico</title>
+  <title>${escapeHtml(input.source.name)} - Painel epidemiológico</title>
   <style>
     :root {
       color-scheme: light;
@@ -216,32 +216,32 @@ export function toDashboardHtml(input: DashboardExportInput): string {
     <header>
       <div>
         <h1>${escapeHtml(input.source.name)}</h1>
-        <p>Dashboard epidemiologico de ${escapeHtml(input.city.name)} - ${escapeHtml(input.city.uf)}</p>
+        <p>Painel epidemiológico de ${escapeHtml(input.city.name)} - ${escapeHtml(input.city.uf)}</p>
         ${sourceUrl ? `<p>Fonte oficial: <a href="${escapeHtml(sourceUrl)}">${escapeHtml(sourceUrl)}</a></p>` : ""}
       </div>
       <button class="print-button" type="button" onclick="window.print()">Imprimir / salvar PDF</button>
     </header>
 
-    <section class="meta" aria-label="Dados da exportacao">
+    <section class="meta" aria-label="Dados da exportação">
       <div class="meta-item"><span class="label">Sistema</span>${escapeHtml(input.source.system)}</div>
-      <div class="meta-item"><span class="label">Municipio</span>${escapeHtml(input.city.name)} - ${escapeHtml(input.city.uf)}</div>
+      <div class="meta-item"><span class="label">Município</span>${escapeHtml(input.city.name)} - ${escapeHtml(input.city.uf)}</div>
       <div class="meta-item"><span class="label">Filtros</span>${escapeHtml(filters)}</div>
       <div class="meta-item"><span class="label">Gerado em</span>${escapeHtml(formatDateTime(input.generatedAt))}</div>
     </section>
 
     <section class="cards" aria-label="Indicadores">
       ${metricCard("Casos", formatNumber(input.summary.totalCases), "Total consolidado")}
-      ${metricCard("Ultimo ano", formatNumber(input.summary.latestYearValue ?? 0), String(input.summary.latestYear ?? "-"))}
-      ${metricCard("Registros", formatNumber(input.summary.totalRecords), "Normalizados")}
-      ${metricCard("Periodo", yearRange, "Anos disponiveis")}
-      ${metricCard("Atualizacao", input.summary.lastSyncStatus ?? "Sem status", formatDateTime(input.summary.lastUpdate))}
+      ${metricCard("Último ano", formatNumber(input.summary.latestYearValue ?? 0), String(input.summary.latestYear ?? "-"))}
+      ${metricCard("Registros", formatNumber(input.summary.totalRecords), "No banco de dados")}
+      ${metricCard("Período", yearRange, "Anos disponíveis")}
+      ${metricCard("Atualização", formatSyncStatus(input.summary.lastSyncStatus), formatDateTime(input.summary.lastUpdate))}
     </section>
 
-    <section class="charts" aria-label="Graficos">
-      ${chartPanel("Evolucao anual", lineChart(input.charts.yearly))}
+    <section class="charts" aria-label="Gráficos">
+      ${chartPanel("Evolução anual", lineChart(input.charts.yearly))}
       ${chartPanel("Por sexo", barChart(input.charts.bySex))}
-      ${chartPanel("Por raca/cor", barChart(input.charts.byRaceColor))}
-      ${chartPanel("Por faixa etaria", barChart(input.charts.byAgeGroup))}
+      ${chartPanel("Por raça/cor", barChart(input.charts.byRaceColor))}
+      ${chartPanel("Por faixa etária", barChart(input.charts.byAgeGroup))}
     </section>
 
     <footer>
@@ -284,7 +284,7 @@ function lineChart(points: ChartPoint[]): string {
   const path = coordinates.map((point) => `${point.x},${point.y}`).join(" ");
   const labelIndexes = getLabelIndexes(points.length);
 
-  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Grafico de evolucao anual">
+  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Gráfico de evolução anual">
     <line x1="${paddingLeft}" y1="${paddingTop}" x2="${paddingLeft}" y2="${paddingTop + chartHeight}" stroke="#E2E0E0" />
     <line x1="${paddingLeft}" y1="${paddingTop + chartHeight}" x2="${paddingLeft + chartWidth}" y2="${paddingTop + chartHeight}" stroke="#E2E0E0" />
     <text x="0" y="${paddingTop + 4}" font-size="12" fill="#143A60">${escapeHtml(formatNumber(maxValue))}</text>
@@ -320,7 +320,7 @@ function barChart(points: CategoryPoint[]): string {
   const height = paddingTop + paddingBottom + points.length * rowHeight;
   const maxValue = Math.max(...points.map((point) => point.value), 1);
 
-  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Grafico de barras">
+  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Gráfico de barras">
     ${points
       .map((point, index) => {
         const y = paddingTop + index * rowHeight;
@@ -360,7 +360,7 @@ function getVisibleFilters(filters: PublicFilters): string {
   const values = [
     filters.year ? `Ano ${filters.year}` : null,
     filters.sex ? `Sexo ${filters.sex}` : null,
-    filters.ageGroup ? `Faixa etaria ${filters.ageGroup}` : null,
+    filters.ageGroup ? `Faixa etária ${filters.ageGroup}` : null,
     filters.raceColor ? `Raca/cor ${filters.raceColor}` : null,
     filters.condition ? `Condicao ${filters.condition}` : null
   ].filter(Boolean);
@@ -425,3 +425,15 @@ function escapeHtml(value: unknown): string {
 function sanitizeFilename(value: string): string {
   return value.replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "") || "dashboard";
 }
+
+const SYNC_STATUS_LABELS: Record<string, string> = {
+  SUCCESS: "Atualizado",
+  FAILED: "Falha na atualização",
+  RUNNING: "Atualizando",
+  UNAVAILABLE: "Indisponível"
+};
+
+function formatSyncStatus(status: string | null | undefined) {
+  return status ? SYNC_STATUS_LABELS[status] ?? status : "Sem status";
+}
+

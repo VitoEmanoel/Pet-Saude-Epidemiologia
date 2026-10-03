@@ -73,7 +73,7 @@ adminRouter.use((request, response, next) => {
         path: request.path
       }
     });
-    return sendError(response, 403, "forbidden", "Origem administrativa nao permitida.");
+    return sendError(response, 403, "forbidden", "Origem administrativa não permitida.");
   }
 
   return next();
@@ -119,14 +119,14 @@ adminRouter.post("/auth/login", async (request, response) => {
         username: typeof request.body?.username === "string" ? request.body.username : null
       }
     });
-    return sendError(response, 401, "unauthorized", "Credencial administrativa invalida.");
+    return sendError(response, 401, "unauthorized", "Credencial administrativa inválida.");
   }
 
   try {
     await startAdminSession(response);
   } catch (error) {
     console.error(error);
-    return sendError(response, 500, "internal_error", "Erro ao iniciar a sessao administrativa.");
+    return sendError(response, 500, "internal_error", "Erro ao iniciar a sessão administrativa.");
   }
 
   clearAdminLoginAttempts(request);
@@ -149,7 +149,7 @@ adminRouter.post("/auth/logout", async (request, response) => {
     await revokeAdminSession(response);
   } catch (error) {
     console.error(error);
-    return sendError(response, 500, "internal_error", "Erro ao encerrar a sessao administrativa.");
+    return sendError(response, 500, "internal_error", "Erro ao encerrar a sessão administrativa.");
   }
 
   clearAdminSessionCookie(response);
@@ -225,7 +225,7 @@ adminRouter.get("/dashboard/export.html", async (request, response) => {
     const sourceSummary = await getSourceSummary(sourceSlug);
 
     if (!sourceSummary) {
-      return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+      return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
     }
 
     const [yearly, bySex, byAgeGroup, byRaceColor] = await Promise.all([
@@ -286,7 +286,7 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
   const source = getSourceBySlug(request.params.sourceSlug);
 
   if (!source) {
-    return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+    return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
   }
 
   try {
@@ -309,13 +309,13 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
         response,
         501,
         "not_implemented",
-        "Nao ha coletor implementado para esta fonte.",
+        "Não há coletor implementado para esta fonte.",
         { city: ALLOWED_CITY, source }
       );
     }
 
     if (error instanceof SourceNotAllowedError) {
-      return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+      return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
     }
 
     if (error instanceof SyncAlreadyRunningError) {
@@ -344,7 +344,7 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
         message: error instanceof Error ? error.message : "Erro desconhecido."
       }
     });
-    return sendError(response, 500, "internal_error", "Erro ao executar sincronizacao.");
+    return sendError(response, 500, "internal_error", "Erro ao executar sincronização.");
   }
 });
 
@@ -398,7 +398,7 @@ adminRouter.post("/sync-all", async (request, response) => {
           message: error instanceof Error ? error.message : "Erro desconhecido."
         }
       });
-      return sendError(response, 500, "internal_error", "Erro ao executar sincronizacao geral.");
+      return sendError(response, 500, "internal_error", "Erro ao executar sincronização geral.");
     }
   }
 
@@ -433,8 +433,8 @@ adminRouter.get("/audit-logs", async (_request, response) => {
 // Indicadores de uma fonte em CSV (A6), na mesma regra de exportação só pelo admin.
 const INDICATOR_STATUS_LABELS: Record<string, string> = {
   ok: "",
-  sem_populacao: "sem populacao cadastrada",
-  nao_se_aplica: "nao se aplica",
+  sem_populacao: "sem população cadastrada",
+  nao_se_aplica: "não se aplica",
   sem_dados: "sem dados"
 };
 
@@ -442,7 +442,7 @@ adminRouter.get("/indicators/export.csv", async (request, response) => {
   const source = typeof request.query.source === "string" ? getPublicSourceBySlug(request.query.source) : undefined;
 
   if (!source) {
-    return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+    return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
   }
 
   const indicators = await getSourceIndicators(source.slug);
@@ -531,7 +531,7 @@ adminRouter.put("/population", async (request, response) => {
     return response.json({ population: await getPopulation(), diff });
   } catch (error) {
     console.error(error);
-    return sendError(response, 500, "internal_error", "Erro ao gravar a populacao.");
+    return sendError(response, 500, "internal_error", "Erro ao gravar a população.");
   }
 });
 
@@ -547,7 +547,7 @@ adminRouter.get("/source-health", async (_request, response) => {
     return response.json({ sources: await getSourcesHealth() });
   } catch (error) {
     console.error(error);
-    return sendError(response, 500, "internal_error", "Erro ao carregar a situacao das fontes.");
+    return sendError(response, 500, "internal_error", "Erro ao carregar a situação das fontes.");
   }
 });
 

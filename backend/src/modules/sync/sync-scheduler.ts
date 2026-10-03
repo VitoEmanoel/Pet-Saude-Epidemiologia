@@ -18,7 +18,7 @@ let schedulerRunning = false;
 
 export function startSyncScheduler(): SyncScheduler | null {
   if (!isEnabled()) {
-    console.log("Agendador de sincronizacao automatica desativado.");
+    console.log("Agendador de sincronização automática desativado.");
     return null;
   }
 
@@ -39,7 +39,7 @@ export function startSyncScheduler(): SyncScheduler | null {
   const startupDelayMs = startupDelaySeconds * MS_PER_SECOND;
 
   console.log(
-    `Agendador de sincronizacao ativo: intervalo=${intervalDays} dias, checagem=${checkIntervalMinutes} min.`
+    `Agendador de sincronização ativo: intervalo=${intervalDays} dias, checagem=${checkIntervalMinutes} min.`
   );
 
   const startupTimer = setTimeout(() => {
@@ -59,7 +59,7 @@ export function startSyncScheduler(): SyncScheduler | null {
 
 async function runScheduledSync(intervalDays: number) {
   if (schedulerRunning) {
-    console.log("Agendador de sincronizacao: checagem ignorada porque outra execucao esta ativa.");
+    console.log("Agendador de sincronização: checagem ignorada porque outra execução está ativa.");
     return;
   }
 
@@ -74,24 +74,24 @@ async function runScheduledSync(intervalDays: number) {
       }
 
       try {
-        console.log(`Agendador de sincronizacao: atualizando ${source.slug}.`);
+        console.log(`Agendador de sincronização: atualizando ${source.slug}.`);
         await syncSource(source.slug, "scheduler");
       } catch (error) {
         if (error instanceof SyncAlreadyRunningError) {
-          console.log(`Agendador de sincronizacao: ${source.slug} ja esta em execucao.`);
+          console.log(`Agendador de sincronização: ${source.slug} já está em execução.`);
           continue;
         }
 
         if (error instanceof UnsupportedCollectorError) {
-          console.log(`Agendador de sincronizacao: ${source.slug} sem coletor implementado.`);
+          console.log(`Agendador de sincronização: ${source.slug} sem coletor implementado.`);
           continue;
         }
 
-        console.error(`Agendador de sincronizacao: falha ao atualizar ${source.slug}.`, error);
+        console.error(`Agendador de sincronização: falha ao atualizar ${source.slug}.`, error);
       }
     }
   } catch (error) {
-    console.error("Agendador de sincronizacao: falha na checagem automatica.", error);
+    console.error("Agendador de sincronização: falha na checagem automática.", error);
   } finally {
     schedulerRunning = false;
   }

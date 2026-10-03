@@ -66,11 +66,11 @@ export function createServer() {
       const type = (error as { type?: unknown } | null)?.type;
 
       if (type === "entity.parse.failed") {
-        return sendError(response, 400, "invalid_body", "Corpo da requisicao nao e um JSON valido.");
+        return sendError(response, 400, "invalid_body", "Corpo da requisição não é um JSON válido.");
       }
 
       if (type === "entity.too.large") {
-        return sendError(response, 413, "payload_too_large", "Corpo da requisicao grande demais.");
+        return sendError(response, 413, "payload_too_large", "Corpo da requisição grande demais.");
       }
 
       console.error(error);
@@ -79,7 +79,7 @@ export function createServer() {
   );
 
   app.use((_request, response) => {
-    return sendError(response, 404, "not_found", "Rota nao encontrada.");
+    return sendError(response, 404, "not_found", "Rota não encontrada.");
   });
 
   return app;

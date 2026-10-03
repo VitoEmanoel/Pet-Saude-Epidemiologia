@@ -20,14 +20,14 @@ export const chartsRouter = Router();
 
 function resolveSource(response: Response, sourceSlug: unknown) {
   if (!sourceSlug || typeof sourceSlug !== "string") {
-    sendError(response, 400, "invalid_query", "O parametro source e obrigatorio.");
+    sendError(response, 400, "invalid_query", "O parâmetro source e obrigatório.");
     return null;
   }
 
   const source = getPublicSourceBySlug(sourceSlug);
 
   if (!source) {
-    sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+    sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
     return null;
   }
 
@@ -84,9 +84,9 @@ chartsRouter.get(
 chartsRouter.get("/by-sex", chartHandler(getChartBySex, "sex", "Erro ao carregar grafico por sexo."));
 chartsRouter.get(
   "/by-age-group",
-  chartHandler(getChartByAgeGroup, "ageGroup", "Erro ao carregar grafico por faixa etaria.")
+  chartHandler(getChartByAgeGroup, "ageGroup", "Erro ao carregar grafico por faixa etária.")
 );
 chartsRouter.get(
   "/by-race-color",
-  chartHandler(getChartByRaceColor, "raceColor", "Erro ao carregar grafico por raca/cor.")
+  chartHandler(getChartByRaceColor, "raceColor", "Erro ao carregar grafico por raça/cor.")
 );

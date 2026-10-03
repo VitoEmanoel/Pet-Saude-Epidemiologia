@@ -9,6 +9,6 @@ dashboardRouter.get("/overview", async (_request, response) => {
     return response.json(await getDashboardOverview());
   } catch (error) {
     console.error(error);
-    return sendError(response, 500, "internal_error", "Erro ao carregar visao geral.");
+    return sendError(response, 500, "internal_error", "Erro ao carregar visão geral.");
   }
 });

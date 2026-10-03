@@ -64,13 +64,21 @@ export function ChartPanel(props: ChartPanelProps) {
   );
 }
 
+// Números no formato brasileiro (1.200; 8,24): o ECharts usa o formato americano por padrão.
+const numberFormat = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
+const formatAxisNumber = (value: number) => numberFormat.format(value);
+const tooltip = {
+  trigger: "axis" as const,
+  valueFormatter: (value: unknown) => (typeof value === "number" ? numberFormat.format(value) : String(value ?? "-"))
+};
+
 function lineOption(data: ChartPoint[], darkMode: boolean): EChartsOption {
   const labelColor = darkMode ? "#E2E0E0" : "#143A60";
   const gridColor = darkMode ? "#459CD7" : "#E2E0E0";
 
   return {
     grid: { left: 44, right: 16, top: 24, bottom: 32 },
-    tooltip: { trigger: "axis" },
+    tooltip,
     xAxis: {
       type: "category",
       data: data.map((point) => String(point.year)),
@@ -79,7 +87,7 @@ function lineOption(data: ChartPoint[], darkMode: boolean): EChartsOption {
     },
     yAxis: {
       type: "value",
-      axisLabel: { color: labelColor },
+      axisLabel: { color: labelColor, formatter: formatAxisNumber },
       splitLine: { lineStyle: { color: gridColor, opacity: darkMode ? 0.35 : 1 } }
     },
     series: [
@@ -106,11 +114,11 @@ function barOption(data: CategoryPoint[], horizontal = false, darkMode = false):
 
   return {
     grid: { left: horizontal ? 112 : 44, right: 16, top: 24, bottom: horizontal ? 24 : 56 },
-    tooltip: { trigger: "axis" },
+    tooltip,
     xAxis: horizontal
       ? {
           type: "value",
-          axisLabel: { color: labelColor },
+          axisLabel: { color: labelColor, formatter: formatAxisNumber },
           splitLine: { lineStyle: { color: gridColor, opacity: darkMode ? 0.35 : 1 } }
         }
       : {
@@ -128,7 +136,7 @@ function barOption(data: CategoryPoint[], horizontal = false, darkMode = false):
         }
       : {
           type: "value",
-          axisLabel: { color: labelColor },
+          axisLabel: { color: labelColor, formatter: formatAxisNumber },
           splitLine: { lineStyle: { color: gridColor, opacity: darkMode ? 0.35 : 1 } }
         },
     series: [

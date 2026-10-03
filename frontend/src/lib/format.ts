@@ -6,7 +6,7 @@ export function formatNumber(value: number | null | undefined) {
 
 export function formatDateTime(value: string | null | undefined) {
   if (!value) {
-    return "Sem sincronizacao";
+    return "Sem sincronização";
   }
 
   return new Intl.DateTimeFormat("pt-BR", {
@@ -17,7 +17,7 @@ export function formatDateTime(value: string | null | undefined) {
 
 export function formatYearRange(first: number | null, last: number | null) {
   if (!first || !last) {
-    return "Sem periodo";
+    return "Sem período";
   }
 
   return `${first}-${last}`;
@@ -50,3 +50,21 @@ export function formatDateTimeSeconds(value: string | null | undefined) {
     second: "2-digit"
   }).format(new Date(value));
 }
+
+const SYNC_STATUS_LABELS: Record<string, string> = {
+  SUCCESS: "Atualizado",
+  FAILED: "Falha na atualização",
+  RUNNING: "Atualizando",
+  UNAVAILABLE: "Indisponível",
+  PENDING: "Pendente",
+  PARTIAL_SUCCESS: "Atualizado em parte",
+  SKIPPED: "Não atualizado",
+  synced: "Dados atualizados",
+  not_synced: "Ainda sem dados"
+};
+
+/** Status de sincronização em linguagem para o público (U3). */
+export function formatSyncStatus(status: string | null | undefined) {
+  return status ? SYNC_STATUS_LABELS[status] ?? status : "Sem status";
+}
+

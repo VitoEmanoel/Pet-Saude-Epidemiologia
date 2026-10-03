@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Activity, CheckCircle2, Clock3, Database, Layers } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDashboardOverview, getSources } from "@/lib/api";
-import { formatDateTime, formatNumber, formatYearRange } from "@/lib/format";
+import { formatDateTime, formatNumber, formatYearRange, formatSyncStatus } from "@/lib/format";
 import type { DashboardOverviewResponse, SourcesResponse } from "@/types/api";
 import { ChartPanel } from "./ChartPanel";
 import { MetricCard } from "../ui/MetricCard";
@@ -59,7 +59,7 @@ export function OverviewDashboard() {
   if (state.status === "error") {
     return (
       <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
-        API indisponivel: {state.message}
+        API indisponível: {state.message}
       </div>
     );
   }
@@ -80,7 +80,7 @@ export function OverviewDashboard() {
         <MetricCard
           label="Registros"
           value={formatNumber(overview.summary.totalRecords)}
-          detail="Normalizados"
+          detail="No banco de dados"
           icon={Database}
           tone="blue"
         />
@@ -100,7 +100,7 @@ export function OverviewDashboard() {
         <MetricCard
           label="Pendentes"
           value={overview.summary.sourcesPendingValidation}
-          detail="Aguardando validacao"
+          detail="Aguardando validação"
           icon={Clock3}
           tone="amber"
         />
@@ -108,7 +108,7 @@ export function OverviewDashboard() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
         <ChartPanel
-          title="Evolucao anual"
+          title="Evolução anual"
           note={`Soma dos casos das ${overview.summary.casesSourceCount} doenças. Veja cada doença na sua página.`}
           type="line"
           data={overview.charts.yearlyEvolution}
@@ -116,21 +116,21 @@ export function OverviewDashboard() {
         />
         <section className="rounded border border-slate-200 bg-white">
           <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-slate-950">Atualizacao</h2>
+            <h2 className="text-sm font-semibold text-slate-950">Atualização</h2>
           </div>
           <div className="space-y-4 p-4">
             <div>
-              <p className="text-xs font-medium uppercase text-slate-500">Ultima sincronizacao</p>
+              <p className="text-xs font-medium uppercase text-slate-500">Última sincronização</p>
               <p className="mt-1 text-sm font-medium text-slate-950">
                 {formatDateTime(overview.summary.lastUpdate)}
               </p>
             </div>
             <div>
               <p className="text-xs font-medium uppercase text-slate-500">Status</p>
-              <p className="mt-1 text-sm font-medium text-slate-950">{overview.summary.dataStatus}</p>
+              <p className="mt-1 text-sm font-medium text-slate-950">{formatSyncStatus(overview.summary.dataStatus)}</p>
             </div>
             <div className="rounded border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
-              Os dados exibidos foram coletados do DATASUS/TABNET e filtrados para Parnaiba - PI.
+              Os dados exibidos foram coletados do DATASUS/TABNET e filtrados para Parnaíba - PI.
             </div>
           </div>
         </section>
@@ -143,7 +143,7 @@ export function OverviewDashboard() {
         <div className="divide-y divide-slate-100 md:hidden">
           {sources.sources.map((source) => {
             const pageHref = sourcePages[source.slug];
-            const pageLabel = source.active ? "Abrir pagina" : "Em validacao";
+            const pageLabel = source.active ? "Abrir página" : "Em validação";
 
             return (
               <div key={source.slug} className="space-y-3 p-4">
@@ -168,7 +168,7 @@ export function OverviewDashboard() {
                       {pageLabel}
                     </Link>
                   ) : (
-                    <span className="text-slate-400">Indisponivel</span>
+                    <span className="text-slate-400">Indisponível</span>
                   )}
                 </div>
               </div>
@@ -184,13 +184,13 @@ export function OverviewDashboard() {
                 <th className="px-4 py-3 font-semibold">Casos</th>
                 <th className="px-4 py-3 font-semibold">Período</th>
                 <th className="px-4 py-3 font-semibold">Status municipal</th>
-                <th className="px-4 py-3 font-semibold">Pagina</th>
+                <th className="px-4 py-3 font-semibold">Página</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {sources.sources.map((source) => {
                 const pageHref = sourcePages[source.slug];
-                const pageLabel = source.active ? "Abrir" : "Em validacao";
+                const pageLabel = source.active ? "Abrir" : "Em validação";
 
                 return (
                   <tr key={source.slug} className="hover:bg-pet-light/10">
@@ -217,7 +217,7 @@ export function OverviewDashboard() {
                           {pageLabel}
                         </Link>
                       ) : (
-                        <span className="text-slate-400">Indisponivel</span>
+                        <span className="text-slate-400">Indisponível</span>
                       )}
                     </td>
                   </tr>

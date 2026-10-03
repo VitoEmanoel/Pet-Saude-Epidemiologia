@@ -49,7 +49,7 @@ export function extractPreBlock(html: string): string {
   const match = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
 
   if (!match) {
-    throw new Error("Resposta TABNET nao contem bloco PRE com dados prn.");
+    throw new Error("Resposta TABNET não contém bloco PRE com dados prn.");
   }
 
   return decodeHtmlEntities(match[1]);
@@ -63,7 +63,7 @@ export function parsePrnTable(html: string): PrnTable {
     .filter((line) => line.length > 0 && line !== "&");
 
   if (lines.length < 2) {
-    throw new Error("Resposta TABNET prn nao contem linhas de dados.");
+    throw new Error("Resposta TABNET prn não contém linhas de dados.");
   }
 
   const [headerLine, ...dataLines] = lines;

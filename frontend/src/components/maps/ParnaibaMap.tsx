@@ -28,7 +28,7 @@ export function ParnaibaMap() {
             radius={10}
             pathOptions={{ color: "#143A60", fillColor: "#E8531E", fillOpacity: 0.85 }}
           >
-            <Popup>Parnaiba - PI</Popup>
+            <Popup>Parnaíba - PI</Popup>
           </CircleMarker>
         </MapContainer>
       </div>

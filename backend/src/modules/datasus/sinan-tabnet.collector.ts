@@ -213,7 +213,7 @@ export async function collectSinanTabnetSource(
   const config = collectorConfigs[sourceSlug];
 
   if (!config) {
-    throw new Error(`Coletor SINAN/TABNET nao configurado para a fonte ${sourceSlug}.`);
+    throw new Error(`Coletor SINAN/TABNET não configurado para a fonte ${sourceSlug}.`);
   }
 
   let recordsImported = 0;
@@ -424,13 +424,13 @@ async function withDiscoveredPeriodFiles(config: SinanTabnetCollectorConfig) {
       lastSegment.periodFiles.push(...newPeriodFiles);
     } catch (error) {
       discoveryWarnings.push(
-        `Nao foi possivel ler os anos disponiveis no formulario TABNET: ${error instanceof Error ? error.message : String(error)}`
+        `Não foi possível ler os anos disponíveis no formulário TABNET: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
 
   if (newPeriodFiles.length > 0) {
-    console.log(`${config.sourceSlug}: anos alem da lista configurada, incluidos automaticamente: ${newPeriodFiles.join(", ")}`);
+    console.log(`${config.sourceSlug}: anos além da lista configurada, incluídos automaticamente: ${newPeriodFiles.join(", ")}`);
   }
 
   for (const warning of discoveryWarnings) {
@@ -445,7 +445,7 @@ function buildQueryDefinitions(config: SinanTabnetCollectorConfig): QueryDefinit
     {
       name: "yearly",
       columnEncoded: "--N%E3o-Ativa--",
-      columnLabel: "Nao ativa",
+      columnLabel: "Não ativa",
       sourceTable: `${config.sourceTablePrefix}_yearly_residence`,
       aggregationType: "yearly"
     },
@@ -727,7 +727,7 @@ function normalizeRaceColor(value: string): string {
   }
 
   if (comparable === "indigena") {
-    return "Indigena";
+    return "Indígena";
   }
 
   return value.trim();

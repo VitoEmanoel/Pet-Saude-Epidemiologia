@@ -125,19 +125,29 @@ export function AdminPopulation() {
             como separador e ponto de milhar (153.482). <strong>A planilha substitui a tabela inteira.</strong>
           </p>
           <div className="grid gap-3 md:grid-cols-[1fr_1fr]">
-            <label className="block">
+            <div>
               <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Arquivo CSV</span>
-              <input
-                type="file"
-                accept=".csv,text/csv"
-                disabled={busy}
-                onChange={(event) => {
-                  void chooseFile(event.target.files?.[0]);
-                  event.target.value = "";
-                }}
-                className="block w-full text-sm text-slate-700 file:mr-3 file:h-10 file:rounded file:border-0 file:bg-institutional-600 file:px-3 file:text-sm file:font-medium file:text-white"
-              />
-            </label>
+              {/* Botão próprio em português: o do navegador mostra "Choose File" conforme o idioma dele. */}
+              <label className="flex items-center gap-3">
+                <span
+                  className={`inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded bg-institutional-600 px-3 text-sm font-medium text-white hover:bg-institutional-800 ${busy ? "pointer-events-none opacity-50" : ""}`}
+                >
+                  <FileUp size={16} aria-hidden="true" />
+                  Escolher arquivo
+                </span>
+                <span className="min-w-0 truncate text-sm text-slate-600">{preview?.fileName ?? "Nenhum arquivo escolhido"}</span>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  disabled={busy}
+                  onChange={(event) => {
+                    void chooseFile(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                  className="sr-only"
+                />
+              </label>
+            </div>
             <label className="block">
               <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Fonte dos dados</span>
               <input

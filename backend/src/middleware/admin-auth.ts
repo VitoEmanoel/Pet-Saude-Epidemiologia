@@ -39,7 +39,7 @@ export async function requireAdminAuth(request: Request, response: Response, nex
     return next(error);
   }
 
-  return sendError(response, 401, "unauthorized", "Sessao administrativa invalida ou ausente.");
+  return sendError(response, 401, "unauthorized", "Sessão administrativa inválida ou ausente.");
 }
 
 export function assertAdminSecurityConfigured(response: Response) {
@@ -269,7 +269,7 @@ function getAdminSessionSecret() {
   const secret = process.env.ADMIN_SESSION_SECRET;
 
   if (!secret) {
-    throw new Error("ADMIN_SESSION_SECRET nao foi configurado no backend.");
+    throw new Error("ADMIN_SESSION_SECRET não foi configurado no backend.");
   }
 
   return secret;
@@ -284,7 +284,7 @@ export function getAdminCookieSecurityWarning() {
   const usesHttps = getAllowedAdminOrigins().some((origin) => origin.startsWith("https://"));
 
   if (usesHttps && !isSecureAdminCookieEnabled()) {
-    return "CORS_ORIGIN usa HTTPS, mas ADMIN_COOKIE_SECURE nao e true: defina ADMIN_COOKIE_SECURE=true.";
+    return "CORS_ORIGIN usa HTTPS, mas ADMIN_COOKIE_SECURE não é true: defina ADMIN_COOKIE_SECURE=true.";
   }
 
   return null;
@@ -381,7 +381,7 @@ function sendAdminNotConfigured(response: Response) {
     response,
     503,
     "admin_not_configured",
-    "ADMIN_USERNAME, ADMIN_PASSWORD ou ADMIN_SESSION_SECRET nao foi configurado no backend."
+    "ADMIN_USERNAME, ADMIN_PASSWORD ou ADMIN_SESSION_SECRET não foi configurado no backend."
   );
 }
 

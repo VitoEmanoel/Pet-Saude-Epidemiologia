@@ -12,19 +12,19 @@ indicatorsRouter.get("/", async (request, response) => {
   const extraParams = Object.keys(request.query).filter((param) => param !== "source");
 
   if (extraParams.length > 0) {
-    return sendError(response, 400, "invalid_query", "Parametro de consulta nao permitido.", { invalidParams: extraParams });
+    return sendError(response, 400, "invalid_query", "Parâmetro de consulta não permitido.", { invalidParams: extraParams });
   }
 
   const sourceSlug = request.query.source;
 
   if (typeof sourceSlug !== "string" || !sourceSlug) {
-    return sendError(response, 400, "invalid_query", "O parametro source e obrigatorio.");
+    return sendError(response, 400, "invalid_query", "O parâmetro source e obrigatório.");
   }
 
   const source = getPublicSourceBySlug(sourceSlug);
 
   if (!source) {
-    return sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+    return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
   }
 
   try {

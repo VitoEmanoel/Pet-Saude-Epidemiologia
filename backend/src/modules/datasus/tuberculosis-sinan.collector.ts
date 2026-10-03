@@ -41,7 +41,7 @@ const QUERY_DEFINITIONS: QueryDefinition[] = [
   {
     name: "yearly",
     columnEncoded: "--N%E3o-Ativa--",
-    columnLabel: "Nao ativa",
+    columnLabel: "Não ativa",
     sourceTable: "tabnet_tuberculose_yearly_residence",
     aggregationType: "yearly"
   },

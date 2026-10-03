@@ -26,8 +26,7 @@ import {
   formatAggregation,
   formatDateTime,
   formatNumber,
-  formatYearRange
-} from "@/lib/format";
+  formatYearRange, formatSyncStatus } from "@/lib/format";
 import type {
   CategoryPoint,
   ChartPoint,
@@ -207,7 +206,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
         if (active) {
           setChartsState({
             status: "error",
-            message: error instanceof Error ? error.message : "Falha ao carregar graficos."
+            message: error instanceof Error ? error.message : "Falha ao carregar os gráficos."
           });
         }
       });
@@ -265,7 +264,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   if (state.status === "error") {
     return (
       <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red">
-        API indisponivel: {state.message}
+        API indisponível: {state.message}
       </div>
     );
   }
@@ -293,7 +292,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
           tone="green"
         />
         <MetricCard
-          label="Ultimo ano"
+          label="Último ano"
           value={latestVisiblePoint?.value ?? state.summary.summary.latestYearValue ?? 0}
           detail={String(latestVisiblePoint?.year ?? state.summary.summary.latestYear ?? "")}
           icon={CalendarDays}
@@ -302,18 +301,18 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
         <MetricCard
           label="Registros"
           value={formatNumber(state.summary.summary.totalRecords)}
-          detail="Normalizados"
+          detail="No banco de dados"
           icon={Database}
         />
         <MetricCard
-          label="Periodo"
+          label="Período"
           value={formatYearRange(firstVisibleYear, lastVisibleYear)}
-          detail="Anos disponiveis"
+          detail="Anos disponíveis"
           icon={CalendarDays}
         />
         <MetricCard
-          label="Atualizacao"
-          value={state.summary.summary.lastSyncStatus ?? "Sem status"}
+          label="Atualização"
+          value={formatSyncStatus(state.summary.summary.lastSyncStatus)}
           detail={formatDateTime(state.summary.summary.lastUpdate)}
           icon={RefreshCw}
           tone="amber"
@@ -323,12 +322,12 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
       {!sourceIsActive ? (
         <div className="rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
           {isSifilisGestacional
-            ? "Este caso ainda esta em validacao tecnica. A fonte oficial municipal de sifilis gestacional ainda nao foi localizada em um formato compativel com a coleta automatica."
-            : "Este caso ainda esta em validacao tecnica. A pagina foi criada para acompanhar a expansao do painel, mas a coleta automatica ainda nao esta ativa."}
+            ? "Esta doença ainda está em validação técnica: a fonte oficial municipal de sífilis gestacional ainda não foi localizada em um formato compatível com a coleta automática."
+            : "Esta doença ainda está em validação técnica: a página acompanha a expansão do painel, mas a coleta automática ainda não está ativa."}
         </div>
       ) : !state.summary.summary.municipalityDataAvailable ? (
         <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Esta fonte nao disponibiliza consulta municipal para Parnaiba - PI no formato acessado pelo sistema.
+          Esta fonte não disponibiliza consulta municipal para Parnaíba - PI no formato acessado pelo sistema.
         </div>
       ) : null}
 
@@ -341,7 +340,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
 
       {state.summary.summary.lastSyncStatus && state.summary.summary.lastSyncStatus !== "SUCCESS" ? (
         <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Nao foi possivel atualizar esta fonte no momento. Os dados exibidos correspondem a ultima coleta realizada com sucesso.
+          Não foi possível atualizar esta fonte no momento. Os dados exibidos são da última coleta feita com sucesso.
         </div>
       ) : null}
 
@@ -376,13 +375,13 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
             options={state.filters.filters.sex}
           />
           <FilterSelect
-            label="Faixa etaria"
+            label="Faixa etária"
             value={selectedFilters.ageGroup}
             onChange={(value) => updateFilter("ageGroup", value)}
             options={state.filters.filters.ageGroups}
           />
           <FilterSelect
-            label="Raca/cor"
+            label="Raça/cor"
             value={selectedFilters.raceColor}
             onChange={(value) => updateFilter("raceColor", value)}
             options={state.filters.filters.raceColors}
@@ -485,15 +484,15 @@ function DashboardCharts({ state }: { state: ChartsState }) {
   return (
     <>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,0.6fr)]">
-        <ChartPanel title="Evolucao anual" type="line" data={state.yearly} height={340} />
+        <ChartPanel title="Evolução anual" type="line" data={state.yearly} height={340} />
         <ParnaibaMap />
       </div>
 
       <div className="grid gap-5 xl:grid-cols-3">
         <ChartPanel title="Por sexo" type="bar" data={state.bySex} note={state.notes.bySex} />
-        <ChartPanel title="Por raca/cor" type="bar" data={state.byRaceColor} note={state.notes.byRaceColor} />
+        <ChartPanel title="Por raça/cor" type="bar" data={state.byRaceColor} note={state.notes.byRaceColor} />
         <ChartPanel
-          title="Por faixa etaria"
+          title="Por faixa etária"
           type="bar"
           data={state.byAgeGroup}
           horizontal
@@ -548,11 +547,11 @@ function RecordsTable({
                 <dd className="mt-1 text-slate-700">{record.sex ?? "-"}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase text-slate-500">Raca/cor</dt>
+                <dt className="text-xs uppercase text-slate-500">Raça/cor</dt>
                 <dd className="mt-1 text-slate-700">{record.raceColor ?? "-"}</dd>
               </div>
               <div className="col-span-2">
-                <dt className="text-xs uppercase text-slate-500">Faixa etaria</dt>
+                <dt className="text-xs uppercase text-slate-500">Faixa etária</dt>
                 <dd className="mt-1 text-slate-700">{record.ageGroup ?? "-"}</dd>
               </div>
               <div className="col-span-2">
@@ -568,11 +567,11 @@ function RecordsTable({
           <thead className="bg-pet-dark text-xs uppercase text-white">
             <tr>
               <th className="px-4 py-3 font-semibold">Ano</th>
-              <th className="px-4 py-3 font-semibold">Condicao</th>
+              <th className="px-4 py-3 font-semibold">Condição</th>
               <th className="px-4 py-3 font-semibold">Valor</th>
               <th className="px-4 py-3 font-semibold">Sexo</th>
-              <th className="px-4 py-3 font-semibold">Faixa etaria</th>
-              <th className="px-4 py-3 font-semibold">Raca/cor</th>
+              <th className="px-4 py-3 font-semibold">Faixa etária</th>
+              <th className="px-4 py-3 font-semibold">Raça/cor</th>
               <th className="px-4 py-3 font-semibold">Visão</th>
             </tr>
           </thead>
@@ -598,8 +597,8 @@ function RecordsTable({
         <div className="flex items-center justify-between gap-2 sm:justify-start">
           <button
             type="button"
-            aria-label="Pagina anterior"
-            title="Pagina anterior"
+            aria-label="Página anterior"
+            title="Página anterior"
             disabled={page <= 1}
             onClick={() => setPage(Math.max(1, page - 1))}
             className="flex h-9 w-9 items-center justify-center rounded border border-slate-300 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
@@ -611,8 +610,8 @@ function RecordsTable({
           </span>
           <button
             type="button"
-            aria-label="Proxima pagina"
-            title="Proxima pagina"
+            aria-label="Próxima página"
+            title="Próxima página"
             disabled={page >= state.data.pagination.totalPages}
             onClick={() => setPage(Math.min(Math.max(1, state.data.pagination.totalPages), page + 1))}
             className="flex h-9 w-9 items-center justify-center rounded border border-slate-300 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"

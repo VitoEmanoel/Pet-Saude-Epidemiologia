@@ -589,7 +589,7 @@ export function getAggregationConflict(filters: PublicFilters): string | null {
   const demographic = getDemographicAggregation(filters);
 
   if (filters.aggregation && filters.aggregation !== "all" && demographic && filters.aggregation !== demographic) {
-    return "A visao escolhida nao combina com o filtro aplicado. Use a visao da mesma dimensao do filtro.";
+    return "A visão escolhida não combina com o filtro aplicado. Use a visão da mesma dimensão do filtro.";
   }
 
   return null;
@@ -600,7 +600,7 @@ export function getDemographicFilterConflict(filters: PublicFilters): string | n
   const demographicFilters = [filters.sex, filters.ageGroup, filters.raceColor].filter(Boolean);
 
   if (demographicFilters.length > 1) {
-    return "O DATASUS nao fornece dados cruzados: filtre por apenas uma dimensao (sexo, faixa etaria ou raca/cor).";
+    return "O DATASUS não fornece dados cruzados: filtre por apenas uma dimensão (sexo, faixa etária ou raça/cor).";
   }
 
   return null;

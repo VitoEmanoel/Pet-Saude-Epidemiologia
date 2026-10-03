@@ -4,7 +4,7 @@ import { AppShell } from "@/components/layout/AppShell";
 export default function SifilisGestacionalPage() {
   return (
     <AppShell active="sifilis-gestacional">
-      <DiseaseDashboard source="sifilis_gestacional_sinan" title="Sifilis gestacional" />
+      <DiseaseDashboard source="sifilis_gestacional_sinan" title="Sífilis gestacional" />
     </AppShell>
   );
 }

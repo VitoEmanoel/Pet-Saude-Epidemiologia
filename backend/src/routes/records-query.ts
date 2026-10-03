@@ -28,7 +28,7 @@ const NUMERIC_QUERY_FORMATS: Record<string, RegExp> = {
   pageSize: /^[1-9]\d{0,5}$/
 };
 const QUERY_VALUE_RULES_DESCRIPTION =
-  "Cada parametro aparece uma vez, como texto. year: 4 digitos; month: 1 a 12; page e pageSize: inteiros a partir de 1.";
+  "Cada parâmetro aparece uma vez, como texto. year: 4 dígitos; month: 1 a 12; page e pageSize: inteiros a partir de 1.";
 
 /** Parâmetros repetidos, em formato de objeto ou numéricos fora do formato. */
 function getInvalidQueryValues(query: Record<string, unknown>) {
@@ -64,7 +64,7 @@ export function validateRecordsQuery(
         response,
         400,
         "invalid_query",
-        "Nao e permitido filtrar por outro municipio. O municipio fixo e Parnaiba - PI.",
+        "Não é permitido filtrar por outro município. O município fixo é Parnaíba - PI.",
         { blockedParams: blockedMunicipalityParams }
       );
   }
@@ -73,7 +73,7 @@ export function validateRecordsQuery(
 
   if (invalidParams.length > 0) {
     return (response) =>
-      sendError(response, 400, "invalid_query", "Parametro de consulta nao permitido.", {
+      sendError(response, 400, "invalid_query", "Parâmetro de consulta não permitido.", {
         invalidParams,
         allowedParams: [...allowedParams]
       });
@@ -83,7 +83,7 @@ export function validateRecordsQuery(
 
   if (invalidValues.length > 0) {
     return (response) =>
-      sendError(response, 400, "invalid_query", "Valor de parametro invalido.", {
+      sendError(response, 400, "invalid_query", "Valor de parâmetro inválido.", {
         invalidValues,
         rules: QUERY_VALUE_RULES_DESCRIPTION
       });
@@ -94,7 +94,7 @@ export function validateRecordsQuery(
   // Só fontes públicas: fontes internas (kind "internal") não podem ser consultadas diretamente (S12).
   if (sourceSlug && !getPublicSourceBySlug(sourceSlug)) {
     return (response) =>
-      sendError(response, 404, "not_found", "Fonte nao permitida ou inexistente.");
+      sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
   }
 
   if (
@@ -102,7 +102,7 @@ export function validateRecordsQuery(
     !RECORD_AGGREGATIONS.some((aggregation) => aggregation === query.aggregation)
   ) {
     return (response) =>
-      sendError(response, 400, "invalid_query", "Visao (aggregation) invalida.", {
+      sendError(response, 400, "invalid_query", "Visao (aggregation) inválida.", {
         allowedValues: [...RECORD_AGGREGATIONS]
       });
   }

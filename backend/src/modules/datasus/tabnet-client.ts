@@ -31,7 +31,7 @@ export async function withTabnetRetry<T>(description: string, request: () => Pro
         throw error;
       }
 
-      console.warn(`${description}: falha temporaria (${(error as Error).message}); nova tentativa ${attempt + 2} de ${delays.length + 1}.`);
+      console.warn(`${description}: falha temporária (${(error as Error).message}); nova tentativa ${attempt + 2} de ${delays.length + 1}.`);
       await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
     }
   }
@@ -84,7 +84,7 @@ async function postTabnetPrnOnce(
 
 /** Baixa o formulário de um .def (deftohtm.exe), usado para descobrir os arquivos de ano disponíveis. */
 export function fetchTabnetForm(formUrl: string): Promise<string> {
-  return withTabnetRetry("Formulario TABNET", () => fetchTabnetFormOnce(formUrl));
+  return withTabnetRetry("Formulário TABNET", () => fetchTabnetFormOnce(formUrl));
 }
 
 async function fetchTabnetFormOnce(formUrl: string): Promise<string> {
@@ -98,7 +98,7 @@ async function fetchTabnetFormOnce(formUrl: string): Promise<string> {
     });
 
     if (!response.ok) {
-      const message = `Formulario TABNET retornou HTTP ${response.status}.`;
+      const message = `Formulário TABNET retornou HTTP ${response.status}.`;
       throw response.status >= 500 ? new TabnetTemporaryError(message) : new Error(message);
     }
 

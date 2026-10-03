@@ -52,7 +52,7 @@ export function createApiRateLimiter() {
         response,
         429,
         "rate_limited",
-        "Muitas requisicoes em pouco tempo. Aguarde um minuto e tente novamente."
+        "Muitas requisições em pouco tempo. Aguarde um minuto e tente novamente."
       )
   });
 }

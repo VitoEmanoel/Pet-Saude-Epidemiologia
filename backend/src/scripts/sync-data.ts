@@ -11,7 +11,7 @@ async function main() {
       : allowedSources.filter((source) => source.slug === requestedSource && source.syncEnabled);
 
   if (sources.length === 0) {
-    throw new Error(`Fonte nao permitida ou inexistente: ${requestedSource}.`);
+    throw new Error(`Fonte não permitida ou inexistente: ${requestedSource}.`);
   }
 
   for (const source of sources) {

@@ -31,6 +31,9 @@ after(async () => {
   await browser?.close();
 });
 
+/** Espera a rede assentar, no máximo 10 s (o mapa depende do OpenStreetMap, externo e às vezes lento). */
+const settle = (page) => page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
+
 async function openPage(profile, path) {
   const context = await browser.newContext({ ...PROFILES[profile], locale: "pt-BR" });
   // Registra bloqueios da CSP (S2): um recurso bloqueado indica regra apertada demais.
@@ -43,7 +46,10 @@ async function openPage(profile, path) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(WEB + path, { waitUntil: "networkidle" });
+  // O mapa busca imagens no OpenStreetMap (servidor externo, às vezes lento): esperar "rede ociosa"
+  // sem limite fazia testes aleatórios estourarem 30 s, sobretudo no Firefox.
+  await page.goto(WEB + path, { waitUntil: "load" });
+  await settle(page);
   await page.waitForTimeout(800);
   return { context, page, errors };
 }
@@ -60,7 +66,7 @@ for (const profile of Object.keys(PROFILES)) {
             overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
             canvases: [...document.querySelectorAll("canvas")].filter((c) => c.width > 0).length,
             tiles: document.querySelectorAll(".leaflet-tile-loaded").length,
-            apiError: /API indisponivel/i.test(document.body.innerText),
+            apiError: /API indispon[ií]vel/i.test(document.body.innerText),
             lang: document.documentElement.lang,
             cspViolations: window.__cspViolations
           }));
@@ -106,7 +112,7 @@ for (const profile of Object.keys(PROFILES)) {
       const { context, page } = await openPage(profile, "/tuberculose");
       try {
         await page.locator("select").nth(0).selectOption("2024");
-        await page.waitForLoadState("networkidle");
+        await settle(page);
         await page.waitForTimeout(600);
         assert.match(await page.innerText("main"), /\b86\b/);
         await page.getByRole("button", { name: /limpar/i }).first().click();
@@ -124,13 +130,13 @@ for (const profile of Object.keys(PROFILES)) {
         assert.equal(await viewSelect.inputValue(), "yearly");
         assert.match(await page.innerText("main"), /Total do ano/);
         await viewSelect.selectOption("race_color");
-        await page.waitForLoadState("networkidle");
+        await settle(page);
         await page.waitForTimeout(400);
         assert.match(await page.innerText("main"), /Por raça\/cor/);
 
         const sexOptions = await page.locator("select").nth(1).locator("option").evaluateAll((o) => o.map((x) => x.value).filter(Boolean));
         await page.locator("select").nth(1).selectOption(sexOptions[0]);
-        await page.waitForLoadState("networkidle");
+        await settle(page);
         await page.waitForTimeout(400);
         assert.equal(await viewSelect.inputValue(), "sex");
         assert.ok(await viewSelect.isDisabled());
@@ -155,8 +161,8 @@ for (const profile of Object.keys(PROFILES)) {
       const { context, page } = await openPage(profile, "/tuberculose");
       try {
         const before = await page.innerText("main");
-        await page.locator('[title="Proxima pagina"]').first().click();
-        await page.waitForLoadState("networkidle");
+        await page.locator('[title="Próxima página"]').first().click();
+        await settle(page);
         await page.waitForTimeout(500);
         assert.notEqual(await page.innerText("main"), before);
       } finally {
@@ -181,7 +187,8 @@ for (const profile of Object.keys(PROFILES)) {
         await page.locator('button[aria-label="Abrir menu"]').first().click();
         await page.waitForTimeout(400);
         await drawer.getByRole("link", { name: /dengue/i }).click();
-        await page.waitForURL("**/dengue");
+        // Navegação do Next.js não recarrega a página: esperar só a troca de endereço ("commit").
+        await page.waitForURL("**/dengue", { waitUntil: "commit" });
         await page.waitForTimeout(400);
         assert.equal(await isOnScreen(), false, "menu continuou aberto após navegar");
       } finally {
@@ -196,7 +203,8 @@ for (const profile of Object.keys(PROFILES)) {
         await page.locator('button[aria-label="Abrir menu"]').click();
         await page.waitForTimeout(400);
         await page.locator('#menu-lateral button[aria-label="Ativar tema escuro"]').click();
-        await page.reload({ waitUntil: "networkidle" });
+        await page.reload({ waitUntil: "load" });
+        await settle(page);
         assert.ok(await page.evaluate(() => document.documentElement.classList.contains("dark")));
       } finally {
         await context.close();
@@ -208,7 +216,7 @@ for (const profile of Object.keys(PROFILES)) {
       try {
         const sexOptions = await page.locator("select").nth(1).locator("option").evaluateAll((o) => o.map((x) => x.value).filter(Boolean));
         await page.locator("select").nth(1).selectOption(sexOptions[0]);
-        await page.waitForLoadState("networkidle");
+        await settle(page);
         await page.waitForTimeout(600);
         const text = await page.innerText("main");
         assert.doesNotMatch(text, /Sem dados para os filtros/i);
@@ -225,7 +233,7 @@ for (const profile of Object.keys(PROFILES)) {
         const options = async (index) => page.locator("select").nth(index).locator("option").evaluateAll((o) => o.map((x) => x.value).filter(Boolean));
         await page.locator("select").nth(1).selectOption((await options(1))[0]);
         await page.locator("select").nth(2).selectOption((await options(2))[0]);
-        await page.waitForLoadState("networkidle");
+        await settle(page);
         assert.equal(await page.locator("select").nth(1).inputValue(), "");
         assert.notEqual(await page.locator("select").nth(2).inputValue(), "");
       } finally {
@@ -248,6 +256,21 @@ describe(`Página inicial (${BROWSER})`, () => {
       await context.close();
     }
   });
+});
+
+describe(`Textos para o público (${BROWSER})`, () => {
+  for (const path of ["/", "/dengue"]) {
+    test(`U3: ${path} sem status em inglês nem palavras sem acento`, async () => {
+      const { context, page } = await openPage("desktop", path);
+      try {
+        const text = await page.innerText("body");
+        assert.doesNotMatch(text, /\b(SUCCESS|FAILED|synced)\b/, "status técnico em inglês");
+        assert.doesNotMatch(text, /\b(Ultimo ano|Periodo|Atualizacao|Evolucao|Faixa etaria|Raca\/cor|validacao|sincronizacao|Abrir pagina|Condicao|Indigena)\b/i);
+      } finally {
+        await context.close();
+      }
+    });
+  }
 });
 
 describe(`Indicadores (${BROWSER})`, () => {
@@ -310,7 +333,7 @@ describe(`Área administrativa (${BROWSER})`, () => {
       await page.locator('button[aria-label="Abrir menu"]').click();
       await page.waitForTimeout(400);
       await page.locator("#menu-lateral").getByRole("link", { name: label, exact: true }).click();
-      await page.waitForLoadState("networkidle");
+      await settle(page);
       await page.waitForTimeout(1000);
     };
     try {
@@ -318,17 +341,18 @@ describe(`Área administrativa (${BROWSER})`, () => {
       await page.locator('input[type="password"]').fill("senha-errada-teste-ui");
       await page.getByRole("button", { name: /entrar/i }).click();
       await page.waitForTimeout(800);
-      assert.match(await page.innerText("main"), /Credencial administrativa invalida/i);
+      assert.match(await page.innerText("main"), /Credencial administrativa inválida/i);
 
       await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
       await page.getByRole("button", { name: /entrar/i }).click();
-      await page.waitForLoadState("networkidle");
+      await settle(page);
       await page.waitForTimeout(1200);
       assert.match(await page.innerText("body"), /Dashboard da fonte/i);
       assert.doesNotMatch(await page.innerText("main"), /Auditoria administrativa|Histórico de sincronizações/i, "painel inicial deve ficar enxuto");
       await page.screenshot({ path: `${SHOTS}desktop_admin_logado.png`, fullPage: true });
 
-      await page.reload({ waitUntil: "networkidle" });
+      await page.reload({ waitUntil: "load" });
+        await settle(page);
       await page.waitForTimeout(800);
       assert.match(await page.innerText("body"), /Dashboard da fonte/i, "sessão persiste");
 
@@ -381,7 +405,8 @@ describe(`Resiliência e acessibilidade (${BROWSER})`, () => {
     try {
       await context.route(/:3333\//, (route) => route.abort());
       const page = await context.newPage();
-      await page.goto(WEB + "/tuberculose", { waitUntil: "networkidle" });
+      await page.goto(WEB + "/tuberculose", { waitUntil: "load" });
+      await settle(page);
       await page.waitForTimeout(800);
       assert.match(await page.innerText("body"), /indispon/i);
     } finally {

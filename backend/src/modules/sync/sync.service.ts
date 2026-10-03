@@ -11,21 +11,21 @@ import { collectSinanTabnetSource, hasSinanCollector } from "../datasus/sinan-ta
 
 export class UnsupportedCollectorError extends Error {
   constructor(sourceSlug: string) {
-    super(`Coletor ainda nao implementado para a fonte ${sourceSlug}.`);
+    super(`Coletor ainda não implementado para a fonte ${sourceSlug}.`);
     this.name = "UnsupportedCollectorError";
   }
 }
 
 export class SourceNotAllowedError extends Error {
   constructor(sourceSlug: string) {
-    super(`Fonte nao permitida: ${sourceSlug}.`);
+    super(`Fonte não permitida: ${sourceSlug}.`);
     this.name = "SourceNotAllowedError";
   }
 }
 
 export class SyncAlreadyRunningError extends Error {
   constructor(sourceSlug: string) {
-    super(`Sincronizacao ja em andamento para a fonte ${sourceSlug}.`);
+    super(`Sincronização já em andamento para a fonte ${sourceSlug}.`);
     this.name = "SyncAlreadyRunningError";
   }
 }
@@ -88,7 +88,7 @@ async function syncSourceUnlocked(
         status: SyncJobStatus.UNAVAILABLE,
         startedAt: new Date(),
         finishedAt: new Date(),
-        errorMessage: "Fonte sem filtro municipal disponivel para Parnaiba."
+        errorMessage: "Fonte sem filtro municipal disponível para Parnaíba."
       }
     });
 
@@ -98,13 +98,13 @@ async function syncSourceUnlocked(
       },
       update: {
         status: SourceAvailabilityStatus.MUNICIPAL_FILTER_UNAVAILABLE,
-        message: "Fonte sem filtro municipal disponivel para Parnaiba.",
+        message: "Fonte sem filtro municipal disponível para Parnaíba.",
         checkedAt: new Date()
       },
       create: {
         sourceId: dataSource.id,
         status: SourceAvailabilityStatus.MUNICIPAL_FILTER_UNAVAILABLE,
-        message: "Fonte sem filtro municipal disponivel para Parnaiba.",
+        message: "Fonte sem filtro municipal disponível para Parnaíba.",
         checkedAt: new Date()
       }
     });
@@ -141,7 +141,7 @@ async function syncSourceUnlocked(
     // Anos novos descobertos no TABNET e avisos da descoberta (D5) ficam na mensagem da fonte.
     const discoveryNote = [
       collectorResult.newPeriodFiles.length > 0
-        ? `Anos alem da lista configurada, incluidos automaticamente: ${collectorResult.newPeriodFiles.join(", ")}.`
+        ? `Anos além da lista configurada, incluídos automaticamente: ${collectorResult.newPeriodFiles.join(", ")}.`
         : null,
       ...collectorResult.discoveryWarnings.map((warning) => `Aviso: ${warning}`)
     ]
@@ -174,8 +174,8 @@ async function syncSourceUnlocked(
             : SourceAvailabilityStatus.NO_RECORDS_FOR_CITY,
         message: [
           collectorResult.recordsImported > 0
-            ? "Fonte validada e sincronizada para Parnaiba."
-            : "Fonte permite filtro municipal, mas nao retornou registros para Parnaiba.",
+            ? "Fonte validada e sincronizada para Parnaíba."
+            : "Fonte permite filtro municipal, mas não retornou registros para Parnaíba.",
           discoveryNote
         ]
           .filter(Boolean)
@@ -190,8 +190,8 @@ async function syncSourceUnlocked(
             : SourceAvailabilityStatus.NO_RECORDS_FOR_CITY,
         message: [
           collectorResult.recordsImported > 0
-            ? "Fonte validada e sincronizada para Parnaiba."
-            : "Fonte permite filtro municipal, mas nao retornou registros para Parnaiba.",
+            ? "Fonte validada e sincronizada para Parnaíba."
+            : "Fonte permite filtro municipal, mas não retornou registros para Parnaíba.",
           discoveryNote
         ]
           .filter(Boolean)
