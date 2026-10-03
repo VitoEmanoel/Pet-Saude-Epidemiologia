@@ -206,6 +206,8 @@ APP_BIND_HOST=0.0.0.0
 
 ## 2.7 Servidor pequeno (VPS) e imagens construídas fora dele
 
+> **Implantação real:** use os scripts prontos e o passo a passo de [16-implantacao.md](16-implantacao.md) (Caddy, `.env` de produção, backup). Esta seção explica o porquê e o processo manual.
+
 ### Quanto o sistema consome
 
 Medido em 02/10/2026 com dados reais (6 fontes, ~1.900 registros):
@@ -284,5 +286,5 @@ docker compose --env-file .env exec postgres psql -U postgres -c "ALTER USER pos
 ```
 - [ ] Log do backend sem `AVISO DE SEGURANCA` (`docker compose --env-file .env logs backend`)
 - [ ] `npm audit --omit=dev` sem vulnerabilidades críticas ou altas
-- [ ] Backup automático do banco configurado ([04 §4.4](04-banco-de-dados.md#44-migrations-seed-e-backup))
+- [ ] Backup automático do banco configurado (já incluso no `deploy/docker-compose.prod.yml`, ver [16 §16.5](16-implantacao.md#165-backup-e-restauração-64))
 

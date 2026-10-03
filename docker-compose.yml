@@ -15,6 +15,9 @@ services:
       NPM_CONFIG_UPDATE_NOTIFIER: "false"
     ports:
       - "${APP_BIND_HOST:-0.0.0.0}:${BACKEND_PORT:-3333}:${BACKEND_PORT:-3333}"
+    volumes:
+      # O2: arquivos brutos das coletas sobrevivem à recriação do container.
+      - backend_storage:/app/backend/storage
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,6 +90,7 @@ services:
 
 volumes:
   postgres_data:
+  backend_storage:
 
 networks:
   painel_network:

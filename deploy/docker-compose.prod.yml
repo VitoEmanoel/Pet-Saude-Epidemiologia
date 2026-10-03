@@ -1,0 +1,98 @@
+# Produção (VPS): usa imagens já construídas (scripts/deploy-build.sh), sem build no servidor.
+# Só o Caddy publica porta; backend, frontend e banco ficam na rede interna do Docker.
+# Uso na VPS: docker compose -f docker-compose.prod.yml --env-file .env <comando>
+# (o scripts/deploy-vps.sh faz tudo; ver docs/16-implantacao.md).
+name: painel
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "${PUBLIC_BIND_HOST:-0.0.0.0}:${PUBLIC_PORT:-80}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - painel_network
+
+  backend:
+    image: painel-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3333
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pet_saude}?schema=public
+      CORS_ORIGIN: ${FRONTEND_URL}
+    volumes:
+      # O2: arquivos brutos das coletas sobrevivem à recriação do container.
+      - backend_storage:/app/backend/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - painel_network
+
+  frontend:
+    image: painel-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      - backend
+    networks:
+      - painel_network
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pet_saude}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - painel_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-pet_saude}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 6.4: cópia diária do banco em ./backups (na VPS), guardando BACKUP_KEEP_DAYS dias.
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-pet_saude}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    volumes:
+      - ./backup.sh:/backup.sh:ro
+      - ./backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - painel_network
+
+volumes:
+  postgres_data:
+  backend_storage:
+  caddy_data:
+
+networks:
+  painel_network:
+    driver: bridge

@@ -27,9 +27,9 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 ## O. Implantação e operação
 
-### O2. HTMLs brutos se perdem ao recriar o container. **Média**
+### O2. HTMLs brutos se perdem ao recriar o container. **Resolvido (03/10/2026)**
 - **Evidência:** recriando o backend, 32 arquivos → 0; 38 linhas em `raw_imports` apontando para arquivos inexistentes.
-- **Correção:** volume Docker para `/app/backend/storage`.
+- **Correção:** volume `backend_storage` em `/app/backend/storage` (desenvolvimento e produção). Arquivos de antes do volume continuam faltando até a próxima sincronização.
 
 ### O3. Trava de sincronização só em memória. **Média**
 - **Sintoma:** processos diferentes (agendador e coleta manual por outro container) podem sincronizar a mesma fonte ao mesmo tempo.

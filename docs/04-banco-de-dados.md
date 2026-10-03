@@ -164,7 +164,7 @@ SELECT created_at, action, status, ip_address, metadata FROM admin_audit_logs OR
 | Recadastrar fontes | `npm run prisma:seed` |
 | Ver o banco num navegador | `npm --workspace backend run prisma:studio` |
 
-Backup e restauração (fluxo Docker):
+Em produção, o backup é **automático e diário** (container `backup`; ver [16 §16.5](16-implantacao.md#165-backup-e-restauração-64)). Manualmente, no fluxo Docker:
 
 ```bash
 # backup

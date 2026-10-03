@@ -1,0 +1,32 @@
+# Proxy da VPS: site e API no mesmo domínio.
+# O HTTPS fica com o proxy da UESPI (*.cloud.deploy.uespi.br), que repassa em HTTP para esta porta.
+{
+	admin off
+	auto_https off
+	servers {
+		# Aceita o X-Forwarded-For só de proxies da rede interna (o da UESPI): é dele que sai o IP
+		# real do visitante para a auditoria e o limite de requisições. Visitantes não forjam o IP.
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy backend:3333
+	}
+
+	handle /health {
+		reverse_proxy backend:3333
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

@@ -33,6 +33,7 @@ Manual de manutenção do sistema. Foi escrito para alguém com conhecimento bá
 | 13 | [Testes](13-testes.md) | Como rodar os testes (backend, API, segurança, interface, carga, resiliência) |
 | 14 | [Testes de segurança](14-testes-de-seguranca.md) | Campanha OWASP (caixa preta, cinza e branca), ferramentas, resultados e achados |
 | 15 | [Indicadores](15-indicadores.md) | Indicadores calculados (incidência, % alarme/grave, idosos, confirmados): origem dos dados, cálculo, regras e limites |
+| 16 | [Implantação na VPS](16-implantacao.md) | Publicar em produção: Caddy, imagens construídas fora da VPS, `.env` de produção, backup e restauração, comandos do servidor |
 | — | [Indicadores de saúde das arboviroses](INDICADORES%20DE%20SA%C3%9ADE%20DAS%20ARBOVIROSES.md) | Indicadores pedidos pelo GT1 - Vigilância Epidemiológica (cálculo e variáveis); implementação na Fase 2C do plano |
 
 ## Outras pastas

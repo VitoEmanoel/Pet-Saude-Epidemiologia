@@ -18,3 +18,7 @@ memoria.md
 # Resultados dos testes de QA (capturas de tela, CSV do teste longo)
 tests/output/
 *.tsbuildinfo
+
+# Implantação: .env de produção (segredos) e imagens geradas
+deploy/.env.producao
+deploy/out/
