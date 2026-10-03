@@ -34,6 +34,8 @@ const navItems = [
 export function AppShell({ active, children }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
+  // Cada página tem o próprio <h1> (U4); o nome do painel fica na linha de cima, como no admin.
+  const currentPage = navItems.find((item) => item.active === active) ?? navItems[0];
 
   return (
     <div className="min-h-screen bg-pet-ice">
@@ -63,8 +65,10 @@ export function AppShell({ active, children }: AppShellProps) {
           <MenuButton open={menuOpen} onClick={() => setMenuOpen((current) => !current)} />
           <PetLogoMark size={48} className="hidden sm:inline-flex" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-pet-sky sm:text-sm">Parnaíba - PI</p>
-            <h1 className="text-lg font-semibold leading-tight text-white sm:text-2xl">Painel Epidemiológico PET-Saúde</h1>
+            <p className="truncate text-xs font-medium uppercase tracking-wider text-pet-sky sm:text-sm">
+              Painel Epidemiológico · Parnaíba - PI
+            </p>
+            <h1 className="text-xl font-semibold leading-tight text-white sm:text-2xl">{currentPage.label}</h1>
           </div>
         </div>
       </header>

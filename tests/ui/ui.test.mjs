@@ -279,6 +279,37 @@ describe(`Identidade visual (${BROWSER})`, () => {
   });
 });
 
+describe(`Títulos por página (${BROWSER})`, () => {
+  const LABELS = {
+    "/": "Visão geral",
+    "/tuberculose": "Tuberculose",
+    "/hanseniase": "Hanseníase",
+    "/sifilis": "Sífilis congênita",
+    "/dengue": "Dengue",
+    "/zika": "Zika",
+    "/chikungunya": "Chikungunya",
+    "/arboviroses": "Arboviroses",
+    "/sifilis-gestacional": "Sífilis gestacional"
+  };
+
+  test("U4: cada página pública tem título na aba e um único <h1> com o próprio nome", async () => {
+    const titles = new Set();
+    for (const [path, label] of Object.entries(LABELS)) {
+      const { context, page } = await openPage("desktop", path);
+      try {
+        const title = await page.title();
+        assert.ok(title.startsWith(`${label} — `), `${path}: título "${title}"`);
+        titles.add(title);
+        const headings = await page.$$eval("h1", (items) => items.map((item) => item.textContent?.trim()));
+        assert.deepEqual(headings, [label], `${path}: <h1> ${JSON.stringify(headings)}`);
+      } finally {
+        await context.close();
+      }
+    }
+    assert.equal(titles.size, Object.keys(LABELS).length, "títulos repetidos entre páginas");
+  });
+});
+
 describe(`Página inicial (${BROWSER})`, () => {
   test("Toda fonte da lista \"Fontes permitidas\" tem link para a sua página", async () => {
     const { context, page } = await openPage("desktop", "/");
