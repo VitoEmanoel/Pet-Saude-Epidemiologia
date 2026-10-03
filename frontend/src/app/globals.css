@@ -35,6 +35,11 @@ html.dark body {
   color: #e2e8f0;
 }
 
+/* Fundo das telas (AppShell/AdminShell usam bg-pet-ice, que ficava cinza-claro no escuro). */
+html.dark .bg-pet-ice {
+  background-color: #091D30 !important;
+}
+
 html.dark .bg-white,
 html.dark .bg-white\/95 {
   background-color: #102F4D !important;

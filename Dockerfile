@@ -95,6 +95,8 @@ ENV PORT=3000
 
 COPY --from=frontend /app/frontend/.next/standalone ./
 COPY --from=frontend /app/frontend/.next/static ./frontend/.next/static
+# Arquivos estáticos (logos): o modo standalone do Next.js não os copia sozinho.
+COPY --from=frontend /app/frontend/public ./frontend/public
 
 # Roda sem root. O Next.js só precisa escrever no próprio cache (.next/cache).
 RUN mkdir -p frontend/.next/cache && chown -R node:node frontend/.next/cache

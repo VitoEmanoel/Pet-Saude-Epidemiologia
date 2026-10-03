@@ -41,12 +41,12 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 2B | Achados dos testes de segurança | 8 | 8 |
 | 2C | Arboviroses e indicadores de saúde | 10 | 9 |
 | 3 | Operação confiável | 4 | 0 |
-| 4 | Ajustes visuais e acessibilidade | 9 | 3 |
+| 4 | Ajustes visuais e acessibilidade | 9 | 4 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 0 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **35** |
+| | **Total** | **64** | **36** |
 
 ---
 
@@ -257,7 +257,7 @@ Ordem sugerida: U8, U3, U2, U4, U5, D6 (rápidos, deixam o site público no nív
 - [ ] **U2** Corrigir contraste dos 2 elementos (≥ 4,5:1); teste axe sem violações
 - [ ] **D6** Cartão "Registros" reflete os filtros (ou troca o rótulo para "Registros totais")
 - [ ] **U4** Título e `<h1>` próprios por página (admin já feito: cada tela tem título na aba e no cabeçalho; falta o site público)
-- [ ] **U5** Favicon
+- [x] **U5** Favicon e logo do PET-Saúde (02/10/2026, branch `feat/u5-logo-favicon`): logos enviadas pelo Victor em `img/` (originais); versões reduzidas em `frontend/public/img`; `favicon.ico` (o preto e branco enviado) e `apple-icon.png` (colorido, fundo branco); símbolo no cabeçalho e no menu (fundo branco fixo para não sumir no azul-escuro), logo com texto no login. `Dockerfile` passou a copiar `public/` (o standalone não copia). Junto: fundo cinza-claro no tema escuro corrigido (`bg-pet-ice`)
 - [ ] **U6** Alvos de toque ≥ 24 px no celular
 - [ ] **U7** Lista de registros mais compacta no celular (ou paginação menor / recolhível)
 

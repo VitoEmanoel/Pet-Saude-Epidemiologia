@@ -1,7 +1,8 @@
 "use client";
 
-import { Activity, BarChart3, Database, MapPinned } from "lucide-react";
+import { Activity, BarChart3, Database } from "lucide-react";
 import { useCallback, useState } from "react";
+import { PetLogoMark } from "../ui/PetLogo";
 import { MenuButton, SideDrawer } from "./SideDrawer";
 
 type AppShellProps = {
@@ -41,9 +42,7 @@ export function AppShell({ active, children }: AppShellProps) {
         onClose={closeMenu}
         brand={
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded bg-pet-mid text-white ring-1 ring-white/20">
-              <MapPinned size={18} aria-hidden="true" />
-            </div>
+            <PetLogoMark size={40} />
             <div>
               <div className="text-sm font-semibold text-white">PET-Saúde</div>
               <div className="text-xs text-white/70">Informação e Saúde Digital</div>
@@ -62,9 +61,7 @@ export function AppShell({ active, children }: AppShellProps) {
       <header className="sticky top-0 z-20 border-b border-pet-dark bg-pet-dark text-white shadow-md">
         <div className="mx-auto flex min-h-20 max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <MenuButton open={menuOpen} onClick={() => setMenuOpen((current) => !current)} />
-          <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded bg-pet-mid text-white ring-1 ring-white/20 sm:flex">
-            <MapPinned size={22} aria-hidden="true" />
-          </div>
+          <PetLogoMark size={48} className="hidden sm:inline-flex" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium uppercase tracking-wider text-pet-light sm:text-sm">Parnaíba - PI</p>
             <h1 className="text-lg font-semibold leading-tight text-white sm:text-2xl">Painel Epidemiológico PET-Saúde</h1>

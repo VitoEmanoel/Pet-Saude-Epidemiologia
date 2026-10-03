@@ -72,7 +72,7 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 | `test:backend` | 34 | 0 | 0 | 0 |
 | `test:e2e` | 102 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
-| `test:ui` (Chromium, Firefox, WebKit) | 66 | 0 | 0 | 1 |
+| `test:ui` (Chromium, Firefox, WebKit) | 67 | 0 | 0 | 1 |
 | `test:security` | 48 | 0 | 1 (TABNET) | 0 |
 | `test:resilience` | 7/7 | | | |
 
@@ -81,7 +81,7 @@ Carga (16 núcleos, fim da Fase 2B, Node 24): `/health` ~12.800 req/s; resumo de
 ## 13.5 Cuidados
 
 - Os testes `S3` (containers sem root) usam `docker compose exec` na pasta do projeto; se o Docker não estiver acessível (ex.: testando um servidor remoto), eles são pulados.
-- **Firefox intermitente:** em rodadas longas da suíte de interface, um teste aleatório às vezes estoura 30 s no Firefox (passa isolado e na rodada seguinte). A espera de página foi limitada a 10 s para a rede (o mapa depende do OpenStreetMap); se falhar, rode de novo antes de investigar.
+- **Esperas nos testes de interface:** as páginas abrem com `domcontentloaded` e a função `settle` espera a rede no máximo 10 s; a navegação do menu espera só a troca de endereço (`commit`). Esperar o evento "load" ou "rede ociosa" sem limite fazia testes aleatórios estourarem 30 s no Firefox, porque o mapa depende do OpenStreetMap (externo). Com isso, o Firefox passou 67/0 em 3 rodadas seguidas.
 - A suíte e2e faz **no máximo 4 logins errados** e termina com um login correto (5 errados trancariam o admin). Mantenha essa regra ao criar testes.
 - `npm run test:backend` grava logins de teste na auditoria do banco configurado (item S10). Nunca rode contra produção.
 - Nenhum teste de interface clica em "Sincronizar"; só a suíte e2e com `QA_TABNET=1` dispara coleta.

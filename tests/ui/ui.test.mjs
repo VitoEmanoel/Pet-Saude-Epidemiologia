@@ -48,7 +48,7 @@ async function openPage(profile, path) {
   page.on("pageerror", (error) => errors.push(error.message));
   // O mapa busca imagens no OpenStreetMap (servidor externo, às vezes lento): esperar "rede ociosa"
   // sem limite fazia testes aleatórios estourarem 30 s, sobretudo no Firefox.
-  await page.goto(WEB + path, { waitUntil: "load" });
+  await page.goto(WEB + path, { waitUntil: "domcontentloaded" });
   await settle(page);
   await page.waitForTimeout(800);
   return { context, page, errors };
@@ -203,7 +203,7 @@ for (const profile of Object.keys(PROFILES)) {
         await page.locator('button[aria-label="Abrir menu"]').click();
         await page.waitForTimeout(400);
         await page.locator('#menu-lateral button[aria-label="Ativar tema escuro"]').click();
-        await page.reload({ waitUntil: "load" });
+        await page.reload({ waitUntil: "domcontentloaded" });
         await settle(page);
         assert.ok(await page.evaluate(() => document.documentElement.classList.contains("dark")));
       } finally {
@@ -242,6 +242,23 @@ for (const profile of Object.keys(PROFILES)) {
     });
   });
 }
+
+describe(`Identidade visual (${BROWSER})`, () => {
+  test("U5: favicon, ícone de celular e logo do PET-Saúde carregam", async () => {
+    for (const path of ["/favicon.ico", "/apple-icon.png", "/img/logo-simbolo.png", "/img/logo-texto-embaixo.png"]) {
+      const response = await fetch(WEB + path);
+      assert.equal(response.status, 200, path);
+      assert.match(response.headers.get("content-type") ?? "", /image/, path);
+    }
+    const { context, page } = await openPage("desktop", "/");
+    try {
+      const loaded = await page.$$eval('header img[src="/img/logo-simbolo.png"]', (imgs) => imgs.map((img) => img.naturalWidth > 0));
+      assert.ok(loaded.length > 0 && loaded.every(Boolean), "logo do cabeçalho não carregou");
+    } finally {
+      await context.close();
+    }
+  });
+});
 
 describe(`Página inicial (${BROWSER})`, () => {
   test("Toda fonte da lista \"Fontes permitidas\" tem link para a sua página", async () => {
@@ -351,7 +368,7 @@ describe(`Área administrativa (${BROWSER})`, () => {
       assert.doesNotMatch(await page.innerText("main"), /Auditoria administrativa|Histórico de sincronizações/i, "painel inicial deve ficar enxuto");
       await page.screenshot({ path: `${SHOTS}desktop_admin_logado.png`, fullPage: true });
 
-      await page.reload({ waitUntil: "load" });
+      await page.reload({ waitUntil: "domcontentloaded" });
         await settle(page);
       await page.waitForTimeout(800);
       assert.match(await page.innerText("body"), /Dashboard da fonte/i, "sessão persiste");
@@ -405,7 +422,7 @@ describe(`Resiliência e acessibilidade (${BROWSER})`, () => {
     try {
       await context.route(/:3333\//, (route) => route.abort());
       const page = await context.newPage();
-      await page.goto(WEB + "/tuberculose", { waitUntil: "load" });
+      await page.goto(WEB + "/tuberculose", { waitUntil: "domcontentloaded" });
       await settle(page);
       await page.waitForTimeout(800);
       assert.match(await page.innerText("body"), /indispon/i);

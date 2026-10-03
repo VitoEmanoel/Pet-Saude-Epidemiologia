@@ -40,6 +40,7 @@ Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda 
 | `dashboard/IndicatorPanel.tsx` | Painel **Indicadores** (A6) nas páginas de dengue, zika, chikungunya e arboviroses e no dashboard do admin: escolhe o indicador, mostra o valor do ano (o filtrado ou o último ano fechado), o cálculo, os anos sem valor com o motivo e a série em barras (o ano corrente com `*`). Some nas fontes sem indicadores. No admin tem **Baixar indicadores** (CSV) |
 | `dashboard/ChartPanel.tsx` / `EChart.tsx` | Gráficos (linha/barra) com ECharts |
 | `maps/ParnaibaMap.tsx` | Mapa Leaflet centrado em Parnaíba (`[-2.905, -41.776]`), carregado só no navegador. O bloco tem a classe `isolate`: sem ela, as camadas do Leaflet (`z-index` 400–1000) passam por cima do cabeçalho fixo (`z-20`) ao rolar. Qualquer outro mapa ou componente com `z-index` alto precisa do mesmo cuidado |
+| `ui/PetLogo.tsx` | Logo do PET-Saúde: `PetLogoMark` (símbolo sobre fundo branco fixo, no cabeçalho e no menu) e `PetLogoWithText` (login). Arquivos em `frontend/public/img/` (reduzidos a partir dos originais em `img/`); `app/favicon.ico` e `app/apple-icon.png` viram os ícones da aba e do celular |
 | `ui/MetricCard.tsx`, `StatusPill.tsx`, `ThemeToggle.tsx` | Cartão de indicador, selo de status, alternância claro/escuro |
 
 ## 7.3 Identidade visual e tema

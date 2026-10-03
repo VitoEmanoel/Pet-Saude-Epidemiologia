@@ -1,9 +1,10 @@
 "use client";
 
-import { Database, History, Home, LayoutDashboard, LogOut, ScrollText, Shield, UserRound, Users } from "lucide-react";
+import { Database, History, Home, LayoutDashboard, LogOut, ScrollText, UserRound, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 import { AdminSessionProvider, useAdminSession } from "../admin/AdminSession";
+import { PetLogoMark } from "../ui/PetLogo";
 import { MenuButton, SideDrawer } from "./SideDrawer";
 
 export const ADMIN_PAGES = [
@@ -49,9 +50,7 @@ function AdminFrame({ children }: { children: React.ReactNode }) {
         onClose={closeMenu}
         brand={
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded bg-pet-orange text-white">
-              <Shield size={18} aria-hidden="true" />
-            </div>
+            <PetLogoMark size={40} />
             <div>
               <div className="text-sm font-semibold">PET-Saúde</div>
               <div className="text-xs text-white/70">Área administrativa</div>
@@ -84,9 +83,7 @@ function AdminFrame({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-20 border-b border-pet-dark bg-pet-dark text-white shadow-md">
         <div className="mx-auto flex min-h-20 max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <MenuButton open={menuOpen} onClick={() => setMenuOpen((current) => !current)} />
-          <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded bg-pet-orange text-white sm:flex">
-            <Shield size={22} aria-hidden="true" />
-          </div>
+          <PetLogoMark size={48} className="hidden sm:inline-flex" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium uppercase tracking-wider text-pet-light sm:text-sm">Administração PET-Saúde</p>
             <h1 className="text-xl font-semibold leading-tight text-white sm:text-2xl">{currentPage.label}</h1>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Home, LogIn, Shield } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { getAdminSession, loginAdmin, logoutAdmin } from "@/lib/api";
+import { PetLogoMark, PetLogoWithText } from "../ui/PetLogo";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import {
   IDLE_ACTION,
@@ -123,9 +124,7 @@ function PublicAdminFrame({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-pet-ice">
       <header className="sticky top-0 z-20 border-b border-pet-dark bg-pet-dark text-white shadow-sm">
         <div className="mx-auto flex min-h-20 max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded bg-pet-orange text-white">
-            <Shield size={22} aria-hidden="true" />
-          </div>
+          <PetLogoMark size={48} />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium uppercase tracking-wider text-pet-light sm:text-sm">PET-Saúde</p>
             <h1 className="text-xl font-semibold leading-tight text-white sm:text-2xl">Área administrativa</h1>
@@ -182,6 +181,9 @@ function AdminLoginForm({ notice, onLogin }: { notice: string | null; onLogin: (
 
   return (
     <section className="mx-auto mt-6 max-w-md rounded border border-slate-200 bg-white shadow-sm">
+      <div className="flex justify-center rounded-t border-b border-slate-200 bg-[#ffffff] px-6 pt-6 pb-4">
+        <PetLogoWithText width={180} />
+      </div>
       <div className="border-b border-slate-200 px-6 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded bg-health-700 text-white">
