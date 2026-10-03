@@ -2,6 +2,8 @@
 
 Endereço: `http://<servidor>:3000/admin`. Usuário: `ADMIN_USERNAME` (padrão `admin`). Senha: `ADMIN_PASSWORD` do `.env`.
 
+**Tela de login:** no computador, painel azul da marca à esquerda e formulário à direita; no celular, só o formulário com o logo. Tem botão de mostrar/ocultar senha, o tema claro/escuro no topo e o link de volta para o site público.
+
 ## 8.1 O que dá para fazer
 
 As telas ficam no **menu lateral**, que abre pelo botão ☰ no canto superior esquerdo. No rodapé do menu estão o tema claro/escuro, "Conectado como …" e o botão **Sair**.

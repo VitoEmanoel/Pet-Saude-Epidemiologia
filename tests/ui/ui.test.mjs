@@ -452,6 +452,32 @@ describe(`Área administrativa (${BROWSER})`, () => {
     }
   });
 
+  for (const colorScheme of ["light", "dark"]) {
+    test(`Login: contraste (WCAG AA) no tema ${colorScheme === "dark" ? "escuro" : "claro"} e botão de mostrar senha`, async () => {
+      const context = await browser.newContext({ ...PROFILES.desktop, locale: "pt-BR", colorScheme });
+      const page = await context.newPage();
+      try {
+        await page.goto(WEB + "/admin", { waitUntil: "domcontentloaded" });
+        await page.locator('input[name="password"]').waitFor();
+        assert.deepEqual(await page.$$eval("h1", (items) => items.map((item) => item.textContent?.trim())), ["Acesso administrativo"]);
+        await page.addScriptTag({ content: axeSource });
+        const violations = await page.evaluate(async () =>
+          (await window.axe.run(document, { runOnly: ["color-contrast"] })).violations.flatMap((v) => v.nodes.map((n) => n.html.slice(0, 80)))
+        );
+        assert.deepEqual(violations, []);
+
+        const password = page.locator('input[name="password"]');
+        await password.fill("abc");
+        await page.getByRole("button", { name: "Mostrar senha" }).click();
+        assert.equal(await password.getAttribute("type"), "text");
+        await page.getByRole("button", { name: "Ocultar senha" }).click();
+        assert.equal(await password.getAttribute("type"), "password");
+      } finally {
+        await context.close();
+      }
+    });
+  }
+
   test("U1: Enter no campo de senha envia o login", async () => {
     const { context, page } = await openPage("desktop", "/admin");
     try {

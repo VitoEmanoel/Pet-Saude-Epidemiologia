@@ -48,6 +48,25 @@ html.dark .border-pet-orange-text {
   border-color: #FB8A5C !important;
 }
 
+/* Quadro do símbolo do PET-Saúde: branco no claro, translúcido no escuro. */
+.pet-logo-tile {
+  background-color: #ffffff;
+}
+
+html.dark .pet-logo-tile {
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+/* Lado do formulário de login: branco no claro, o mesmo fundo das telas no escuro. */
+.login-surface {
+  background-color: #ffffff;
+}
+
+html.dark .login-surface {
+  background-color: #091D30;
+}
+
 /* Fundo das telas (AppShell/AdminShell usam bg-pet-ice, que ficava cinza-claro no escuro). */
 html.dark .bg-pet-ice {
   background-color: #091D30 !important;
