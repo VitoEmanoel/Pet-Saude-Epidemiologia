@@ -30,6 +30,7 @@ import {
 import type {
   CategoryPoint,
   ChartPoint,
+  EpidemiologicalRecord,
   RecordFilters,
   RecordsResponse,
   ResolvedAggregation,
@@ -298,10 +299,11 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
           icon={CalendarDays}
           tone="blue"
         />
+        {/* D6: conta as linhas da tabela "Registros" abaixo, que segue os filtros e o "Detalhar por". */}
         <MetricCard
           label="Registros"
-          value={formatNumber(state.summary.summary.totalRecords)}
-          detail="No banco de dados"
+          value={recordsState.status === "loaded" ? formatNumber(recordsState.data.pagination.total) : "—"}
+          detail={hasSelectedFilters ? "Na tabela, com os filtros" : "Linhas na tabela abaixo"}
           icon={Database}
         />
         <MetricCard
@@ -528,40 +530,21 @@ function RecordsTable({
       {state.data.records.length === 0 ? (
         <div className="p-4 text-sm text-slate-600">Nenhum registro encontrado para os filtros.</div>
       ) : null}
-      <div className="divide-y divide-slate-100 md:hidden">
+      {/* U7: no celular, uma linha por registro (a tabela mostra uma visão por vez, então só um
+          dos campos sexo/faixa etária/raça-cor vem preenchido). */}
+      <ul className="divide-y divide-slate-100 md:hidden">
         {state.data.records.map((record) => (
-          <article key={record.id} className="space-y-3 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="font-medium text-slate-950">{record.diseaseOrCondition ?? "-"}</div>
-                <div className="mt-1 text-xs text-slate-500">Ano {record.year ?? "-"}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs uppercase text-slate-500">Valor</div>
-                <div className="font-semibold text-slate-950">{formatNumber(record.value)}</div>
+          <li key={record.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-slate-950">{recordCategory(record) ?? record.year ?? "-"}</div>
+              <div className="truncate text-xs text-slate-500">
+                {recordCategory(record) ? record.year ?? "-" : "Total do ano"} · {record.diseaseOrCondition ?? "-"}
               </div>
             </div>
-            <dl className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <dt className="text-xs uppercase text-slate-500">Sexo</dt>
-                <dd className="mt-1 text-slate-700">{record.sex ?? "-"}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase text-slate-500">Raça/cor</dt>
-                <dd className="mt-1 text-slate-700">{record.raceColor ?? "-"}</dd>
-              </div>
-              <div className="col-span-2">
-                <dt className="text-xs uppercase text-slate-500">Faixa etária</dt>
-                <dd className="mt-1 text-slate-700">{record.ageGroup ?? "-"}</dd>
-              </div>
-              <div className="col-span-2">
-                <dt className="text-xs uppercase text-slate-500">Visão</dt>
-                <dd className="mt-1 text-slate-700">{formatAggregation(record.aggregation)}</dd>
-              </div>
-            </dl>
-          </article>
+            <div className="shrink-0 text-base font-semibold tabular-nums text-slate-950">{formatNumber(record.value)}</div>
+          </li>
         ))}
-      </div>
+      </ul>
       <div className="hidden overflow-x-auto md:block">
         <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
           <thead className="bg-pet-dark text-xs uppercase text-white">
@@ -622,6 +605,11 @@ function RecordsTable({
       </div>
     </>
   );
+}
+
+/** Categoria do registro na visão atual (sexo, faixa etária ou raça/cor); null no total do ano. */
+function recordCategory(record: EpidemiologicalRecord) {
+  return record.sex ?? record.ageGroup ?? record.raceColor ?? null;
 }
 
 function ChartLoadingBlocks() {

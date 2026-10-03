@@ -213,3 +213,10 @@ select {
 .leaflet-container {
   font: inherit;
 }
+
+/* U6: links da atribuição do mapa com pelo menos 24 px de altura para o toque. */
+.leaflet-control-attribution a {
+  display: inline-block;
+  min-height: 24px;
+  line-height: 24px;
+}

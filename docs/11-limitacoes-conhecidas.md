@@ -17,8 +17,9 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 
 ## D. Dados exibidos
 
-### D6. Cartão "Registros" ignora filtros. **Baixa**
+### D6. Cartão "Registros" ignora filtros. **Resolvido (03/10/2026)**
 - **Sintoma:** com qualquer filtro, continua mostrando o total (ex.: 500).
+- **Correção:** no site o cartão conta as linhas da tabela "Registros" (segue filtros e "Detalhar por"); no admin o total técnico virou "Linhas no banco".
 
 **Limitações da fonte (não são defeitos):** o TABNET só chega ao nível de **município**: não há bairro em nenhum formulário, então indicadores por bairro precisam do SINAN local da Secretaria de Saúde. O formulário de zika não tem campo de **gestante**, então a incidência de zika em gestantes também não sai do TABNET. Ver [INDICADORES DE SAÚDE DAS ARBOVIROSES](INDICADORES%20DE%20SA%C3%9ADE%20DAS%20ARBOVIROSES.md) e a Fase 2C do plano.
 

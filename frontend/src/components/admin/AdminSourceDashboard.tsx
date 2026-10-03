@@ -233,7 +233,7 @@ export function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
         <section className="grid grid-cols-2 gap-3 xl:grid-cols-5 [&>*:last-child]:col-span-2 xl:[&>*:last-child]:col-span-1">
           <MetricCard label="Casos" value={formatNumber(totalCases)} detail={hasFilters ? "Com os filtros" : selectedSource?.name ?? "Fonte"} icon={Activity} tone="green" />
           <MetricCard label="Último ano" value={formatNumber(latestPoint?.value ?? summary.latestYearValue ?? 0)} detail={String(latestPoint?.year ?? summary.latestYear ?? "")} icon={CalendarDays} tone="blue" />
-          <MetricCard label="Registros" value={formatNumber(summary.totalRecords)} detail="No banco" icon={Database} />
+          <MetricCard label="Linhas no banco" value={formatNumber(summary.totalRecords)} detail="Total da fonte, sem filtros" icon={Database} />
           <MetricCard label="Período" value={formatYearRange(yearly?.[0]?.year ?? summary.firstAvailableYear, latestPoint?.year ?? summary.lastAvailableYear)} detail="Anos disponíveis" icon={CalendarDays} />
           <MetricCard label="Atualização" value={summary.lastSyncStatus === "SUCCESS" ? "Sucesso" : summary.lastSyncStatus ?? "Sem status"} detail={formatDateTime(summary.lastUpdate)} icon={RefreshCw} tone="amber" />
         </section>

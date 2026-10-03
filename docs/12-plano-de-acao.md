@@ -255,11 +255,11 @@ Ordem sugerida: U8, U3, U2, U4, U5, D6 (rápidos, deixam o site público no nív
   - [x] Teste de interface impede "SUCCESS"/textos sem acento de voltarem
 - [x] **U1** Login do admin dentro de `<form>` (Enter envia; gerenciador de senhas funciona) (02/10/2026, junto com a reorganização do admin)
 - [x] **U2** Contraste ≥ 4,5:1 em todo texto (02/10/2026, branch `fix/u2-contraste`): tons novos `pet-sky` (subtítulo do cabeçalho, 6,44:1), `pet-orange-text` (5,18:1; botões laranja e valor em laranja dos cartões) e `pet-red-text` (5,25:1; mensagens e selos de erro), com versões claras no tema escuro. Levantamento com axe: **0 violações** no site e no admin, claro e escuro. O teste de acessibilidade de cada página passou a incluir o contraste. Junto: plural "1 registro" (era "1 registros")
-- [ ] **D6** Cartão "Registros" reflete os filtros (ou troca o rótulo para "Registros totais")
+- [x] **D6** Cartão "Registros" reflete os filtros (03/10/2026, branch `fix/d6-cartao-registros`): no site, conta as linhas da tabela "Registros" (segue os filtros e o "Detalhar por"); no admin e no dashboard baixado, o total técnico virou **"Linhas no banco"** ("Total da fonte, sem filtros")
 - [x] **U4** Título e `<h1>` próprios por página: título na aba ("Dengue — Painel Epidemiológico PET-Saúde") e o `<h1>` do cabeçalho com o nome da página, como no admin
 - [x] **U5** Favicon e logo do PET-Saúde (02/10/2026, branch `feat/u5-logo-favicon`): logos enviadas pelo Victor em `img/` (originais); versões reduzidas em `frontend/public/img`; `favicon.ico` (o preto e branco enviado) e `apple-icon.png` (colorido, fundo branco); símbolo no cabeçalho e no menu (fundo branco fixo para não sumir no azul-escuro), logo com texto no login. `Dockerfile` passou a copiar `public/` (o standalone não copia). Junto: fundo cinza-claro no tema escuro corrigido (`bg-pet-ice`)
-- [ ] **U6** Alvos de toque ≥ 24 px no celular
-- [ ] **U7** Lista de registros mais compacta no celular (ou paginação menor / recolhível)
+- [x] **U6** Alvos de toque ≥ 24 px (03/10/2026): levantamento no celular e no computador (site, login e telas do admin); corrigidos os links "Abrir página"/"Abrir" da página inicial (19 px → 40/32 px) e os links de atribuição do mapa (22 → 24 px). Teste novo cobre as páginas nos dois tamanhos
+- [x] **U7** Lista de registros mais compacta no celular (03/10/2026): uma linha por registro (categoria ou ano, "ano · condição" e o valor), em vez de um cartão com 5 campos quase todos "-"; cada linha tem ~57 px (era ~200 px)
 
 ---
 

@@ -163,7 +163,7 @@ export function OverviewDashboard() {
                   {pageHref ? (
                     <Link
                       href={pageHref}
-                      className="font-medium text-institutional-600 hover:text-institutional-800"
+                      className="inline-flex h-10 items-center rounded border border-slate-300 px-3 font-medium text-institutional-600 hover:bg-slate-50 hover:text-institutional-800"
                     >
                       {pageLabel}
                     </Link>
@@ -212,7 +212,7 @@ export function OverviewDashboard() {
                       {pageHref ? (
                         <Link
                           href={pageHref}
-                          className="font-medium text-institutional-600 hover:text-institutional-800"
+                          className="-mx-2 inline-flex h-8 items-center rounded px-2 font-medium text-institutional-600 hover:bg-slate-50 hover:text-institutional-800"
                         >
                           {pageLabel}
                         </Link>

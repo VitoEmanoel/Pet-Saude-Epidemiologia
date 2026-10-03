@@ -232,7 +232,7 @@ export function toDashboardHtml(input: DashboardExportInput): string {
     <section class="cards" aria-label="Indicadores">
       ${metricCard("Casos", formatNumber(input.summary.totalCases), "Total consolidado")}
       ${metricCard("Último ano", formatNumber(input.summary.latestYearValue ?? 0), String(input.summary.latestYear ?? "-"))}
-      ${metricCard("Registros", formatNumber(input.summary.totalRecords), "No banco de dados")}
+      ${metricCard("Linhas no banco", formatNumber(input.summary.totalRecords), "Total da fonte, sem filtros")}
       ${metricCard("Período", yearRange, "Anos disponíveis")}
       ${metricCard("Atualização", formatSyncStatus(input.summary.lastSyncStatus), formatDateTime(input.summary.lastUpdate))}
     </section>

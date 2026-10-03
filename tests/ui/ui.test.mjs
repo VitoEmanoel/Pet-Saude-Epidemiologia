@@ -142,6 +142,69 @@ for (const profile of Object.keys(PROFILES)) {
       }
     });
 
+    test("D6: cartão Registros acompanha a tabela e muda com os filtros", async () => {
+      const { context, page } = await openPage(profile, "/tuberculose");
+      // Valor do cartão "Registros" e o total do rodapé da tabela ("N registros").
+      const read = () =>
+        page.evaluate(() => {
+          const label = [...document.querySelectorAll("main p")].find((item) => item.textContent === "Registros");
+          const card = label?.parentElement?.querySelector("strong")?.textContent ?? "";
+          const footer = document.body.innerText.match(/(\d[\d.]*) registros?\b/)?.[1] ?? "";
+          return { card: Number(card.replace(/\./g, "")), footer: Number(footer.replace(/\./g, "")) };
+        });
+      try {
+        await page.getByLabel("Detalhar por").selectOption("sex");
+        await settle(page);
+        await page.waitForTimeout(600);
+        const all = await read();
+        assert.ok(all.card > 0, "cartão vazio");
+        assert.equal(all.card, all.footer, "cartão diferente da tabela");
+        await page.locator("select").nth(0).selectOption("2024");
+        await settle(page);
+        await page.waitForTimeout(600);
+        const filtered = await read();
+        assert.equal(filtered.card, filtered.footer);
+        assert.ok(filtered.card < all.card, `com filtro de ano deveria cair (${all.card} → ${filtered.card})`);
+      } finally {
+        await context.close();
+      }
+    });
+
+    if (profile === "celular") {
+      test("U7: no celular a lista de registros é compacta (uma linha por registro)", async () => {
+        const { context, page } = await openPage(profile, "/tuberculose");
+        try {
+          const heights = await page.$$eval("main ul.md\\:hidden > li", (items) => items.map((item) => item.getBoundingClientRect().height));
+          assert.ok(heights.length > 0, "lista de registros vazia");
+          assert.ok(Math.max(...heights) <= 72, `linha alta demais: ${Math.max(...heights)} px`);
+        } finally {
+          await context.close();
+        }
+      });
+    }
+
+    test("U6: botões, links e campos têm pelo menos 24 px para o toque", async () => {
+      const small = [];
+      for (const path of ["/", "/dengue", "/admin"]) {
+        const { context, page } = await openPage(profile, path);
+        try {
+          await page.waitForTimeout(1000);
+          small.push(
+            ...(await page.$$eval("a, button, select, input, textarea, [role=button]", (items) =>
+              items
+                .filter((item) => !item.classList.contains("sr-only"))
+                .map((item) => ({ item, box: item.getBoundingClientRect() }))
+                .filter(({ box }) => box.width > 0 && box.height > 0 && (box.width < 24 || box.height < 24))
+                .map(({ item, box }) => `${item.tagName} "${(item.getAttribute("aria-label") ?? item.textContent ?? "").trim().slice(0, 30)}" ${Math.round(box.width)}x${Math.round(box.height)}`)
+            )).map((text) => `${path}: ${text}`)
+          );
+        } finally {
+          await context.close();
+        }
+      }
+      assert.deepEqual([...new Set(small)], []);
+    });
+
     test("D3: tabela mostra uma visão por vez; filtro de sexo trava o \"Detalhar por\" em sexo", async () => {
       const { context, page } = await openPage(profile, "/tuberculose");
       try {
