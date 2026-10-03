@@ -50,8 +50,8 @@ export function AdminOverview() {
         <Link href="/admin/sincronizacoes" className="block rounded focus:outline-none focus:ring-2 focus:ring-institutional-600">
           <MetricCard
             label="Sincronizações"
-            value={`${successes} ok`}
-            detail={lastJob ? `Última: ${formatDateTime(lastJob.startedAt)}` : "Nenhuma ainda"}
+            value={successes}
+            detail={lastJob ? `Com sucesso · última: ${formatDateTime(lastJob.startedAt)}` : "Nenhuma ainda"}
             icon={successes > 0 ? CheckCircle2 : History}
             tone="green"
           />
