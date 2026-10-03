@@ -181,7 +181,7 @@ function AdminLoginForm({ notice, onLogin }: { notice: string | null; onLogin: (
 
   return (
     <section className="mx-auto mt-6 max-w-md rounded border border-slate-200 bg-white shadow-sm">
-      <div className="flex justify-center rounded-t border-b border-slate-200 bg-[#ffffff] px-6 pt-6 pb-4">
+      <div className="flex justify-center border-b border-slate-200 px-6 pt-6 pb-4">
         <PetLogoWithText width={180} />
       </div>
       <div className="border-b border-slate-200 px-6 py-5">
