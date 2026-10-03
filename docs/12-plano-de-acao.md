@@ -44,9 +44,9 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 4 | Ajustes visuais e acessibilidade | 9 | 9 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
-| 6 | Implantação em produção | 8 | 4 |
+| 6 | Implantação em produção | 8 | 6 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **46** |
+| | **Total** | **64** | **48** |
 
 ---
 
@@ -229,7 +229,7 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
 - [x] **O2** Volume Docker para `backend/storage` (03/10/2026, branch `feat/implantacao-vps`): volume nomeado `backend_storage` no `docker-compose.yml` e no de produção
   - [x] Teste: recriar o container mantém os HTMLs brutos (4 arquivos antes e depois, na simulação da VPS)
   - [x] Volume nomeado (herda o dono `node` da imagem)
-- [ ] **O3 + O4** Coleta segura
+- [ ] **O3 + O4** Coleta segura. **Aconteceu em produção (03/10/2026):** agendador e sincronização manual rodaram as mesmas fontes ao mesmo tempo; ambos SUCCESS, mas a tuberculose ficou com 11 de 500 registros. Corrigido ressincronizando; o risco continua até este item
   - [ ] Trava de sincronização no banco (`pg_advisory_lock`)
   - [ ] Gravação dos registros em lote dentro de transação
   - [ ] Teste de injeção de falhas: falha no meio não altera registros nem histórico
@@ -299,8 +299,8 @@ Ordem sugerida: U8, U3, U2, U4, U5, D6 (rápidos, deixam o site público no nív
 
 ## Fase 6: Implantação em produção
 
-- [ ] **6.1** Definir servidor, domínio e responsável pela operação. **Definidos em 03/10/2026:** VPS `10.10.10.212` (rede interna da UESPI, usuário `aluno`), domínio `victorsilva0001.cloud.deploy.uespi.br` (HTTPS pelo proxy da UESPI), responsável: Victor. Falta: acesso SSH a partir desta máquina (VPN), porta do proxy e swap. Uma VPS de 1 CPU / 2 GB / 20 GB basta ([02 §2.7](02-instalacao-e-execucao.md#27-servidor-pequeno-vps-e-imagens-construídas-fora-dele)); criar 2 GB de swap
-- [ ] **6.2** Seguir o [checklist de publicação](02-instalacao-e-execucao.md#28-checklist-de-publicação). HTTPS com proxy reverso (nginx/Caddy) + `TRUST_PROXY` conforme o proxy, conferindo o IP real na auditoria (S4) + `ADMIN_COOKIE_SECURE=true` (S9)
+- [x] **6.1** Servidor, domínio e responsável (03/10/2026): VPS `10.10.10.212` do laboratório LES (Debian 13, 1 vCPU, 2 GB, container LXC; acesso por VPN WireGuard), domínio `victorsilva0001.cloud.deploy.uespi.br` (HTTPS pelo proxy do laboratório, `10.10.10.21`), responsável Victor. Sem swap (container LXC)
+- [x] **6.2** **Publicado em 03/10/2026** em `https://victorsilva0001.cloud.deploy.uespi.br/painel`, dividindo o domínio com o TSCQuestões (que segue na raiz; [16 §16.9](16-implantacao.md#169-dividir-o-domínio-com-outro-sistema-painel-em-painel)). Conferido: HTTPS, cookie `Secure`, **IP real do visitante na auditoria** (`TRUST_PROXY="loopback, uniquelocal"`), senhas fortes geradas, números iguais às referências, login do admin no navegador
 - [x] **6.3** Expor só uma porta (03/10/2026): no `deploy/docker-compose.prod.yml` só o Caddy publica porta (`PUBLIC_PORT`); backend, frontend e banco ficam na rede interna do Docker
 - [x] **6.4** Backup automático diário do banco (03/10/2026): container `backup` com `pg_dump` diário em `/opt/painel/backups`, guarda 14 dias; restauração testada ([16 §16.5](16-implantacao.md#165-backup-e-restauração-64)). Pendente na operação: copiar os backups para fora da VPS e testar restauração todo mês
 - [ ] **6.5** Monitoramento: `/health`, espaço em disco, status das sincronizações

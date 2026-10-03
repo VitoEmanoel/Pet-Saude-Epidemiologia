@@ -36,7 +36,7 @@ E no seu computador: [`scripts/deploy-build.sh`](../scripts/deploy-build.sh) (ge
 
 **Na VPS** (uma vez):
 
-1. Acesso SSH. A VPS fica na rede interna da UESPI (`10.10.10.212`): de fora, conecte a **VPN da UESPI** antes.
+1. Acesso SSH. A VPS fica na rede interna da UESPI (`10.10.10.212`): de fora, ligue a **VPN do laboratório** (WireGuard; o perfil sai do painel em https://cloud.deploy.uespi.br): `sudo wg-quick up uespi`. O SSH da VPS **não tem SFTP**: use `scp -O` (o `deploy-vps.sh` já usa).
 2. Chave SSH liberada (os scripts não digitam senha): no seu computador, `ssh-copy-id aluno@10.10.10.212`.
 3. Docker e Docker Compose instalados ([02 §2.1](02-instalacao-e-execucao.md#21-pré-requisitos)); o usuário `aluno` no grupo `docker` (`sudo usermod -aG docker aluno` e entrar de novo).
 4. Pasta de implantação: `sudo mkdir -p /opt/painel && sudo chown aluno: /opt/painel`.
@@ -73,7 +73,7 @@ O `deploy-vps.sh` envia os arquivos de `deploy/` e as imagens para `/opt/painel`
 
 Depois da **primeira** publicação:
 
-1. Sincronizar os dados (≈1 min): `ssh aluno@10.10.10.212 'cd /opt/painel && docker compose -f docker-compose.prod.yml --env-file .env exec -T backend node backend/dist/scripts/sync-data.js'`. Depois, o agendador sincroniza sozinho (`SYNC_SCHEDULE_*`).
+1. **Não rode a sincronização manual logo depois de subir.** Com o banco vazio, o agendador começa a sincronizar sozinho `SYNC_SCHEDULE_STARTUP_DELAY_SECONDS` (60 s) depois que o backend sobe. Uma sincronização manual nesse momento roda **junto** com ele, e as duas se atropelam: ambas dizem SUCCESS, mas os registros ficam pela metade (aconteceu na primeira publicação, 03/10/2026; é o item O3 do plano). Espere ~2 min e confira em **Sincronizações** no admin. Se precisar rodar à mão, rode só depois que o agendador terminar: `docker compose -f docker-compose.prod.yml --env-file .env exec -T backend node backend/dist/scripts/sync-data.js`.
 2. Abrir `https://victorsilva0001.cloud.deploy.uespi.br` e `/admin`; entrar.
 3. **Conferir o IP na auditoria** do admin: tem que aparecer o **seu** IP, não `10.x`/`172.x`. Se aparecer o IP do proxy da UESPI, o `TRUST_PROXY` precisa incluir o IP dele.
 4. Enviar a planilha de população (tela População), quando o GT1 mandar.
@@ -176,4 +176,4 @@ sudo systemctl daemon-reload && sudo systemctl enable --now painel-firewall
 
 **Voltar ao estado anterior:** `docker compose -f docker-compose.prod.yml --env-file .env stop caddy`, `sudo rm /etc/systemd/system/tscquestoes.service.d/porta-3100.conf`, `sudo systemctl daemon-reload && sudo systemctl restart tscquestoes` (volta para a porta 80). Ou o ponto salvo do painel do laboratório.
 
-**Validado em 03/10/2026:** simulação local com o painel em `/painel` e um "TSCQuestões falso" na raiz: rotas conferidas (`/` e qualquer outro caminho vão para o outro sistema; `/painel`, `/painel/api` e `/painel/health` para o painel), sincronização das 7 fontes, **suíte de interface completa pelo endereço `/painel`** (login do admin, downloads, telas). Na VPS real: container alcançando um serviço da própria VPS pelo `host.docker.internal` (200). A suíte de interface aceita o prefixo: `QA_WEB_URL=http://host/painel QA_API_URL=http://host/painel`.
+**Publicado assim em 03/10/2026** (troca com 5 s do TSCQuestões fora do ar). **Validado antes** em simulação local com o painel em `/painel` e um "TSCQuestões falso" na raiz: rotas conferidas (`/` e qualquer outro caminho vão para o outro sistema; `/painel`, `/painel/api` e `/painel/health` para o painel), sincronização das 7 fontes, **suíte de interface completa pelo endereço `/painel`** (login do admin, downloads, telas). Na VPS real: container alcançando um serviço da própria VPS pelo `host.docker.internal` (200). A suíte de interface aceita o prefixo: `QA_WEB_URL=http://host/painel QA_API_URL=http://host/painel`.
