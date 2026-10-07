@@ -6,7 +6,7 @@ export type City = {
 };
 
 export type MunicipalityFilterStatus = "unknown" | "available" | "unavailable";
-export type SourceKind = "primary" | "derived" | "internal";
+export type SourceKind = "primary" | "internal";
 
 export type DataSource = {
   slug: string;
@@ -54,7 +54,7 @@ export type DashboardOverviewResponse = {
   casesBySource: Array<{
     slug: string;
     name: string;
-    kind: "primary" | "derived" | "internal";
+    kind: "primary" | "internal";
     totalCases: number;
     firstYear: number | null;
     lastYear: number | null;

@@ -271,7 +271,6 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   }
 
   const sourceIsActive = state.summary.source.active;
-  const isArboviroses = state.summary.source.slug === "arboviroses_sinan";
   const isSifilisGestacional = state.summary.source.slug === "sifilis_gestacional_sinan";
   const hasSelectedFilters = Object.values(selectedFilters).some(Boolean);
   const visibleYearly = chartsState.status === "loaded" ? chartsState.yearly : null;
@@ -330,13 +329,6 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
       ) : !state.summary.summary.municipalityDataAvailable ? (
         <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Esta fonte não disponibiliza consulta municipal para Parnaíba - PI no formato acessado pelo sistema.
-        </div>
-      ) : null}
-
-      {isArboviroses ? (
-        <div className="rounded border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-          Esta visão soma as arboviroses transmitidas pelo Aedes aegypti, todas contadas como casos
-          prováveis (notificações exceto as descartadas): dengue, zika e chikungunya.
         </div>
       ) : null}
 

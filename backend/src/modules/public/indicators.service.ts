@@ -94,12 +94,11 @@ const DEFINITIONS: Record<IndicatorKey, IndicatorDefinition> = {
   }
 };
 
-// Indicadores de cada fonte (só arboviroses; sífilis congênita, por exemplo, usa nascidos vivos, não população).
+// Indicadores de cada fonte (só dengue, zika e chikungunya; sífilis congênita, por exemplo, usa nascidos vivos, não população).
 const SOURCE_INDICATORS: Record<string, IndicatorKey[]> = {
   dengue_sinan: ["casos", "incidencia", "pct_sinais_alarme", "pct_grave"],
   zika_sinan: ["casos", "incidencia", "casos_confirmados"],
-  chikungunya_sinan: ["casos", "incidencia", "incidencia_idosos", "casos_confirmados"],
-  arboviroses_sinan: ["casos", "incidencia"]
+  chikungunya_sinan: ["casos", "incidencia", "incidencia_idosos", "casos_confirmados"]
 };
 
 export function hasIndicators(sourceSlug: string) {

@@ -39,7 +39,7 @@ Os erros são tratados no fim de [`server.ts`](../backend/src/server.ts). O trat
 | `GET /api/indicators?source=<slug>` | `routes/indicators.ts` | Indicadores calculados por ano (A5; ver [15](15-indicadores.md)): `indicators[]` com `key`, `label`, `unit`, `formula` e `series[]` (`year`, `value`, `numerator`, `denominator`, `status` = `ok`/`sem_populacao`/`nao_se_aplica`/`sem_dados`, `provisional`); `population` resume os anos cadastrados. Só dengue, zika, chikungunya e arboviroses têm indicadores (as outras devolvem lista vazia). Só aceita `source` |
 | `GET /api/sources/:slug/summary` | idem | Cartões: total de casos, anos, último ano, última sincronização |
 | `GET /api/sources/:slug/filters` | idem | Valores possíveis de ano, sexo, faixa etária e raça/cor |
-| `GET /api/dashboard/overview` | `routes/dashboard.ts` | Resumo geral e evolução anual somando as 5 fontes primárias públicas (sem a zika interna, sem contar a dengue duas vezes via arboviroses) + `casesBySource` (casos e período de cada fonte pública) |
+| `GET /api/dashboard/overview` | `routes/dashboard.ts` | Resumo geral e evolução anual somando as 7 fontes primárias públicas + `casesBySource` (casos e período de cada fonte pública) |
 | `GET /api/records` | `routes/records.ts` | Registros paginados de **uma visão** (`aggregation`); cada registro traz o campo `aggregation` |
 | `GET /api/charts/yearly-evolution` | `routes/charts.ts` | `series: [{year, value}]` |
 | `GET /api/charts/by-sex` | idem | `series: [{label, value}]` |
@@ -57,7 +57,7 @@ Os erros são tratados no fim de [`server.ts`](../backend/src/server.ts). O trat
 | `page` | número | Só em `/api/records` (padrão 1) |
 | `pageSize` | número | Só em `/api/records` (padrão 50, máx. 500) |
 
-A zika (`zika_sinan`) é **interna**: nenhuma rota pública a aceita (404); ela só aparece somada em `arboviroses_sinan`. Sem `source`, a tabela traz só as fontes primárias públicas.
+Fonte que não está na lista (ex.: `arboviroses_sinan`, removida em 07/10/2026) devolve 404. Sem `source`, a tabela traz só as fontes primárias públicas.
 
 Qualquer outro parâmetro devolve **400**. Também devolvem 400: parâmetro repetido (`year=2020&year=2021`) ou em formato de objeto (`sex[$ne]=`), `year` sem 4 dígitos, `month` fora de 1–12, `page`/`pageSize` que não sejam inteiros a partir de 1 (detalhes em `error.details.invalidValues`). Valor vazio (`year=`) vale como sem filtro; `pageSize` acima de 500 é reduzido para 500. Na tabela e no CSV, também devolvem 400: `aggregation` inválido, visão que não combina com o filtro (ex.: `sex=Masculino&aggregation=age_group`) e mais de um filtro demográfico (o DATASUS não fornece dados cruzados). Os parâmetros `city`, `cidade`, `municipality`, `municipio`, `ibgeCode`, `ibge_code`, `cityIbgeCode`, `city_ibge_code`, `uf`, `state`, `estado` são bloqueados de propósito.
 

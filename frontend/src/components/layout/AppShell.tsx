@@ -14,7 +14,6 @@ type AppShellProps = {
     | "dengue"
     | "zika"
     | "chikungunya"
-    | "arboviroses"
     | "sifilis-gestacional";
   children: React.ReactNode;
 };
@@ -27,7 +26,6 @@ const navItems = [
   { href: "/dengue", label: "Dengue", active: "dengue", icon: Activity },
   { href: "/zika", label: "Zika", active: "zika", icon: Activity },
   { href: "/chikungunya", label: "Chikungunya", active: "chikungunya", icon: Activity },
-  { href: "/arboviroses", label: "Arboviroses", active: "arboviroses", icon: Activity },
   { href: "/sifilis-gestacional", label: "Sífilis gestacional", active: "sifilis-gestacional", icon: Activity }
 ] as const;
 

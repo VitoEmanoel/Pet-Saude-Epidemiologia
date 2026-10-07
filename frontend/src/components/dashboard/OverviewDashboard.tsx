@@ -22,7 +22,6 @@ const sourcePages: Record<string, string> = {
   dengue_sinan: "/dengue",
   zika_sinan: "/zika",
   chikungunya_sinan: "/chikungunya",
-  arboviroses_sinan: "/arboviroses",
   sifilis_gestacional_sinan: "/sifilis-gestacional"
 };
 

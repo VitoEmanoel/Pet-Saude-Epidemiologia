@@ -6,7 +6,7 @@ Sistema web que coleta automaticamente dados públicos do **DATASUS/TABNET** (SI
 DATASUS/TABNET ──► backend (coletor) ──► PostgreSQL ──► API ──► site
 ```
 
-Doenças cobertas: tuberculose, hanseníase, sífilis congênita, sífilis gestacional, dengue e arboviroses (dengue + zika).
+Doenças cobertas: tuberculose, hanseníase, sífilis congênita, sífilis gestacional, dengue, zika e chikungunya.
 
 **Stack:** Node.js 24 · TypeScript · Express · Prisma · PostgreSQL · Next.js · React · Tailwind · ECharts · Docker Compose
 

@@ -13,7 +13,6 @@ Next.js 15 (App Router) + React 19 + Tailwind CSS. Todas as páginas buscam dado
 | `/dengue` | `app/dengue/page.tsx` | `DiseaseDashboard source="dengue_sinan"` |
 | `/zika` | `app/zika/page.tsx` | `DiseaseDashboard source="zika_sinan"` |
 | `/chikungunya` | `app/chikungunya/page.tsx` | `DiseaseDashboard source="chikungunya_sinan"` |
-| `/arboviroses` | `app/arboviroses/page.tsx` | `DiseaseDashboard source="arboviroses_sinan"` |
 | `/sifilis-gestacional` | `app/sifilis-gestacional/page.tsx` | `DiseaseDashboard source="sifilis_gestacional_sinan"` |
 | `/admin` | `app/admin/page.tsx` | `AdminOverview`: indicadores gerais e dashboard da fonte com **Baixar CSV** e **Baixar dashboard** |
 | `/admin/fontes` | `app/admin/fontes/page.tsx` | `AdminSources`: situação das fontes, sincronizar uma ou todas |
@@ -37,7 +36,7 @@ Cada página de doença tem só 10 linhas: escolhe o `source` e o título. Toda 
 | `admin/AdminSourceDashboard.tsx` | Dashboard da fonte no admin; os downloads seguem os filtros da tela |
 | `admin/AdminAudit.tsx` | Tradução dos eventos de auditoria em frases (`describeAuditEvent`) e do navegador (`describeBrowser`) |
 | `admin/admin-ui.tsx`, `admin/useAdminLoader.ts` | Peças comuns das telas do admin (painel, botões, status, paginação) e carregamento com volta ao login se a sessão cair |
-| `dashboard/IndicatorPanel.tsx` | Painel **Indicadores** (A6) nas páginas de dengue, zika, chikungunya e arboviroses e no dashboard do admin: escolhe o indicador, mostra o valor do ano (o filtrado ou o último ano fechado), o cálculo, os anos sem valor com o motivo e a série em barras (o ano corrente com `*`). Some nas fontes sem indicadores. No admin tem **Baixar indicadores** (CSV) |
+| `dashboard/IndicatorPanel.tsx` | Painel **Indicadores** (A6) nas páginas de dengue, zika e chikungunya e no dashboard do admin: escolhe o indicador, mostra o valor do ano (o filtrado ou o último ano fechado), o cálculo, os anos sem valor com o motivo e a série em barras (o ano corrente com `*`). Some nas fontes sem indicadores. No admin tem **Baixar indicadores** (CSV) |
 | `dashboard/ChartPanel.tsx` / `EChart.tsx` | Gráficos (linha/barra) com ECharts |
 | `maps/ParnaibaMap.tsx` | Mapa Leaflet centrado em Parnaíba (`[-2.905, -41.776]`), carregado só no navegador. O bloco tem a classe `isolate`: sem ela, as camadas do Leaflet (`z-index` 400–1000) passam por cima do cabeçalho fixo (`z-20`) ao rolar. Qualquer outro mapa ou componente com `z-index` alto precisa do mesmo cuidado |
 | `ui/PetLogo.tsx` | Logo do PET-Saúde: `PetLogoMark` (símbolo sobre fundo branco fixo, no cabeçalho e no menu) e `PetLogoWithText` (login). Arquivos em `frontend/public/img/` (reduzidos a partir dos originais em `img/`); `app/favicon.ico` e `app/apple-icon.png` viram os ícones da aba e do celular |

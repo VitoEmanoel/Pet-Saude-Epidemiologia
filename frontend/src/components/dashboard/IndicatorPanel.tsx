@@ -22,7 +22,7 @@ function formatIndicatorValue(indicator: Indicator, value: number) {
 
 /**
  * Painel "Indicadores" (A6): escolhe o indicador, mostra o valor do ano, a série e como é calculado.
- * Só aparece nas fontes que têm indicadores (arboviroses). `onDownload` existe só no admin.
+ * Só aparece nas fontes que têm indicadores (dengue, zika e chikungunya). `onDownload` existe só no admin.
  */
 export function IndicatorPanel({
   source,

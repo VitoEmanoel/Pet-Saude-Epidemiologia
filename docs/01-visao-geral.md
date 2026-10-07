@@ -44,13 +44,11 @@ A especificação original completa (com as 13 fontes previstas inicialmente) es
 | Zika | `zika_sinan` | primária (casos prováveis: notificações exceto descartadas) | `sinannet/cnv/zikabr.def` |
 | Chikungunya | `chikungunya_sinan` | primária (casos prováveis; 2015 sem classificação entra inteiro) | `sinannet/cnv/chikunbr.def` |
 | Sífilis gestacional | `sifilis_gestacional_sinan` | primária | `sinannet/cnv/sifilisgestantepi.def` |
-| Arboviroses | `arboviroses_sinan` | **derivada** (soma dengue + zika + chikungunya) | — |
 
 - **primária**: coletada diretamente do TABNET e exibida no site.
-- **derivada**: não é coletada; é montada somando outras fontes.
-- **interna**: coletada só para compor outra fonte, sem página própria (nenhuma hoje; a zika era interna até o A1).
+- **interna**: coletada sem página própria (nenhuma hoje; a zika era interna até o A1).
 
-Pendente: incluir **chikungunya** em arboviroses (ver [12-plano-de-acao.md](12-plano-de-acao.md)).
+**Arboviroses em geral saiu do sistema em 07/10/2026**, por decisão da coordenação: dengue, zika e chikungunya já têm páginas e indicadores separados, e a soma não acrescentava informação. O endereço antigo `/arboviroses` leva à visão geral; a fonte `arboviroses_sinan` fica inativa no banco (nunca teve registros próprios: era a soma das outras três).
 
 ## Público do sistema
 

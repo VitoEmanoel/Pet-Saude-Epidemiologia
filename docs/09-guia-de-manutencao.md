@@ -50,11 +50,6 @@ A planilha substitui a tabela inteira: um ano que não estiver no arquivo é apa
    ```
 
 3. **Configure o coletor** acrescentando uma entrada em `collectorConfigs` no `sinan-tabnet.collector.ts` (copie uma existente parecida, como `zika_sinan`, e ajuste os campos).
-4. **Se for compor arboviroses**, acrescente o slug em `composedOf` da `arboviroses_sinan`:
-
-   ```ts
-   composedOf: ["dengue_sinan", "zika_sinan", "chikungunya_sinan"]
-   ```
 
 5. **Se for ter página própria** (`kind: "primary"`):
    - crie `frontend/src/app/<rota>/page.tsx` copiando `app/dengue/page.tsx` e trocando `source`, `title` e `active`;

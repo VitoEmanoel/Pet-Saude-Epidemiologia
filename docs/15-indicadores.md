@@ -17,8 +17,8 @@ Indicadores pedidos pelo **GT1 - Vigilância Epidemiológica** ([documento origi
 
 | Indicador | Doenças | Cálculo | Unidade |
 |---|---|---|---|
-| Casos prováveis | dengue, zika, chikungunya, arboviroses | total do ano | casos |
-| Coeficiente de incidência | dengue, zika, chikungunya, arboviroses | casos prováveis ÷ população × 100.000 | por 100 mil hab. |
+| Casos prováveis | dengue, zika, chikungunya | total do ano | casos |
+| Coeficiente de incidência | dengue, zika, chikungunya | casos prováveis ÷ população × 100.000 | por 100 mil hab. |
 | % com sinais de alarme | dengue | casos "Dengue com sinais de alarme" ÷ casos prováveis × 100 | % |
 | % de dengue grave | dengue | casos "Dengue grave" ÷ casos prováveis × 100 | % |
 | Incidência em idosos (60+) | chikungunya | casos prováveis de 60+ ÷ população de 60+ × 100.000 | por 100 mil idosos |
@@ -48,7 +48,7 @@ Validação de 02/10/2026 (consulta manual ao TABNET): dengue 2024 = 510 casos, 
 
 ## 15.5 Onde fica no sistema
 
-- **Na tela:** painel **Indicadores** nas páginas de dengue, zika, chikungunya e arboviroses (seletor de indicador, valor do ano, cálculo e série) e no dashboard do admin, com **Baixar indicadores** (CSV).
+- **Na tela:** painel **Indicadores** nas páginas de dengue, zika e chikungunya (seletor de indicador, valor do ano, cálculo e série) e no dashboard do admin, com **Baixar indicadores** (CSV).
 - **API pública:** `GET /api/indicators?source=<slug>` ([06](06-api.md)); CSV só no admin: `GET /api/admin/indicators/export.csv?source=<slug>`.
 - **Cálculo:** [`indicators.service.ts`](../backend/src/modules/public/indicators.service.ts) (`SOURCE_INDICATORS` diz quais indicadores cada doença tem).
 - **Classificação:** tabela `classification_counts` ([04](04-banco-de-dados.md)), preenchida pelo coletor ([05](05-coleta-de-dados.md)).

@@ -1,7 +1,7 @@
 import { ALLOWED_DATASUS_CATEGORY } from "./city";
 
 export type MunicipalityFilterStatus = "unknown" | "available" | "unavailable";
-export type SourceKind = "primary" | "derived" | "internal";
+export type SourceKind = "primary" | "internal";
 
 export type AllowedSource = {
   slug: string;
@@ -13,7 +13,6 @@ export type AllowedSource = {
   active: boolean;
   syncEnabled: boolean;
   kind: SourceKind;
-  composedOf?: readonly string[];
 };
 
 export const allowedSources: readonly AllowedSource[] = [
@@ -82,18 +81,6 @@ export const allowedSources: readonly AllowedSource[] = [
     active: true,
     syncEnabled: true,
     kind: "primary"
-  },
-  {
-    slug: "arboviroses_sinan",
-    name: "Arboviroses em geral",
-    system: "SINAN",
-    category: ALLOWED_DATASUS_CATEGORY,
-    municipalityFilterStatus: "available",
-    sourceUrl: null,
-    active: true,
-    syncEnabled: false,
-    kind: "derived",
-    composedOf: ["dengue_sinan", "zika_sinan", "chikungunya_sinan"]
   },
   {
     slug: "sifilis_gestacional_sinan",

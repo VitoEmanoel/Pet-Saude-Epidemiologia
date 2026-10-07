@@ -49,6 +49,11 @@ const nextConfig: NextConfig = {
   basePath,
   output: "standalone",
   poweredByHeader: false,
+  // Arboviroses saiu do painel em 07/10/2026 (dengue, zika e chikungunya já ficam separadas):
+  // links antigos vão para a visão geral em vez de dar erro.
+  async redirects() {
+    return [{ source: "/arboviroses", destination: "/", permanent: false }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   }

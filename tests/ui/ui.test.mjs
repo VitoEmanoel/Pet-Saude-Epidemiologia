@@ -14,7 +14,7 @@ const BASE = new URL(WEB).pathname.replace(/\/+$/, "");
 const SHOTS = `${OUTPUT}screenshots/${BROWSER}/`;
 const axeSource = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 
-const DISEASE_PAGES = ["/tuberculose", "/hanseniase", "/sifilis", "/dengue", "/zika", "/chikungunya", "/arboviroses", "/sifilis-gestacional"];
+const DISEASE_PAGES = ["/tuberculose", "/hanseniase", "/sifilis", "/dengue", "/zika", "/chikungunya", "/sifilis-gestacional"];
 const PAGES = ["/", ...DISEASE_PAGES, "/admin"];
 const PROFILES = {
   desktop: { viewport: { width: 1440, height: 900 } },
@@ -99,8 +99,8 @@ for (const profile of Object.keys(PROFILES)) {
           assert.equal(info.apiError, false, "página mostra API indisponível");
           assert.equal(info.lang, "pt-BR");
           if (DISEASE_PAGES.includes(path)) {
-            // 4 gráficos + 1 do painel de indicadores nas arboviroses (A6).
-            const arbovirus = ["/dengue", "/zika", "/chikungunya", "/arboviroses"].includes(path);
+            // 4 gráficos + 1 do painel de indicadores em dengue, zika e chikungunya (A6).
+            const arbovirus = ["/dengue", "/zika", "/chikungunya"].includes(path);
             assert.equal(info.canvases, arbovirus ? 5 : 4, "gráficos");
             assert.ok(info.tiles > 0, "mapa carregado");
           }
@@ -353,7 +353,6 @@ describe(`Títulos por página (${BROWSER})`, () => {
     "/dengue": "Dengue",
     "/zika": "Zika",
     "/chikungunya": "Chikungunya",
-    "/arboviroses": "Arboviroses",
     "/sifilis-gestacional": "Sífilis gestacional"
   };
 
@@ -423,7 +422,18 @@ describe(`Indicadores (${BROWSER})`, () => {
     }
   });
 
-  test("A6: tuberculose não tem painel de indicadores (só arboviroses)", async () => {
+  test("Arboviroses saiu do painel: sem item no menu e o endereço antigo leva à visão geral", async () => {
+    const { context, page } = await openPage("desktop", "/arboviroses");
+    try {
+      await page.waitForURL((url) => !url.pathname.endsWith("/arboviroses"), { waitUntil: "commit", timeout: 10_000 });
+      assert.equal(new URL(page.url()).pathname.replace(/\/+$/, ""), BASE, "deveria ir para a visão geral");
+      assert.equal(await page.locator('a[href$="/arboviroses"]').count(), 0, "link para arboviroses");
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("A6: tuberculose não tem painel de indicadores (só dengue, zika e chikungunya)", async () => {
     const { context, page } = await openPage("desktop", "/tuberculose");
     try {
       await page.waitForTimeout(800);

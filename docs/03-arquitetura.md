@@ -115,7 +115,7 @@ Página /tuberculose (DiseaseDashboard)
         └─ public-data.service.ts → Prisma → PostgreSQL
 ```
 
-Para fontes derivadas (arboviroses), o backend troca o slug pelos slugs que a compõem (`composedOf`) antes de consultar.
+Cada consulta usa uma fonte só (a fonte derivada "arboviroses", que somava outras, saiu do sistema em 07/10/2026).
 
 ## 3.5 Agendador automático
 

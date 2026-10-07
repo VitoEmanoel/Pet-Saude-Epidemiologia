@@ -71,11 +71,8 @@ const AGE_GROUP_ORDER = [
   "80 anos e mais",
   "Ignorado"
 ];
-const baseSourceSlugs = allowedSources
-  .filter((source) => source.kind !== "derived")
-  .map((source) => source.slug);
-// A visão geral soma só as fontes primárias públicas: fica de fora a zika (interna) e
-// arboviroses (derivada, que contaria a dengue duas vezes).
+const baseSourceSlugs = allowedSources.map((source) => source.slug);
+// A visão geral soma só as fontes primárias públicas (fontes internas ficam de fora).
 const overviewSourceSlugs = publicSources
   .filter((source) => source.kind === "primary")
   .map((source) => source.slug);
@@ -819,15 +816,7 @@ function baseCityRecordWhere(): Prisma.EpidemiologicalRecordWhereInput {
 function getResolvedSourceSlugs(sourceSlug: string): string[] {
   const source = getSourceBySlug(sourceSlug);
 
-  if (!source) {
-    return [];
-  }
-
-  if (source.kind === "derived") {
-    return [...(source.composedOf ?? [])];
-  }
-
-  return [source.slug];
+  return source ? [source.slug] : [];
 }
 
 async function getResolvedSourceIds(sourceSlug: string): Promise<number[]> {

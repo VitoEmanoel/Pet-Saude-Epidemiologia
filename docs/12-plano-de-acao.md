@@ -180,6 +180,7 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
   - [x] Evidências em `docs/evidencias/chikungunya_sinan/` (2.306 notificações, 592 descartadas; **1.714 casos prováveis**; epidemias em 2017 e 2022–2023)
   - [x] 2015 (51 casos) sem classificação: entra inteiro como provável (nenhum caso descartado), em um segmento sem filtro
 - [x] **A3** **Arboviroses** = dengue + zika + chikungunya, todas por casos prováveis (02/10/2026, branch `feat/a3-arboviroses-completa`): **9.459** casos (7.712 + 33 + 1.714); teste confere a soma ano a ano
+  - **Removida em 07/10/2026** por decisão da coordenação (dengue, zika e chikungunya já ficam separadas): página, item do menu, fonte derivada e o mecanismo `composedOf`; `/arboviroses` redireciona para a visão geral
 - [x] **D5** Anos novos automáticos (02/10/2026, branch `feat/d5-anos-automaticos`)
   - [x] A cada coleta, lê os arquivos de período do formulário TABNET e acrescenta ao último segmento os mais novos que o configurado; se o formulário falhar, segue a lista configurada e registra aviso na mensagem da fonte
   - [x] Testes de unidade com o formulário real salvo; conferido no TABNET real (dengue configurada até 2025 descobre `dengbr26.dbf`)

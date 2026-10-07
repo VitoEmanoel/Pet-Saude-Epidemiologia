@@ -73,7 +73,7 @@ describe("Integração: dados sincronizados", () => {
     });
   }
 
-  test("D4: total geral = soma das fontes primárias públicas (sem duplicar a dengue em arboviroses)", async () => {
+  test("D4: total geral = soma das fontes primárias públicas", async () => {
     const overview = (await api("/api/dashboard/overview")).json;
     let publicTotal = 0;
     for (const slug of PRIMARY_SOURCES) {
@@ -96,10 +96,12 @@ describe("Integração: dados sincronizados", () => {
     }
   });
 
-  test("Arboviroses (derivada) inclui mais que a dengue", async () => {
-    const arbo = (await api("/api/sources/arboviroses_sinan/summary")).json.summary.totalCases;
-    const dengue = (await api("/api/sources/dengue_sinan/summary")).json.summary.totalCases;
-    assert.ok(arbo > dengue);
+  test("Arboviroses saiu do painel (07/10/2026): fonte, gráficos e indicadores dão 404", async () => {
+    assert.equal((await api("/api/sources/arboviroses_sinan/summary")).status, 404);
+    assert.equal((await api("/api/charts/yearly-evolution?source=arboviroses_sinan")).status, 404);
+    assert.equal((await api("/api/indicators?source=arboviroses_sinan")).status, 404);
+    const slugs = (await api("/api/sources")).json.sources.map((source) => source.slug);
+    assert.ok(!slugs.includes("arboviroses_sinan"), "arboviroses ainda aparece no catálogo");
   });
 
   test("Por ano: soma por sexo = total anual (últimos 3 anos de cada fonte)", async () => {
@@ -323,9 +325,6 @@ describe("Área administrativa", () => {
     assert.equal((await admin("/api/admin/indicators/export.csv?source=inexistente")).status, 404);
   });
 
-  test("Sincronizar fonte derivada (arboviroses): 501", async () => {
-    assert.equal((await admin("/api/admin/sync/arboviroses_sinan", { method: "POST" })).status, 501);
-  });
 
   test("Sincronização manual fim a fim, sem duplicar dados (TABNET)", { skip: !RUN_TABNET && "defina QA_TABNET=1 (usa a internet)" }, async () => {
     const before = (await api("/api/sources/sifilis_gestacional_sinan/summary")).json.summary;
@@ -369,18 +368,8 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
     assert.equal(series[0].value, 2075);
   });
 
-  test("D1: arboviroses inclui a dengue a partir de 2014", async () => {
-    const dengue = (await api("/api/charts/yearly-evolution?source=dengue_sinan&year=2022")).json.series[0].value;
-    const arbo = (await api("/api/charts/yearly-evolution?source=arboviroses_sinan&year=2022")).json.series[0].value;
-    assert.ok(arbo >= dengue);
-  });
-
-  test("D7: zika entra em arboviroses só com casos prováveis (33, validado no TABNET em 02/10/2026)", async () => {
-    const arbo = (await api("/api/sources/arboviroses_sinan/summary")).json.summary.totalCases;
-    const dengue = (await api("/api/sources/dengue_sinan/summary")).json.summary.totalCases;
-    const chik = (await api("/api/sources/chikungunya_sinan/summary")).json.summary.totalCases;
-    assert.equal(arbo - dengue - chik, 33, "zika deveria somar 33 casos prováveis (187 com descartados)");
-    assert.equal((await api("/api/sources/zika_sinan/summary")).json.summary.totalCases, 33);
+  test("D7: zika só com casos prováveis (33, validado no TABNET em 02/10/2026)", async () => {
+    assert.equal((await api("/api/sources/zika_sinan/summary")).json.summary.totalCases, 33, "187 com descartados");
   });
 
   test("A2: chikungunya = 1.714 casos prováveis, 2017 = 841 (validado no TABNET em 02/10/2026)", async () => {
@@ -389,18 +378,7 @@ describe("Regressão: números conhecidos (validados no TABNET)", () => {
     assert.equal(series[0].value, 841);
   });
 
-  test("A3: arboviroses = dengue + zika + chikungunya, ano a ano", async () => {
-    const yearly = async (slug) =>
-      Object.fromEntries((await api(`/api/charts/yearly-evolution?source=${slug}`)).json.series.map((point) => [point.year, point.value]));
-    const [arbo, dengue, zika, chik] = await Promise.all(
-      ["arboviroses_sinan", "dengue_sinan", "zika_sinan", "chikungunya_sinan"].map(yearly)
-    );
-    for (const year of Object.keys(arbo)) {
-      assert.equal(arbo[year], (dengue[year] ?? 0) + (zika[year] ?? 0) + (chik[year] ?? 0), `ano ${year}`);
-    }
-  });
-
-  test("A5: indicadores só nas arboviroses; parâmetro extra 400; fonte inexistente 404", async () => {
+  test("A5: indicadores só em dengue, zika e chikungunya; parâmetro extra 400; fonte inexistente 404", async () => {
     const keys = async (slug) => (await api(`/api/indicators?source=${slug}`)).json.indicators.map((i) => i.key);
     assert.deepEqual(await keys("dengue_sinan"), ["casos", "incidencia", "pct_sinais_alarme", "pct_grave"]);
     assert.deepEqual(await keys("chikungunya_sinan"), ["casos", "incidencia", "incidencia_idosos", "casos_confirmados"]);
