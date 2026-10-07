@@ -462,6 +462,49 @@ describe(`Indicadores (${BROWSER})`, () => {
 });
 
 describe(`Mapa e cabeçalho (${BROWSER})`, () => {
+
+  test("Balão de dados do gráfico não passa por cima do cabeçalho ao rolar a página", async () => {
+    const { context, page } = await openPage("desktop", "/dengue");
+    try {
+      const section = page.locator("section", { has: page.getByRole("heading", { name: "Evolução anual" }) });
+      await section.locator("canvas").first().waitFor({ timeout: 10_000 });
+      const header = await page.locator("header").first().boundingBox();
+      const headerBottom = header.y + header.height;
+      // Deixa o gráfico logo abaixo do cabeçalho e para o ponteiro sobre ele: o balão aparece.
+      const start = await section.locator("canvas").first().boundingBox();
+      await page.evaluate((dy) => window.scrollBy(0, dy), start.y - headerBottom - 10);
+      await page.waitForTimeout(300);
+      const chart = await section.locator("canvas").first().boundingBox();
+      await page.mouse.move(chart.x + chart.width / 2, chart.y + 60);
+      // O balão do ECharts é um <div> com z-index altíssimo; só o visível interessa.
+      const tipBox = (makeHittable) =>
+        page.evaluate((hittable) => {
+          const tip = [...document.querySelectorAll("main div")].find((el) => {
+            const style = getComputedStyle(el);
+            return style.zIndex === "9999999" && style.display !== "none" && style.opacity !== "0";
+          });
+          if (!tip) {
+            return null;
+          }
+          if (hittable) {
+            tip.style.pointerEvents = "auto"; // para o elementFromPoint enxergá-lo (só depois de rolar)
+          }
+          const box = tip.getBoundingClientRect();
+          return { x: box.left + box.width / 2, top: box.top };
+        }, makeHittable);
+      await page.waitForFunction(() => [...document.querySelectorAll("main div")].some((el) => getComputedStyle(el).zIndex === "9999999" && getComputedStyle(el).opacity !== "0"), null, { timeout: 5000 });
+      // A página rola sem o ponteiro se mexer (como na roda do mouse): o balão sobe junto e
+      // entra 25 px na faixa do cabeçalho, com o ponteiro ainda sobre o gráfico.
+      await page.evaluate((dy) => window.scrollBy(0, dy), (await tipBox(false)).top - (headerBottom - 25));
+      await page.waitForTimeout(300);
+      const tip = await tipBox(true);
+      assert.ok(tip, "o balão deveria continuar aberto");
+      const onTop = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest("header") !== null, [tip.x, headerBottom - 10]);
+      assert.ok(onTop, "o balão do gráfico ficou por cima do cabeçalho");
+    } finally {
+      await context.close();
+    }
+  });
   for (const profile of Object.keys(PROFILES)) {
     test(`${profile}: ao rolar, o mapa passa por baixo do cabeçalho fixo`, async () => {
       const { context, page } = await openPage(profile, "/tuberculose");

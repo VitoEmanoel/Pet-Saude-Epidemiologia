@@ -43,7 +43,9 @@ export function ChartPanel(props: ChartPanelProps) {
   const empty = props.data.length === 0;
 
   return (
-    <section className="min-w-0 rounded border border-slate-200 bg-white">
+    // `isolate`: o balão do gráfico (z-index altíssimo do ECharts) fica preso à camada deste cartão
+    // e passa por baixo do cabeçalho fixo ao rolar a página, como o mapa (ParnaibaMap).
+    <section className="isolate min-w-0 rounded border border-slate-200 bg-white">
       <div className="border-b border-slate-200 px-4 py-3">
         <h2 className="text-sm font-semibold text-slate-950">{props.title}</h2>
         {props.note ? <p className="mt-1 text-xs text-slate-600">{props.note}</p> : null}
@@ -69,6 +71,8 @@ const numberFormat = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }
 const formatAxisNumber = (value: number) => numberFormat.format(value);
 const tooltip = {
   trigger: "axis" as const,
+  // O balão não sai da área do gráfico (nem por cima de outros cartões).
+  confine: true,
   valueFormatter: (value: unknown) => (typeof value === "number" ? numberFormat.format(value) : String(value ?? "-"))
 };
 
