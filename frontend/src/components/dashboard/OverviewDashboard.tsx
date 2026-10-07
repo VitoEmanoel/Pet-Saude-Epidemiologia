@@ -57,7 +57,7 @@ export function OverviewDashboard() {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">
+      <div className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
         API indisponível: {state.message}
       </div>
     );

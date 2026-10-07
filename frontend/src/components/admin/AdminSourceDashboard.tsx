@@ -224,7 +224,7 @@ export function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
           Os arquivos baixados seguem os filtros acima. O DATASUS não cruza sexo, faixa etária e raça/cor: escolha um por vez.
         </p>
         {sourceState.status === "error" ? (
-          <div className="border-t border-pet-red/30 bg-pet-red/5 px-4 py-3 text-sm text-pet-red-text">{sourceState.message}</div>
+          <div className="border-t border-pet-red-text px-4 py-3 text-sm font-medium text-pet-red-text">{sourceState.message}</div>
         ) : null}
         <StatusMessages actionState={actionState} />
       </Panel>

@@ -264,7 +264,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">
+      <div className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
         API indisponível: {state.message}
       </div>
     );
@@ -327,13 +327,13 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
             : "Esta doença ainda está em validação técnica: a página acompanha a expansão do painel, mas a coleta automática ainda não está ativa."}
         </div>
       ) : !state.summary.summary.municipalityDataAvailable ? (
-        <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
           Esta fonte não disponibiliza consulta municipal para Parnaíba - PI no formato acessado pelo sistema.
         </div>
       ) : null}
 
       {state.summary.summary.lastSyncStatus && state.summary.summary.lastSyncStatus !== "SUCCESS" ? (
-        <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
           Não foi possível atualizar esta fonte no momento. Os dados exibidos são da última coleta feita com sucesso.
         </div>
       ) : null}
@@ -469,7 +469,7 @@ function DashboardCharts({ state }: { state: ChartsState }) {
 
   if (state.status === "error") {
     return (
-      <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">
+      <div className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
         {state.message}
       </div>
     );
@@ -514,7 +514,7 @@ function RecordsTable({
   }
 
   if (state.status === "error") {
-    return <div className="border-l-4 border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">{state.message}</div>;
+    return <div className="border-l-4 border-pet-red-text p-4 text-sm text-pet-red-text">{state.message}</div>;
   }
 
   return (

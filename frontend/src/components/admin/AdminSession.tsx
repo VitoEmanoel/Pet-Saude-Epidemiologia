@@ -289,7 +289,7 @@ function AdminLoginForm({ notice, onLogin }: { notice: string | null; onLogin: (
           </p>
         ) : null}
         {actionState.error ? (
-          <p role="alert" className="flex gap-2 rounded-lg border border-pet-red/30 bg-pet-red/5 px-3 py-2.5 text-sm text-pet-red-text">
+          <p role="alert" className="flex gap-2 rounded-lg border border-pet-red-text px-3 py-2.5 text-sm font-medium text-pet-red-text">
             <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
             {actionState.error}
           </p>

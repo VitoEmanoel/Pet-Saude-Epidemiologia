@@ -132,7 +132,7 @@ export function JobStatus({ status }: { status: string | null }) {
         success
           ? "border-pet-light bg-pet-light/15 text-pet-dark"
           : failed
-            ? "border-pet-red/30 bg-pet-red/5 text-pet-red-text"
+            ? "border-pet-red-text text-pet-red-text"
             : "border-slate-200 bg-slate-50 text-slate-700"
       }`}
     >
@@ -151,7 +151,7 @@ export function StatusMessages({ actionState }: { actionState: ActionState }) {
         </div>
       ) : null}
       {actionState.error ? (
-        <div role="alert" className="border-t border-pet-red/30 bg-pet-red/5 px-4 py-3 text-sm text-pet-red-text">
+        <div role="alert" className="border-t border-pet-red-text px-4 py-3 text-sm font-medium text-pet-red-text">
           {actionState.error}
         </div>
       ) : null}
@@ -267,7 +267,7 @@ export function LoadingBlocks() {
 
 export function ErrorBox({ message }: { message: string }) {
   return (
-    <div role="alert" className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">
+    <div role="alert" className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
       {message}
     </div>
   );

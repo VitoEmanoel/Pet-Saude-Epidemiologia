@@ -238,7 +238,7 @@ export function AdminPopulation() {
           <div className="space-y-3 border-t border-slate-200 p-4 text-sm">
             <p className="font-semibold text-slate-950">Pré-visualização de “{preview.fileName}”</p>
             {preview.errors.length > 0 ? (
-              <div role="alert" className="rounded border border-pet-red/30 bg-pet-red/5 p-3 text-pet-red-text">
+              <div role="alert" className="rounded border border-pet-red-text bg-white p-3 text-pet-red-text">
                 <p className="font-medium">A planilha tem erros e não pode ser gravada:</p>
                 <ul className="mt-1 list-disc pl-5">
                   {preview.errors.map((error) => (
@@ -262,7 +262,7 @@ export function AdminPopulation() {
               </>
             )}
             {preview.warnings.length > 0 ? (
-              <div role="status" className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-900">
+              <div role="status" className="rounded border border-pet-red-text bg-white p-3 text-pet-red-text">
                 <p className="flex items-center gap-2 font-medium">
                   <AlertTriangle size={16} aria-hidden="true" />
                   Atenção (dá para gravar, mas confira):

@@ -16,7 +16,7 @@ export function StatusPill({ status }: StatusPillProps) {
 
   if (status === "unavailable") {
     return (
-      <span className="inline-flex items-center gap-1 rounded bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700">
+      <span className="inline-flex items-center gap-1 rounded border border-pet-red-text px-2 py-1 text-xs font-medium text-pet-red-text">
         <XCircle size={13} aria-hidden="true" />
         Indisponível
       </span>
@@ -24,7 +24,7 @@ export function StatusPill({ status }: StatusPillProps) {
   }
 
   return (
-    <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
+    <span className="inline-flex items-center gap-1 rounded border border-pet-red-text px-2 py-1 text-xs font-medium text-pet-red-text">
       <Clock3 size={13} aria-hidden="true" />
       Em validação
     </span>

@@ -54,7 +54,7 @@ export function IndicatorPanel({
   }, [source]);
 
   if (error) {
-    return <div className="rounded border border-pet-red bg-pet-red/5 p-4 text-sm text-pet-red-text">Indicadores indisponíveis: {error}</div>;
+    return <div className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">Indicadores indisponíveis: {error}</div>;
   }
 
   if (!data) {
@@ -124,7 +124,7 @@ export function IndicatorPanel({
         <div className="space-y-3">
           {focus?.status === "nao_se_aplica" ? (
             // Ano antes da classificação nova da dengue: explica em destaque, em vez de um "—" sozinho.
-            <div role="note" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <div role="note" className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
               <p className="flex items-center gap-2 font-semibold">
                 <History size={16} aria-hidden="true" />
                 {indicator.label} não existe em {focus.year}

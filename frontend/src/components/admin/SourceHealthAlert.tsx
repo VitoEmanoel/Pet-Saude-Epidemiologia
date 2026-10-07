@@ -6,8 +6,8 @@ import type { SourceHealth } from "@/types/api";
 
 const LEVEL_STYLES = {
   ok: { label: "Em dia", icon: CheckCircle2, className: "border-pet-light bg-pet-light/15 text-pet-dark" },
-  warning: { label: "Atenção", icon: AlertTriangle, className: "border-amber-200 bg-amber-50 text-amber-700" },
-  error: { label: "Problema", icon: XCircle, className: "border-pet-red/40 bg-pet-red/5 text-pet-red-text" }
+  warning: { label: "Atenção", icon: AlertTriangle, className: "border-pet-red-text text-pet-red-text" },
+  error: { label: "Problema", icon: XCircle, className: "border-pet-red-text text-pet-red-text" }
 } as const;
 
 export function HealthBadge({ level }: { level: SourceHealth["level"] }) {
@@ -34,7 +34,7 @@ export function SourceHealthAlert({ sources }: { sources: SourceHealth[] }) {
   return (
     <section
       role="alert"
-      className={`rounded border p-4 text-sm ${hasError ? "border-pet-red/40 bg-pet-red/5 text-pet-red-text" : "border-amber-200 bg-amber-50 text-amber-700"}`}
+      className={`rounded border p-4 text-sm ${hasError ? "border-pet-red-text bg-white text-pet-red-text" : "border-pet-red-text bg-white text-pet-red-text"}`}
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-2">
