@@ -31,7 +31,7 @@ Todos os valores vêm por **ano**, com o numerador e o denominador usados, para 
 | Situação | O que aparece |
 |---|---|
 | Ano sem população cadastrada | **"sem população"** (o valor fica vazio) |
-| % de alarme/grave **antes de 2014** | **"não se aplica"**: até 2013 a dengue era classificada de outro jeito (clássico, com complicações, febre hemorrágica, síndrome do choque) |
+| % de alarme/grave **antes de 2014** | **"não se aplica"**, com aviso destacado no painel quando o ano filtrado é anterior a 2014: até 2013 a dengue era classificada de outro jeito (clássico, com complicações, febre hemorrágica, síndrome do choque), e as categorias não equivalem às novas |
 | Incidência em idosos sem `populacao_60_mais` na planilha | "sem população" |
 | **Ano corrente** | Marcado como **provisório**: ainda há casos em investigação (ex.: em 2026, 151 casos de dengue sem classificação final) e o DATASUS revisa os dados |
 | Chikungunya 2015 (sem classificação no TABNET) | Entra nos casos e na incidência; "casos confirmados" fica sem dado |

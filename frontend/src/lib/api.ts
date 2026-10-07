@@ -169,6 +169,12 @@ export async function downloadAdminPopulationCsv() {
   return { blob: await response.blob(), filename: "populacao-parnaiba.csv" };
 }
 
+/** Modelo em branco (um ano por linha) para preencher e enviar. */
+export async function downloadAdminPopulationModel() {
+  const response = await fetchAdminResponse("/api/admin/population/model.csv");
+  return { blob: await response.blob(), filename: "modelo-populacao-parnaiba.csv" };
+}
+
 export async function downloadAdminIndicatorsCsv(slug: string) {
   const response = await fetchAdminResponse(`/api/admin/indicators/export.csv?source=${encodeURIComponent(slug)}`);
   return { blob: await response.blob(), filename: `indicadores-${slug}.csv` };

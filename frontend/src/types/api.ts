@@ -246,6 +246,8 @@ export type PopulationDiff = {
 export type PopulationPreviewResponse = {
   rows: Array<Pick<PopulationEstimate, "year" | "population" | "population60Plus">>;
   errors: string[];
+  warnings: string[];
+  columns: { year: string | null; population: string | null; population60Plus: string | null };
   diff: PopulationDiff;
 };
 

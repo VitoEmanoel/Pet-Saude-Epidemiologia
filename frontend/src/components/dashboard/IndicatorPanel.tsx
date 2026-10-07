@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Gauge, Info } from "lucide-react";
+import { Download, Gauge, History, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getIndicators } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
@@ -122,6 +122,21 @@ export function IndicatorPanel({
 
       <div className="grid gap-4 p-4 lg:grid-cols-[minmax(240px,0.8fr)_minmax(0,2fr)]">
         <div className="space-y-3">
+          {focus?.status === "nao_se_aplica" ? (
+            // Ano antes da classificação nova da dengue: explica em destaque, em vez de um "—" sozinho.
+            <div role="note" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <p className="flex items-center gap-2 font-semibold">
+                <History size={16} aria-hidden="true" />
+                {indicator.label} não existe em {focus.year}
+              </p>
+              <p className="mt-2">
+                Até 2013 a dengue era classificada de outro jeito (dengue clássico, dengue com complicações, febre
+                hemorrágica e síndrome do choque). <strong>“Sinais de alarme” e “dengue grave” só passaram a existir em 2014</strong>,
+                e as categorias antigas não equivalem às novas. Por isso o painel não converte nem estima esses anos.
+              </p>
+              <p className="mt-2">Escolha um ano a partir de 2014 ou veja a série completa no gráfico ao lado.</p>
+            </div>
+          ) : (
           <div className="rounded border border-slate-200 p-4">
             <p className="text-xs font-medium uppercase text-slate-500">
               {indicator.label} {focus ? `· ${focus.year}` : ""}
@@ -143,6 +158,7 @@ export function IndicatorPanel({
               </p>
             ) : null}
           </div>
+          )}
           <div className="space-y-2 text-sm text-slate-700">
             <p className="flex gap-2">
               <Info size={16} className="mt-0.5 shrink-0 text-slate-500" aria-hidden="true" />

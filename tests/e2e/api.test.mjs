@@ -211,7 +211,7 @@ describe("Validação de entrada", () => {
 
 describe("Área administrativa", () => {
   test("Sem sessão: 401 em todas as rotas protegidas", async () => {
-    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs", "/api/admin/source-health", "/api/admin/population", "/api/admin/indicators/export.csv?source=dengue_sinan",
+    for (const path of ["/api/admin/auth/me", "/api/admin/sync-history", "/api/admin/audit-logs", "/api/admin/source-health", "/api/admin/population", "/api/admin/population/model.csv", "/api/admin/indicators/export.csv?source=dengue_sinan",
       "/api/admin/records/export.csv", "/api/admin/dashboard/export.html?source=dengue_sinan"]) {
       assert.equal((await api(path)).status, 401, path);
     }
@@ -262,6 +262,27 @@ describe("Área administrativa", () => {
       assert.ok(["ok", "warning", "error"].includes(source.level), source.slug);
       assert.ok(Array.isArray(source.problems));
     }
+  });
+
+  test("Modelo da planilha de população: cabeçalho certo, um ano por linha em branco até o ano atual", async () => {
+    const r = await admin("/api/admin/population/model.csv");
+    assert.equal(r.status, 200);
+    const lines = r.text.trim().split("\n");
+    assert.equal(lines[0], "ano;populacao;populacao_60_mais");
+    assert.equal(lines[1], "2007;;", "primeiro ano com casos de dengue");
+    assert.equal(lines.at(-1), `${new Date().getFullYear()};;`);
+    const json = { "content-type": "application/json" };
+    const preview = (await admin("/api/admin/population/preview", { method: "POST", headers: json, body: JSON.stringify({ csv: r.text }) })).json;
+    assert.ok(preview.errors.length > 0, "modelo em branco não pode ser gravado");
+  });
+
+  test("Planilha com nomes de coluna diferentes: reconhece e avisa o que ignorou", async () => {
+    const json = { "content-type": "application/json" };
+    const csv = "Ano;População;Observação\n2022;162.159;IBGE";
+    const preview = (await admin("/api/admin/population/preview", { method: "POST", headers: json, body: JSON.stringify({ csv }) })).json;
+    assert.deepEqual(preview.errors, []);
+    assert.deepEqual(preview.columns, { year: "Ano", population: "População", population60Plus: null });
+    assert.match(preview.warnings.join(" "), /"Observação" não foi reconhecida.*60 anos ou mais/);
   });
 
   test("A4: população — pré-visualização, recusa de planilha com erro, gravação e restauração", async () => {

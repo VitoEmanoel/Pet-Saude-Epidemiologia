@@ -31,6 +31,7 @@ import {
   parsePopulationCsv,
   replacePopulation,
   toPopulationCsv,
+  toPopulationTemplateCsv,
   toPopulationRows
 } from "../modules/population/population.service";
 import {
@@ -487,6 +488,17 @@ adminRouter.get("/population/template.csv", async (_request, response) => {
   response.setHeader("content-type", "text/csv; charset=utf-8");
   response.setHeader("content-disposition", 'attachment; filename="populacao-parnaiba.csv"');
   return response.send(toPopulationCsv(toPopulationRows(await getPopulation())));
+});
+
+// Modelo em branco: um ano por linha, do primeiro ano com casos de arboviroses até o ano atual.
+adminRouter.get("/population/model.csv", async (_request, response) => {
+  const first = await prisma.epidemiologicalRecord.aggregate({
+    where: { source: { slug: { in: ["dengue_sinan", "zika_sinan", "chikungunya_sinan"] } }, year: { not: null } },
+    _min: { year: true }
+  });
+  response.setHeader("content-type", "text/csv; charset=utf-8");
+  response.setHeader("content-disposition", 'attachment; filename="modelo-populacao-parnaiba.csv"');
+  return response.send(toPopulationTemplateCsv(first._min.year ?? 2007, new Date().getFullYear()));
 });
 
 function readPopulationBody(body: unknown) {

@@ -1,8 +1,14 @@
 "use client";
 
-import { Download, FileUp, Save, Users, X } from "lucide-react";
+import { AlertTriangle, Download, FileSpreadsheet, FileUp, Save, Users, X } from "lucide-react";
 import { useState } from "react";
-import { downloadAdminPopulationCsv, getAdminPopulation, previewAdminPopulation, saveAdminPopulation } from "@/lib/api";
+import {
+  downloadAdminPopulationCsv,
+  downloadAdminPopulationModel,
+  getAdminPopulation,
+  previewAdminPopulation,
+  saveAdminPopulation
+} from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import type { PopulationPreviewResponse } from "@/types/api";
 import { useAdminSession } from "./AdminSession";
@@ -21,6 +27,13 @@ import {
 import { useAdminLoader } from "./useAdminLoader";
 
 type Preview = PopulationPreviewResponse & { csv: string; fileName: string };
+
+// Exemplo da tela (números ilustrativos, não são dados de Parnaíba).
+const MODEL_EXAMPLE = [
+  ["2023", "150.000", "20.000"],
+  ["2024", "151.200", "20.600"],
+  ["2025", "152.400", "21.100"]
+];
 
 function yearsText(years: number[]) {
   return years.length === 0 ? "nenhum" : years.join(", ");
@@ -80,9 +93,9 @@ export function AdminPopulation() {
     }
   }
 
-  async function downloadCurrent() {
+  async function download(kind: "model" | "current") {
     try {
-      const { blob, filename } = await downloadAdminPopulationCsv();
+      const { blob, filename } = kind === "model" ? await downloadAdminPopulationModel() : await downloadAdminPopulationCsv();
       downloadBlob(blob, filename);
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -109,20 +122,79 @@ export function AdminPopulation() {
   return (
     <div className="space-y-5">
       <Panel
+        title="Modelo da planilha"
+        icon={FileSpreadsheet}
+        actions={
+          <ActionButton variant="primary" icon={Download} onClick={() => void download("model")}>
+            Baixar modelo
+          </ActionButton>
+        }
+      >
+        <div className="grid gap-4 p-4 text-sm text-slate-700 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div>
+            <p className="mb-2">
+              A planilha precisa ter <strong>exatamente este formato</strong>: a primeira linha com os nomes das colunas e
+              um ano por linha. O modelo já vem com os anos preenchidos; falta só digitar os números.
+            </p>
+            <div className="overflow-x-auto rounded border border-slate-200">
+              <table className="min-w-full text-left text-sm" aria-label="Exemplo do formato da planilha">
+                <thead className="bg-slate-100 font-mono text-xs text-slate-900">
+                  <tr>
+                    <th className="px-3 py-2 font-semibold">ano</th>
+                    <th className="px-3 py-2 font-semibold">populacao</th>
+                    <th className="px-3 py-2 font-semibold">populacao_60_mais</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-mono tabular-nums text-slate-700">
+                  {MODEL_EXAMPLE.map(([year, population, elderly]) => (
+                    <tr key={year}>
+                      <td className="px-3 py-1.5">{year}</td>
+                      <td className="px-3 py-1.5">{population}</td>
+                      <td className="px-3 py-1.5">{elderly}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">Exemplo com números ilustrativos.</p>
+          </div>
+          <ul className="list-disc space-y-1.5 pl-5">
+            <li>
+              <strong>ano</strong>: quatro dígitos (2024), sem repetir anos.
+            </li>
+            <li>
+              <strong>populacao</strong>: população residente total do ano, número inteiro. Pode usar ponto de milhar
+              (153.482).
+            </li>
+            <li>
+              <strong>populacao_60_mais</strong>: população de 60 anos ou mais. É opcional, mas sem ela a incidência em
+              idosos da chikungunya fica sem valor.
+            </li>
+            <li>
+              No Excel ou LibreOffice: <strong>Arquivo › Salvar como › CSV</strong> (separado por ponto e vírgula ou vírgula).
+            </li>
+            <li>
+              Fonte recomendada: estimativas e censos do <strong>IBGE</strong>. O sistema não estima nem completa valores.
+            </li>
+          </ul>
+        </div>
+      </Panel>
+
+      <Panel
         title="Enviar planilha de população"
         icon={FileUp}
         actions={
-          <ActionButton icon={Download} onClick={() => void downloadCurrent()}>
-            {rows.length > 0 ? "Baixar planilha atual" : "Baixar modelo"}
-          </ActionButton>
+          rows.length > 0 ? (
+            <ActionButton icon={Download} onClick={() => void download("current")}>
+              Baixar planilha atual
+            </ActionButton>
+          ) : null
         }
       >
         <div className="space-y-4 p-4 text-sm text-slate-700">
           <p>
-            A população residente de cada ano é a base dos indicadores por 100 mil habitantes. Envie um arquivo{" "}
-            <strong>CSV</strong> com as colunas <code>ano</code>, <code>populacao</code> e, se tiver,{" "}
-            <code>populacao_60_mais</code> (para a incidência em idosos). Pode usar <code>;</code> ou <code>,</code>{" "}
-            como separador e ponto de milhar (153.482). <strong>A planilha substitui a tabela inteira.</strong>
+            A população de cada ano é a base dos indicadores por 100 mil habitantes. Depois de escolher o arquivo, confira a
+            pré-visualização antes de gravar. <strong>A planilha substitui a tabela inteira.</strong>
           </p>
           <div className="grid gap-3 md:grid-cols-[1fr_1fr]">
             <div>
@@ -175,13 +247,33 @@ export function AdminPopulation() {
                 </ul>
               </div>
             ) : (
+              <>
+              <p className="text-slate-700">
+                Colunas reconhecidas: ano = <strong>“{preview.columns.year}”</strong>, população ={" "}
+                <strong>“{preview.columns.population}”</strong>, 60 anos ou mais ={" "}
+                <strong>{preview.columns.population60Plus ? `“${preview.columns.population60Plus}”` : "não encontrada"}</strong>
+              </p>
               <ul className="grid gap-1 text-slate-700 sm:grid-cols-2">
                 <li>Anos na planilha: <strong>{preview.rows.length}</strong> ({preview.rows[0]?.year}–{preview.rows[preview.rows.length - 1]?.year})</li>
                 <li>Novos: {yearsText(preview.diff.added)}</li>
                 <li>Alterados: {yearsText(preview.diff.changed)}</li>
                 <li className={preview.diff.removed.length ? "font-medium text-pet-red-text" : ""}>Serão apagados: {yearsText(preview.diff.removed)}</li>
               </ul>
+              </>
             )}
+            {preview.warnings.length > 0 ? (
+              <div role="status" className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-900">
+                <p className="flex items-center gap-2 font-medium">
+                  <AlertTriangle size={16} aria-hidden="true" />
+                  Atenção (dá para gravar, mas confira):
+                </p>
+                <ul className="mt-1 list-disc pl-5">
+                  {preview.warnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <ActionButton variant="primary" icon={Save} onClick={() => void save()} disabled={busy || preview.errors.length > 0}>
                 {actionState.busyAction === "save" ? "Gravando..." : "Gravar população"}

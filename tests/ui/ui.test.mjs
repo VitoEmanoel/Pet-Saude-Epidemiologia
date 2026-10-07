@@ -405,6 +405,23 @@ describe(`Textos para o público (${BROWSER})`, () => {
 });
 
 describe(`Indicadores (${BROWSER})`, () => {
+  test("Dengue antes de 2014: % com sinais de alarme mostra aviso destacado em vez de um traço", async () => {
+    const { context, page } = await openPage("desktop", "/dengue");
+    try {
+      await page.locator("main select").first().selectOption("2010");
+      await settle(page);
+      const panel = page.locator('section[aria-label="Indicadores"]');
+      await panel.getByLabel("Indicador").selectOption("pct_sinais_alarme");
+      const note = panel.getByRole("note");
+      await note.waitFor({ timeout: 5000 });
+      assert.match(await note.innerText(), /não existe em 2010[\s\S]*só passaram a existir em 2014/);
+      await panel.getByLabel("Indicador").selectOption("incidencia");
+      assert.equal(await panel.getByRole("note").count(), 0, "o aviso é só para os indicadores da classificação nova");
+    } finally {
+      await context.close();
+    }
+  });
+
   test("A6: painel de indicadores na dengue troca de indicador e explica anos sem valor", async () => {
     const { context, page } = await openPage("desktop", "/dengue");
     try {
@@ -552,6 +569,34 @@ describe(`Área administrativa (${BROWSER})`, () => {
       }
     });
   }
+
+  test("População: modelo na tela, download do modelo e avisos na pré-visualização (sem gravar)", async () => {
+    const { context, page } = await openPage("desktop", "/admin/populacao");
+    try {
+      await page.locator('input[name="username"]').fill(ADMIN_USERNAME);
+      await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
+      await page.getByRole("button", { name: /entrar/i }).click();
+      await page.getByRole("table", { name: "Exemplo do formato da planilha" }).waitFor({ timeout: 10_000 });
+
+      const download = page.waitForEvent("download", { timeout: 8000 });
+      await page.getByRole("button", { name: "Baixar modelo" }).click();
+      assert.equal((await download).suggestedFilename(), "modelo-populacao-parnaiba.csv");
+
+      await page.locator('input[type="file"]').setInputFiles({
+        name: "populacao.csv",
+        mimeType: "text/csv",
+        buffer: Buffer.from("Ano;População;Fonte\n2022;162.159;IBGE\n")
+      });
+      const main = page.locator("main");
+      await main.getByText("Colunas reconhecidas").waitFor({ timeout: 5000 });
+      const text = await main.innerText();
+      assert.match(text, /ano = “Ano”, população = “População”, 60 anos ou mais = não encontrada/);
+      assert.match(text, /A coluna "Fonte" não foi reconhecida/);
+      await page.getByRole("button", { name: "Cancelar" }).click();
+    } finally {
+      await context.close();
+    }
+  });
 
   test("U1: Enter no campo de senha envia o login", async () => {
     const { context, page } = await openPage("desktop", "/admin");

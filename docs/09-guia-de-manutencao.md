@@ -20,9 +20,9 @@ O TABNET publica um arquivo por ano (ex.: `dengbr27.dbf` para 2027). **Não é p
 
 Os indicadores por 100 mil habitantes dependem da população de cada ano, que **não vem do TABNET**: vocês informam.
 
-1. Admin → **População** → **Baixar planilha atual** (ou **Baixar modelo**, se estiver vazia).
+1. Admin → **População** → **Baixar planilha atual** (para corrigir ou acrescentar um ano) ou **Baixar modelo** (anos já listados, números em branco).
 2. Abra no Excel/LibreOffice, acrescente o ano novo (ou corrija valores). Colunas: `ano`, `populacao`, `populacao_60_mais` (opcional). Ponto de milhar pode (153.482); vírgula decimal não.
-3. Salve como **CSV** e envie pela mesma tela. Confira a pré-visualização (novos, alterados, **apagados**) e clique em **Gravar população**. Preencha "Fonte dos dados" (ex.: "IBGE, estimativa 2025").
+3. Salve como **CSV** e envie pela mesma tela. Confira a pré-visualização: as **colunas reconhecidas** (se aparecer "60 anos ou mais = não encontrada", a coluna de idosos não entrou), os **avisos** e o que muda (novos, alterados, **apagados**). Depois clique em **Gravar população**. Preencha "Fonte dos dados" (ex.: "IBGE, estimativa 2025").
 
 A planilha substitui a tabela inteira: um ano que não estiver no arquivo é apagado (a tela avisa antes).
 

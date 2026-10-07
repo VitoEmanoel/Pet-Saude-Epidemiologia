@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { diffPopulation, parsePopulationCsv, toPopulationCsv } from "./population.service";
+import { diffPopulation, parsePopulationCsv, toPopulationCsv, toPopulationTemplateCsv } from "./population.service";
 
 test("A4: lê planilha do Excel em português (ponto e vírgula, ponto de milhar, BOM)", () => {
   const result = parsePopulationCsv("﻿ano;populacao;populacao_60_mais\r\n2022;162.159;18.200\r\n2021;153 482;\r\n\r\n");
@@ -38,4 +38,43 @@ test("A4: mostra o que muda em relação à tabela atual e gera o modelo", () =>
   ];
   assert.deepEqual(diffPopulation(current, next), { added: [2022], changed: [2021], removed: [2020], unchanged: [] });
   assert.equal(toPopulationCsv(next), "ano;populacao;populacao_60_mais\n2021;210;\n2022;300;30\n");
+});
+
+test("Planilha: reconhece nomes de coluna com acento, maiúsculas e variações de 60+", () => {
+  for (const header of [
+    "Ano;População;População 60+",
+    "ANO;POPULACAO_TOTAL;60 anos ou mais",
+    "ano;habitantes;idosos",
+    "Ano;Pop;Pop. 60 e mais"
+  ]) {
+    const result = parsePopulationCsv(`${header}\n2022;162.159;18.200`);
+    assert.deepEqual(result.errors, [], header);
+    assert.deepEqual(result.rows, [{ year: 2022, population: 162159, population60Plus: 18200 }], header);
+    assert.deepEqual(result.warnings, [], header);
+  }
+});
+
+test("Planilha: avisa coluna ignorada, falta de 60+ e coluna de 60+ vazia (sem impedir gravar)", () => {
+  const extra = parsePopulationCsv("ano;populacao;fonte\n2022;162159;IBGE");
+  assert.deepEqual(extra.errors, []);
+  assert.match(extra.warnings.join(" "), /"fonte" não foi reconhecida.*não tem a coluna de população de 60 anos/);
+  assert.deepEqual(extra.columns, { year: "ano", population: "populacao", population60Plus: null });
+
+  const empty = parsePopulationCsv("ano;populacao;populacao_60_mais\n2022;162159;\n2023;162200;");
+  assert.match(empty.warnings.join(" "), /"populacao_60_mais" está vazia em todos os anos/);
+});
+
+test("Planilha: duas colunas de população é erro (não escolhe sozinho)", () => {
+  const result = parsePopulationCsv("ano;populacao;habitantes\n2022;1;2");
+  assert.equal(result.rows.length, 0);
+  assert.match(result.errors[0], /Duas colunas parecem ser a de população/);
+});
+
+test("Planilha: modelo tem um ano por linha em branco e, enviado sem preencher, é recusado", () => {
+  const model = toPopulationTemplateCsv(2007, 2009);
+  assert.equal(model, "ano;populacao;populacao_60_mais\n2007;;\n2008;;\n2009;;\n");
+  const result = parsePopulationCsv(model);
+  assert.equal(result.rows.length, 0);
+  assert.equal(result.errors.length, 3);
+  assert.match(result.errors[0], /Linha 2: população inválida/);
 });
