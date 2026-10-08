@@ -18,18 +18,17 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 - [ ] Documentação atualizada (docs 01–10 afetados; remover o item de `11-limitacoes-conhecidas.md`)
 - [ ] Commit feito com mensagem clara citando o código do item (ex.: `fix(sync): use compiled script in Docker (O1)`)
 
-## Ordem de prioridade (combinada em 02/10/2026)
+## Ordem de prioridade (revista em 08/10/2026, com o sistema publicado)
 
-| Ordem | Fase | Prioridade | Por quê |
+| Ordem | Itens | Prioridade | Por quê |
 |---|---|---|---|
-| ✅ | 0, 1, 2, 2B | Concluídas | Terreno, dados corretos e segurança para publicar |
-| **1º** | **2C** Arboviroses e indicadores | **Alta (próxima)** | Corrige números que o público vê (zika com descartados), inclui chikungunya e entrega os indicadores do GT1 |
-| 2º | **4** Ajustes visuais e acessibilidade | Média-alta | Deixa o site público no nível do admin (textos, contraste, celular) |
-| 3º | **4B** Telas novas | Média | Contas individuais no admin, ativar/desativar fontes, transparência |
-| 4º | **3** Operação confiável | Média | Volume dos arquivos brutos, coleta em transação, testes do núcleo |
-| 5º | **6** Implantação em produção | Quando houver servidor | Depende da decisão de servidor/domínio |
-| 6º | **5** Qualidade de código | Baixa | Lint, CI, limpeza |
-| 7º | **7** Evolução do produto | Baixa | Teste com usuários e fontes novas |
+| ✅ | Fases 0, 1, 2, 2B, 2C (exceto A7), 4; implantação (6.1–6.4, 6.7, 6.8); O2; O3 + O4 | Concluídas | Sistema publicado em `victorsilva0001.cloud.deploy.uespi.br/painel` |
+| **1º** | **7.4** Contas individuais no admin | **Alta (próxima)** | Cada pessoa do GT1 com login próprio; a auditoria passa a dizer quem fez o quê |
+| 2º | **7.3** Transparência e **7.5** ativar/desativar fontes | Média-alta | Telas novas da Fase 4B |
+| 3º | **6.5** Monitoramento e **6.6** alerta de falha | Média | O sistema está no ar sozinho; falha precisa ser percebida |
+| 4º | **Q1**, **S10** Testes do núcleo e isolados do banco real | Média | Resto da Fase 3 |
+| 5º | Fase 5 (**Q2**, Q3, O6, Q4, S7) | Baixa | Lint, CI, limpeza, cache, proteção extra |
+| 6º | **A7**, **7.1**, **7.6** | Baixa | Série mensal, teste com usuários, fontes novas |
 
 ## Painel de progresso
 
@@ -40,13 +39,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
 | 2C | Arboviroses e indicadores de saúde | 10 | 9 |
-| 3 | Operação confiável | 4 | 1 |
+| 3 | Operação confiável | 4 | 2 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 9 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 6 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **48** |
+| | **Total** | **64** | **49** |
 
 ---
 
@@ -230,10 +229,10 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
 - [x] **O2** Volume Docker para `backend/storage` (03/10/2026, branch `feat/implantacao-vps`): volume nomeado `backend_storage` no `docker-compose.yml` e no de produção
   - [x] Teste: recriar o container mantém os HTMLs brutos (4 arquivos antes e depois, na simulação da VPS)
   - [x] Volume nomeado (herda o dono `node` da imagem)
-- [ ] **O3 + O4** Coleta segura. **Aconteceu em produção (03/10/2026):** agendador e sincronização manual rodaram as mesmas fontes ao mesmo tempo; ambos SUCCESS, mas a tuberculose ficou com 11 de 500 registros. Corrigido ressincronizando; o risco continua até este item
-  - [ ] Trava de sincronização no banco (`pg_advisory_lock`)
-  - [ ] Gravação dos registros em lote dentro de transação
-  - [ ] Teste de injeção de falhas: falha no meio não altera registros nem histórico
+- [x] **O3 + O4** Coleta segura (08/10/2026, branch `fix/o3-o4-coleta-segura`). **Tinha acontecido em produção (03/10/2026):** agendador e sincronização manual rodaram as mesmas fontes ao mesmo tempo; ambos SUCCESS, mas a tuberculose ficou com 11 de 500 registros
+  - [x] Trava de sincronização no banco: tabela `sync_locks` (uma linha por fonte; vence em 30 min se o processo morrer). Escolhida no lugar do `pg_advisory_lock`, que depende de manter a mesma conexão e não combina com o pool de conexões do Prisma
+  - [x] Coleta em duas fases: baixa tudo do TABNET e só então troca os dados da fonte numa única transação (registros, contagens por classificação e rastro das consultas)
+  - [x] Testes de resiliência (9/9): falha no meio mantém os dados **intactos** (conferido pelo conteúdo, não só pela quantidade); duas sincronizações em processos diferentes (API + linha de comando): uma roda, a outra é recusada; trava de processo morto vence. Com o código antigo, os mesmos testes reproduzem os dois defeitos (dados alterados; 12 de 135 registros)
 - O5 e D5 subiram para a Fase 2C.
 - [ ] **Q1** Testes do núcleo do sistema
   - [ ] Testes do parser PRN com os HTMLs de `docs/evidencias/`

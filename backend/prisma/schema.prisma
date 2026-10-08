@@ -40,6 +40,7 @@ model DataSource {
   availability                DataAvailability?
   syncJobs                    SyncJob[]
   classificationCounts        ClassificationCount[]
+  syncLock                    SyncLock?
   rawImports                  RawImport[]
   records                     EpidemiologicalRecord[]
 
@@ -199,3 +200,15 @@ model ClassificationCount {
   @@map("classification_counts")
 }
 
+
+/// Trava de sincronização (O3): uma linha por fonte enquanto ela sincroniza. Vale entre
+/// processos (API, agendador, linha de comando); expira se o processo morrer no meio.
+model SyncLock {
+  sourceId   Int        @id @map("source_id")
+  owner      String     @db.VarChar(100)
+  acquiredAt DateTime   @default(now()) @map("acquired_at")
+
+  source     DataSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@map("sync_locks")
+}

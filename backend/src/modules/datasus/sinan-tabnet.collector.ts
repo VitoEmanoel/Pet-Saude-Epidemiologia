@@ -204,6 +204,16 @@ export function hasSinanCollector(sourceSlug: string): boolean {
   return Boolean(collectorConfigs[sourceSlug]);
 }
 
+// Tempo máximo da troca dos dados no banco (a parte lenta, o download, fica fora da transação).
+const WRITE_TRANSACTION_TIMEOUT_MS = 60_000;
+
+/**
+ * Coleta uma fonte em duas fases (O4):
+ * 1. baixa e lê todas as consultas do TABNET, sem tocar no banco;
+ * 2. troca os dados da fonte numa única transação (apaga os antigos e grava os novos).
+ * Se qualquer consulta falhar, nada é gravado e os dados anteriores ficam intactos;
+ * nunca sobra uma fonte pela metade.
+ */
 export async function collectSinanTabnetSource(
   sourceSlug: string,
   prisma: PrismaClient,
@@ -216,10 +226,13 @@ export async function collectSinanTabnetSource(
     throw new Error(`Coletor SINAN/TABNET não configurado para a fonte ${sourceSlug}.`);
   }
 
-  let recordsImported = 0;
-  let rawImportsCreated = 0;
   const { segments, newPeriodFiles, discoveryWarnings } = await withDiscoveredPeriodFiles(config);
+  const rawImports: Prisma.RawImportCreateManyInput[] = [];
+  // Por chave: se a mesma chave vier duas vezes, vale a última (como o upsert fazia).
+  const records = new Map<string, Prisma.EpidemiologicalRecordCreateManyInput>();
+  const classificationCounts = new Map<string, Prisma.ClassificationCountCreateManyInput>();
 
+  // Fase 1: download e leitura (rede), sem escrever no banco.
   for (const [segmentIndex, segment] of segments.entries()) {
     for (const queryDefinition of buildQueryDefinitions(config)) {
       const encodedFormBody = buildEncodedFormBody(config, segment, queryDefinition);
@@ -229,99 +242,85 @@ export async function collectSinanTabnetSource(
         config.segments.length > 1 ? `${queryDefinition.name}_seg${segmentIndex + 1}` : queryDefinition.name;
       const storedPath = await storeRawImport(config.sourceSlug, rawImportName, tabnetResponse.html);
 
-      await prisma.rawImport.create({
-        data: {
-          sourceId,
-          syncJobId,
-          requestUrl: tabnetResponse.requestUrl,
-          requestParams: buildRequestParams(config, segment, queryDefinition),
-          responseFormat: tabnetResponse.responseFormat,
-          contentHash: tabnetResponse.contentHash,
-          storedPath,
-          rowCount: normalizedRecords.length
-        }
+      rawImports.push({
+        sourceId,
+        syncJobId,
+        requestUrl: tabnetResponse.requestUrl,
+        requestParams: buildRequestParams(config, segment, queryDefinition),
+        responseFormat: tabnetResponse.responseFormat,
+        contentHash: tabnetResponse.contentHash,
+        storedPath,
+        rowCount: normalizedRecords.length
       });
 
-      rawImportsCreated += 1;
-
       for (const record of normalizedRecords) {
-        await prisma.epidemiologicalRecord.upsert({
-          where: {
-            recordKey: record.recordKey
-          },
-          update: {
-            syncJobId,
-            metric: config.metric,
-            value: record.value,
-            sex: record.sex,
-            ageGroup: record.ageGroup,
-            raceColor: record.raceColor,
-            dimensions: record.dimensions,
-            importedAt: new Date()
-          },
-          create: {
-            sourceId,
-            syncJobId,
-            state: ALLOWED_CITY.state,
-            stateCode: ALLOWED_CITY.uf,
-            city: ALLOWED_CITY.name,
-            cityIbgeCode: ALLOWED_CITY.ibgeCode,
-            year: record.year,
-            month: null,
-            diseaseOrCondition: config.diseaseOrCondition,
-            metric: config.metric,
-            value: record.value,
-            sex: record.sex,
-            ageGroup: record.ageGroup,
-            raceColor: record.raceColor,
-            dimensions: record.dimensions,
-            sourceTable: record.sourceTable,
-            recordKey: record.recordKey
-          }
+        records.set(record.recordKey, {
+          sourceId,
+          syncJobId,
+          state: ALLOWED_CITY.state,
+          stateCode: ALLOWED_CITY.uf,
+          city: ALLOWED_CITY.name,
+          cityIbgeCode: ALLOWED_CITY.ibgeCode,
+          year: record.year,
+          month: null,
+          diseaseOrCondition: config.diseaseOrCondition,
+          metric: config.metric,
+          value: record.value,
+          sex: record.sex,
+          ageGroup: record.ageGroup,
+          raceColor: record.raceColor,
+          dimensions: record.dimensions,
+          sourceTable: record.sourceTable,
+          recordKey: record.recordKey
         });
-
-        recordsImported += 1;
       }
     }
 
     if (config.classificationColumnEncoded && !segment.skipClassification) {
-      rawImportsCreated += await collectClassificationCounts(
+      const classification = await fetchClassificationCounts(
         config,
         segment,
         segments.length > 1 ? `by_classification_seg${segmentIndex + 1}` : "by_classification",
-        prisma,
         sourceId,
         syncJobId
       );
+      rawImports.push(classification.rawImport);
+
+      for (const count of classification.counts) {
+        classificationCounts.set(`${count.year}|${count.classification}`, { sourceId, syncJobId, ...count });
+      }
     }
   }
 
-  // Coleta completa: registros que o TABNET não devolveu mais (ex.: ano que ficou sem casos
-  // depois de uma revisão, ou que só tinha descartados) não podem ficar com o valor antigo.
-  await prisma.epidemiologicalRecord.deleteMany({
-    where: { sourceId, OR: [{ syncJobId: { not: syncJobId } }, { syncJobId: null }] }
-  });
-  await prisma.classificationCount.deleteMany({
-    where: { sourceId, OR: [{ syncJobId: { not: syncJobId } }, { syncJobId: null }] }
-  });
+  // Fase 2: troca completa numa transação. Registros que o TABNET não devolve mais (ex.: ano
+  // revisado que ficou sem casos) somem junto com os antigos; não ficam com o valor velho.
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.rawImport.createMany({ data: rawImports });
+      await tx.epidemiologicalRecord.deleteMany({ where: { sourceId } });
+      await tx.epidemiologicalRecord.createMany({ data: [...records.values()] });
+      await tx.classificationCount.deleteMany({ where: { sourceId } });
+      await tx.classificationCount.createMany({ data: [...classificationCounts.values()] });
+    },
+    { timeout: WRITE_TRANSACTION_TIMEOUT_MS }
+  );
 
   return {
-    recordsImported,
-    rawImportsCreated,
+    recordsImported: records.size,
+    rawImportsCreated: rawImports.length,
     newPeriodFiles,
     discoveryWarnings
   };
 }
 
 /** Casos por ano e classificação final (A5), na mesma contagem da fonte (ex.: casos prováveis). */
-async function collectClassificationCounts(
+async function fetchClassificationCounts(
   config: SinanTabnetCollectorConfig,
   segment: TabnetSegment,
   rawImportName: string,
-  prisma: PrismaClient,
   sourceId: number,
   syncJobId: number
-): Promise<number> {
+): Promise<{ rawImport: Prisma.RawImportCreateManyInput; counts: ReturnType<typeof parseClassificationCounts> }> {
   const queryDefinition: QueryDefinition = {
     name: "by_classification",
     columnEncoded: config.classificationColumnEncoded!,
@@ -333,8 +332,8 @@ async function collectClassificationCounts(
   const counts = parseClassificationCounts(tabnetResponse.html);
   const storedPath = await storeRawImport(config.sourceSlug, rawImportName, tabnetResponse.html);
 
-  await prisma.rawImport.create({
-    data: {
+  return {
+    rawImport: {
       sourceId,
       syncJobId,
       requestUrl: tabnetResponse.requestUrl,
@@ -343,18 +342,9 @@ async function collectClassificationCounts(
       contentHash: tabnetResponse.contentHash,
       storedPath,
       rowCount: counts.length
-    }
-  });
-
-  for (const count of counts) {
-    await prisma.classificationCount.upsert({
-      where: { sourceId_year_classification: { sourceId, year: count.year, classification: count.classification } },
-      update: { value: count.value, syncJobId, importedAt: new Date() },
-      create: { sourceId, syncJobId, ...count }
-    });
-  }
-
-  return 1;
+    },
+    counts
+  };
 }
 
 /** Tabela ano × classificação do TABNET → { ano, classificação, valor } (sem a coluna Total). */

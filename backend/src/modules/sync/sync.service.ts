@@ -1,4 +1,6 @@
+import { hostname } from "node:os";
 import {
+  Prisma,
   SourceAvailabilityStatus,
   SyncJobStatus,
   type DataSource,
@@ -30,7 +32,34 @@ export class SyncAlreadyRunningError extends Error {
   }
 }
 
-const activeSourceSyncs = new Set<string>();
+// Trava de sincronização (O3). Antes era só em memória: o agendador (dentro da API) e uma
+// sincronização pela linha de comando (outro processo) rodaram a mesma fonte juntos em
+// produção (03/10/2026) e apagaram os registros um do outro. Agora a trava fica no banco
+// (tabela sync_locks), visível para todos os processos. Se o processo morrer no meio, a
+// trava vence depois de SYNC_LOCK_TTL_MS e a próxima sincronização a assume.
+export const SYNC_LOCK_TTL_MS = 30 * 60 * 1000;
+const LOCK_OWNER = `${hostname()}:${process.pid}`.slice(0, 100);
+
+/** Pega a trava da fonte; false se outra sincronização (de qualquer processo) já a tem. */
+export async function acquireSyncLock(client: PrismaClient, sourceId: number, owner = LOCK_OWNER) {
+  await client.syncLock.deleteMany({
+    where: { sourceId, acquiredAt: { lt: new Date(Date.now() - SYNC_LOCK_TTL_MS) } }
+  });
+
+  try {
+    await client.syncLock.create({ data: { sourceId, owner } });
+    return true;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return false;
+    }
+    throw error;
+  }
+}
+
+export async function releaseSyncLock(client: PrismaClient, sourceId: number, owner = LOCK_OWNER) {
+  await client.syncLock.deleteMany({ where: { sourceId, owner } });
+}
 
 export type SyncSourceResult = {
   city: typeof ALLOWED_CITY;
@@ -55,24 +84,6 @@ export async function syncSource(
   requestedBy = "admin",
   client: PrismaClient = prisma
 ): Promise<SyncSourceResult> {
-  if (activeSourceSyncs.has(sourceSlug)) {
-    throw new SyncAlreadyRunningError(sourceSlug);
-  }
-
-  activeSourceSyncs.add(sourceSlug);
-
-  try {
-    return await syncSourceUnlocked(sourceSlug, requestedBy, client);
-  } finally {
-    activeSourceSyncs.delete(sourceSlug);
-  }
-}
-
-async function syncSourceUnlocked(
-  sourceSlug: string,
-  requestedBy: string,
-  client: PrismaClient
-): Promise<SyncSourceResult> {
   const configuredSource = getSourceBySlug(sourceSlug);
 
   if (!configuredSource) {
@@ -80,6 +91,25 @@ async function syncSourceUnlocked(
   }
 
   const dataSource = await upsertDataSource(client, configuredSource);
+
+  if (!(await acquireSyncLock(client, dataSource.id))) {
+    throw new SyncAlreadyRunningError(sourceSlug);
+  }
+
+  try {
+    return await syncSourceLocked(sourceSlug, requestedBy, client, configuredSource, dataSource);
+  } finally {
+    await releaseSyncLock(client, dataSource.id);
+  }
+}
+
+async function syncSourceLocked(
+  sourceSlug: string,
+  requestedBy: string,
+  client: PrismaClient,
+  configuredSource: NonNullable<ReturnType<typeof getSourceBySlug>>,
+  dataSource: DataSource
+): Promise<SyncSourceResult> {
 
   if (configuredSource.municipalityFilterStatus === "unavailable") {
     const unavailableJob = await client.syncJob.create({

@@ -28,7 +28,7 @@ Credenciais e URLs são lidas do `.env` da raiz. Para apontar para outro ambient
 | `npm run test:ui:webkit` | O mesmo no WebKit (motor do Safari), emulando iPhone 15. Roda na imagem Docker oficial do Playwright, porque o WebKit não roda direto no Arch Linux | ~2 min |
 | `npm run test:security` | Segurança por categoria OWASP (injeção, controle de acesso, autenticação/sessão, configuração e lógica de negócio), em caixa preta, cinza e branca. Ver [14](14-testes-de-seguranca.md) | ~1 s |
 | `npm run test:security:scan` | Ferramentas de mercado pelas imagens Docker oficiais: OWASP ZAP, sqlmap, Nuclei, Trivy, Semgrep, nmap. Relatórios em `tests/output/security/`. Uma só: `npm run test:security:scan -- trivy`. Reinicia o backend no fim | ~25 min |
-| `npm run test:resilience` | Simula falhas do TABNET (rede, HTTP 503, layout alterado, falha no meio) e confere que os dados antigos são mantidos e que a coleta se recupera. Usa o `backend/.env` e a internet | ~15 s |
+| `npm run test:resilience` | Simula falhas do TABNET (rede, HTTP 503, layout alterado, falha no meio) e confere que os dados antigos ficam **intactos** (quantidade e conteúdo), que a coleta se recupera, que **duas sincronizações da mesma fonte em processos diferentes** não rodam juntas (O3) e que uma trava de processo morto vence. Usa o `backend/.env` e a internet; rode com `env -u DATABASE_URL` se o terminal tiver o `.env` da raiz carregado | ~1 min |
 | `npm run test:load` | Carga: req/s e latência por rota; 10/100/300 visitas simultâneas. Imprime métricas (não reprova) | ~1,5 min |
 | `npm run test:soak` | Teste longo: carga constante + memória/latência a cada 30 s em `tests/output/soak.csv` | 110 min (padrão) |
 
@@ -74,7 +74,7 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 68 | 0 | 0 | 0 |
 | `test:security` | 48 | 0 | 1 (TABNET) | 0 |
-| `test:resilience` | 7/7 | | | |
+| `test:resilience` | 9/9 | | | |
 
 Carga (16 núcleos, fim da Fase 2B, Node 24): `/health` ~12.800 req/s; resumo de fonte ~470 req/s; visão geral ~365 req/s; página inicial ~2.400 req/s. O limite de requisições (S17) não age nesses testes porque eles saem de IP privado; resumo de fonte ~475 req/s; visão geral ~370 req/s (era ~225 antes do D4); página inicial ~2.500 req/s. Os cabeçalhos de segurança do S2 não têm custo mensurável (uma medição logo após o S2 deu `/health` ~6.000, mas era variação da máquina: repetida, voltou a ~8.500). Compare sempre mais de uma rodada antes de concluir regressão; 300 visitas simultâneas sem falha. Teste longo de 110 min a 40 req/s: 0 erros, memória do backend estável (~67 MB).
 

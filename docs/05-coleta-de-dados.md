@@ -113,6 +113,14 @@ As faixas etárias **não são iguais entre fontes** (tuberculose usa `1-4`, `5-
 
 O passo a passo para cadastrar a fonte no código está em [09-guia-de-manutencao.md](09-guia-de-manutencao.md).
 
+## 5.5b Como a sincronização grava (trava e transação, O3 + O4)
+
+1. **Trava por fonte, no banco** (tabela `sync_locks`). Antes de começar, a sincronização grava uma linha para a fonte; se já existir, outra sincronização está rodando (em qualquer processo: API, agendador ou linha de comando) e esta é recusada: a API responde **409**, o agendador e a linha de comando avisam e pulam a fonte. A trava sai no fim, com sucesso ou erro. Se o processo morrer no meio, a trava vence em **30 minutos** e a próxima sincronização a assume.
+2. **Duas fases.** Primeiro o coletor baixa e lê **todas** as consultas do TABNET, sem tocar no banco. Só depois troca os dados da fonte **numa única transação**: apaga os registros e as contagens por classificação antigos e grava os novos. Se qualquer consulta falhar, **nada é gravado** e o site continua com os dados anteriores, inteiros.
+3. O histórico (`sync_jobs`) e a situação da fonte (`data_availability`) são atualizados depois, com SUCCESS ou FAILED e a mensagem.
+
+Por que mudou: em 03/10/2026, na primeira publicação, o agendador e uma sincronização manual rodaram a mesma fonte ao mesmo tempo (a trava antiga era só em memória, e cada processo tinha a sua). Os dois disseram SUCCESS, mas cada um apagou os registros do outro: a tuberculose ficou com 11 de 500. O teste de resiliência reproduz esse caso com o código antigo (12 de 135 registros da zika) e confere que agora uma roda e a outra é recusada.
+
 ## 5.6 Arquivos brutos
 
 - Local: `backend/storage/raw-imports/<slug>/<data-hora>_<slug>_<consulta>.html` (Latin-1).

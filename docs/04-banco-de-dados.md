@@ -87,6 +87,10 @@ Logins (sucesso/falha), logouts, exportações, sincronizações e requisições
 
 Uma linha por fonte, ano e classificação (ex.: dengue, 2024, "Dengue com sinais de alarme", 42), na mesma contagem da fonte (casos prováveis). Base dos indicadores de % de alarme/grave e de casos confirmados ([15](15-indicadores.md)). Fica **fora** de `epidemiological_records` para a tabela e o CSV públicos não contarem o mesmo caso mais uma vez. Coletada para dengue, zika e chikungunya; zeros não são gravados; a coleta completa apaga o que não renovou.
 
+### `sync_locks`: trava de sincronização (O3)
+
+Uma linha por fonte **enquanto** ela sincroniza (`source_id`, `owner` = máquina:processo, `acquired_at`). Normalmente fica vazia. Uma linha com mais de 30 minutos é de um processo que morreu e é assumida pela próxima sincronização. Para liberar à mão: `DELETE FROM sync_locks WHERE source_id = …` (ver [05 §5.5b](05-coleta-de-dados.md)).
+
 ### `population_estimates`: população residente por ano
 
 Uma linha por ano: `year` (único), `population`, `population_60_plus` (opcional), `source_note` (de onde veio o número, ex.: IBGE), `updated_by` e `updated_at`. Preenchida pela tela **População** do admin a partir de uma planilha CSV, que substitui a tabela inteira. É a base dos indicadores por 100 mil habitantes. O sistema **nunca estima** população: ano sem linha aqui fica "sem população".

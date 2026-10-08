@@ -73,7 +73,7 @@ O `deploy-vps.sh` envia os arquivos de `deploy/` e as imagens para `/opt/painel`
 
 Depois da **primeira** publicação:
 
-1. **Não rode a sincronização manual logo depois de subir.** Com o banco vazio, o agendador começa a sincronizar sozinho `SYNC_SCHEDULE_STARTUP_DELAY_SECONDS` (60 s) depois que o backend sobe. Uma sincronização manual nesse momento roda **junto** com ele, e as duas se atropelam: ambas dizem SUCCESS, mas os registros ficam pela metade (aconteceu na primeira publicação, 03/10/2026; é o item O3 do plano). Espere ~2 min e confira em **Sincronizações** no admin. Se precisar rodar à mão, rode só depois que o agendador terminar: `docker compose -f docker-compose.prod.yml --env-file .env exec -T backend node backend/dist/scripts/sync-data.js`.
+1. Com o banco vazio, o agendador começa a sincronizar sozinho `SYNC_SCHEDULE_STARTUP_DELAY_SECONDS` (60 s) depois que o backend sobe; confira em **Sincronizações** no admin. Para rodar à mão: `docker compose -f docker-compose.prod.yml --env-file .env exec -T backend node backend/dist/scripts/sync-data.js`. Desde o O3 + O4 (08/10/2026) é seguro rodar junto com o agendador: a fonte que já estiver sincronizando é pulada ("já está sincronizando em outro processo"). Na primeira publicação (03/10/2026), sem essa trava, os dois se atropelaram e a tuberculose ficou com 11 de 500 registros.
 2. Abrir `https://victorsilva0001.cloud.deploy.uespi.br` e `/admin`; entrar.
 3. **Conferir o IP na auditoria** do admin: tem que aparecer o **seu** IP, não `10.x`/`172.x`. Se aparecer o IP do proxy da UESPI, o `TRUST_PROXY` precisa incluir o IP dele.
 4. Enviar a planilha de população (tela População), quando o GT1 mandar.

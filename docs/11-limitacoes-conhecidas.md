@@ -31,13 +31,13 @@ Cada problema tem um **código** (D = dados, O = operação, S = segurança, U =
 - **Evidência:** recriando o backend, 32 arquivos → 0; 38 linhas em `raw_imports` apontando para arquivos inexistentes.
 - **Correção:** volume `backend_storage` em `/app/backend/storage` (desenvolvimento e produção). Arquivos de antes do volume continuam faltando até a próxima sincronização.
 
-### O3. Trava de sincronização só em memória. **Média**
-- **Sintoma:** processos diferentes (agendador e coleta manual por outro container) podem sincronizar a mesma fonte ao mesmo tempo.
-- **Correção:** trava no banco (`pg_advisory_lock`).
+### O3. Trava de sincronização só em memória. **Resolvido (08/10/2026)**
+- **Sintoma:** processos diferentes (agendador e coleta manual por outro container) podem sincronizar a mesma fonte ao mesmo tempo. **Aconteceu em produção em 03/10/2026** (tuberculose com 11 de 500 registros).
+- **Correção:** trava no banco (tabela `sync_locks`), válida entre processos, que vence em 30 min ([05 §5.5b](05-coleta-de-dados.md)).
 
-### O4. Gravação da coleta sem transação. **Média**
-- **Sintoma:** falha no meio deixa registros associados ao job que falhou (os valores continuam corretos, verificado em teste de injeção de falhas).
-- **Correção:** gravar em lote dentro de uma transação por sincronização.
+### O4. Gravação da coleta sem transação. **Resolvido (08/10/2026)**
+- **Sintoma:** falha no meio deixa parte dos registros regravada pela coleta que falhou.
+- **Correção:** coleta em duas fases: baixa tudo e só então troca os dados da fonte numa única transação ([05 §5.5b](05-coleta-de-dados.md)).
 
 ### O6. Infraestrutura e código sem uso. **Baixa**
 - `tuberculosis-sinan.collector.ts` (não importado), dependência `zod`, variável `VITE_API_URL`, status `PENDING/PARTIAL_SUCCESS/SKIPPED` e coluna `month` sem uso.
