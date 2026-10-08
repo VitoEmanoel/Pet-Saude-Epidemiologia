@@ -17,6 +17,7 @@ import type {
   ChartPoint,
   ChartResponse,
   DashboardOverviewResponse,
+  DataSource,
   RecordFilters,
   RecordsResponse,
   SourceFiltersResponse,
@@ -44,7 +45,7 @@ async function fetchJson<T>(path: string): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    throw new ApiRequestError(response.status, `API request failed: ${response.status}`);
   }
 
   return response.json() as Promise<T>;
@@ -139,6 +140,15 @@ const jsonRequest = (method: string, body?: unknown): RequestInit => ({
   headers: body === undefined ? {} : { "content-type": "application/json" },
   body: body === undefined ? undefined : JSON.stringify(body)
 });
+
+/** Fontes com a situação no site (7.5): o admin vê também as que estão fora do site. */
+export function getAdminSources() {
+  return fetchAdminJson<{ sources: Array<{ source: DataSource; published: boolean; summary: SourceSummaryResponse["summary"] | null }> }>("/api/admin/sources");
+}
+
+export function setAdminSourcePublished(slug: string, published: boolean) {
+  return fetchAdminJson<{ source: string; published: boolean }>(`/api/admin/sources/${encodeURIComponent(slug)}`, jsonRequest("PATCH", { published }));
+}
 
 /** Troca da própria senha (7.4). */
 export function changeOwnAdminPassword(currentPassword: string, newPassword: string) {

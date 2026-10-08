@@ -1,8 +1,8 @@
 "use client";
 
-import { Database, ExternalLink, Globe, Play, RefreshCw } from "lucide-react";
+import { Database, Eye, EyeOff, ExternalLink, Globe, Play, RefreshCw } from "lucide-react";
 import { useState } from "react";
-import { getAdminSourceHealth, getAdminSyncHistory, getSourceSummary, getSources, runAdminSyncAll, runAdminSyncSource } from "@/lib/api";
+import { getAdminSourceHealth, getAdminSources, getAdminSyncHistory, runAdminSyncAll, runAdminSyncSource, setAdminSourcePublished } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import type { AdminSyncHistoryResponse, DataSource, SourceHealth, SourceSummaryResponse } from "@/types/api";
 import { StatusPill } from "../ui/StatusPill";
@@ -25,22 +25,37 @@ import { useAdminLoader } from "./useAdminLoader";
 
 type SourceRow = {
   source: DataSource;
+  /** No site público (7.5). */
+  published: boolean;
   summary: SourceSummaryResponse["summary"];
   latestJob: AdminSyncHistoryResponse["syncJobs"][number] | undefined;
   health: SourceHealth | undefined;
 };
 
 async function loadSources(): Promise<SourceRow[]> {
-  const [sources, history, health] = await Promise.all([getSources(), getAdminSyncHistory(), getAdminSourceHealth()]);
-  const summaries = await Promise.all(sources.sources.map((source) => getSourceSummary(source.slug)));
+  const [sources, history, health] = await Promise.all([getAdminSources(), getAdminSyncHistory(), getAdminSourceHealth()]);
 
-  return sources.sources.map((source, index) => ({
+  return sources.sources.map(({ source, published, summary }) => ({
     source,
-    summary: summaries[index].summary,
+    published,
+    summary: summary ?? EMPTY_SUMMARY,
     latestJob: history.syncJobs.find((job) => job.source?.slug === source.slug),
     health: health.sources.find((item) => item.slug === source.slug)
   }));
 }
+
+const EMPTY_SUMMARY: SourceSummaryResponse["summary"] = {
+  totalRecords: 0,
+  totalCases: 0,
+  firstAvailableYear: null,
+  lastAvailableYear: null,
+  latestYear: null,
+  latestYearValue: 0,
+  lastUpdate: null,
+  lastSyncStatus: null,
+  municipalityDataAvailable: false,
+  availabilityStatus: null
+};
 
 function syncLabel(source: DataSource) {
   return source.syncEnabled ? "Sincronizar" : source.active ? "Derivada" : "Prevista";
@@ -48,8 +63,43 @@ function syncLabel(source: DataSource) {
 
 /** Tela de fontes: situação de cada uma e sincronização manual. */
 export function AdminSources() {
-  const { handleAuthError, can } = useAdminSession();
+  const { handleAuthError, can, isAdmin } = useAdminSession();
   const canSync = can("sincronizar");
+
+  async function togglePublished(row: SourceRow) {
+    const question = row.published
+      ? `Tirar ${row.source.name} do site público? Ela some do menu, da visão geral e da API pública, e sai da sincronização automática. Os dados ficam guardados e dá para devolver depois.`
+      : `Devolver ${row.source.name} ao site público?`;
+
+    if (!confirmAdminAction(question)) {
+      return;
+    }
+
+    setActionState({ ...IDLE_ACTION, busyAction: `publish-${row.source.slug}` });
+
+    try {
+      await setAdminSourcePublished(row.source.slug, !row.published);
+      await reload();
+      setActionState({ ...IDLE_ACTION, message: row.published ? `${row.source.name} saiu do site.` : `${row.source.name} voltou ao site.` });
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        setActionState({ ...IDLE_ACTION, error: errorMessage(error, "Falha ao mudar a fonte no site.") });
+      }
+    }
+  }
+
+  const publishButton = (row: SourceRow) =>
+    isAdmin ? (
+      <button
+        type="button"
+        onClick={() => void togglePublished(row)}
+        disabled={actionState.busyAction !== null}
+        className="inline-flex h-9 w-full items-center justify-center gap-2 whitespace-nowrap rounded border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
+      >
+        {row.published ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+        {row.published ? "Tirar do site" : "Devolver ao site"}
+      </button>
+    ) : null;
   const { state, reload } = useAdminLoader(loadSources);
   const [actionState, setActionState] = useState<ActionState>(IDLE_ACTION);
 
@@ -111,10 +161,10 @@ export function AdminSources() {
       <StatusMessages actionState={actionState} />
 
       <div className="divide-y divide-slate-100 md:hidden">
-        {state.data.map(({ source, summary, latestJob, health }) => (
+        {state.data.map((row) => { const { source, published, summary, latestJob, health } = row; return (
           <article key={source.slug} className="space-y-3 p-4">
             <div className="flex items-start justify-between gap-3">
-              <SourceName source={source} />
+              <SourceName source={source} published={published} />
               <OfficialLink source={source} />
             </div>
             {health ? <HealthLine health={health} /> : null}
@@ -153,8 +203,9 @@ export function AdminSources() {
             ) : (
               <span className="text-xs text-slate-500">Sem permissão para sincronizar</span>
             )}
+            {publishButton(row)}
           </article>
-        ))}
+        ); })}
       </div>
 
       <div className="hidden overflow-x-auto md:block">
@@ -172,10 +223,10 @@ export function AdminSources() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {state.data.map(({ source, summary, latestJob, health }) => (
+            {state.data.map((row) => { const { source, published, summary, latestJob, health } = row; return (
               <tr key={source.slug} className="align-top">
                 <td className="px-4 py-3">
-                  <SourceName source={source} />
+                  <SourceName source={source} published={published} />
                 </td>
                 <td className="max-w-xs px-4 py-3">
                   {health ? <HealthLine health={health} /> : <span className="text-xs text-slate-500">Derivada</span>}
@@ -191,7 +242,7 @@ export function AdminSources() {
                 <td className="px-4 py-3">
                   <OfficialLink source={source} />
                 </td>
-                <td className="px-4 py-3">
+                <td className="space-y-2 px-4 py-3">
                   {canSync ? (
                   <button
                     type="button"
@@ -203,11 +254,12 @@ export function AdminSources() {
                     {actionState.busyAction === source.slug ? "Sincronizando..." : syncLabel(source)}
                   </button>
                   ) : (
-                    <span className="text-xs text-slate-500">Sem permissão para sincronizar</span>
+                    <span className="block text-xs text-slate-500">Sem permissão para sincronizar</span>
                   )}
+                  {publishButton(row)}
                 </td>
               </tr>
-            ))}
+            ); })}
           </tbody>
         </table>
       </div>
@@ -224,12 +276,15 @@ function HealthLine({ health }: { health: SourceHealth }) {
   );
 }
 
-function SourceName({ source }: { source: DataSource }) {
+function SourceName({ source, published }: { source: DataSource; published: boolean }) {
   return (
     <div className="min-w-0">
       <div className="font-medium text-slate-950">{source.name}</div>
       <div className="break-all text-xs text-slate-500">{source.slug}</div>
-      <div className="mt-1 text-xs font-medium uppercase text-slate-400">{source.active ? "Operacional" : "Em validação"}</div>
+      {/* 7.5: se a fonte aparece no site público. */}
+      <div className={`mt-1 text-xs font-semibold uppercase ${published ? "text-slate-500" : "text-pet-red-text"}`}>
+        {published ? "No site" : "Fora do site"}
+      </div>
     </div>
   );
 }

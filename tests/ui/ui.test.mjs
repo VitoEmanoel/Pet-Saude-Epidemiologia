@@ -405,6 +405,24 @@ describe(`Textos para o público (${BROWSER})`, () => {
 });
 
 describe(`Indicadores (${BROWSER})`, () => {
+  test("7.3: cada doença mostra de onde vêm os dados, o período, a atualização e o link do TABNET", async () => {
+    const { context, page } = await openPage("desktop", "/dengue");
+    try {
+      const panel = page.locator('section[aria-labelledby="sobre-os-dados"]');
+      await panel.waitFor({ timeout: 10_000 });
+      const text = await panel.innerText();
+      assert.match(text, /Atualizado no painel/i);
+      assert.match(text, /\d{2}\/\d{2}\/\d{4}/, "data da última atualização");
+      assert.match(text, /2007-20\d\d/, "período disponível");
+      assert.match(text, /SINAN · DATASUS\/TABNET/);
+      const link = panel.getByRole("link", { name: /Abrir a consulta no TABNET/ });
+      assert.equal(await link.getAttribute("href"), "https://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinannet/cnv/denguebbr.def");
+      assert.equal(await link.getAttribute("target"), "_blank");
+    } finally {
+      await context.close();
+    }
+  });
+
   test("Dengue antes de 2014: % com sinais de alarme mostra aviso destacado em vez de um traço", async () => {
     const { context, page } = await openPage("desktop", "/dengue");
     try {
@@ -695,6 +713,42 @@ describe(`Área administrativa (${BROWSER})`, () => {
         await admin.page.request.delete(`${API}/api/admin/users/${created.id}`);
       }
       await person?.context.close();
+      await admin.context.close();
+    }
+  });
+
+  test("7.5: administrador tira uma fonte do site e a devolve; o site público acompanha", async () => {
+    const admin = await openPage("desktop", "/admin/fontes");
+    const visitor = await openPage("desktop", "/");
+    const page = admin.page;
+    try {
+      await page.locator('input[name="username"]').fill(ADMIN_USERNAME);
+      await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
+      await page.getByRole("button", { name: /entrar/i }).click();
+      await page.getByText("Fontes de dados").waitFor({ timeout: 10_000 });
+      page.on("dialog", (dialog) => void dialog.accept());
+      const row = page.locator("tr", { hasText: "hanseniase_sinan" });
+      await row.getByRole("button", { name: "Tirar do site" }).click();
+      await row.getByText("Fora do site").waitFor({ timeout: 10_000 });
+
+      const v = visitor.page;
+      await v.goto(WEB + "/", { waitUntil: "domcontentloaded" });
+      await settle(v);
+      assert.equal(await v.locator(`main a[href="${BASE}/hanseniase"]`).count(), 0, "sem link na página inicial");
+      await v.locator('button[aria-label="Abrir menu"]').click();
+      assert.doesNotMatch(await v.locator("#menu-lateral").innerText(), /Hanseníase/, "fora do menu");
+      await v.keyboard.press("Escape");
+      await v.goto(WEB + "/hanseniase", { waitUntil: "domcontentloaded" });
+      await v.getByText("não está disponível no painel no momento").waitFor({ timeout: 10_000 });
+
+      await row.getByRole("button", { name: "Devolver ao site" }).click();
+      await row.getByText("No site").waitFor({ timeout: 10_000 });
+      await v.goto(WEB + "/hanseniase", { waitUntil: "domcontentloaded" });
+      await v.getByText("Sobre estes dados").waitFor({ timeout: 10_000 });
+    } finally {
+      // Garante a fonte de volta ao site, mesmo se o teste falhar no meio.
+      await page.request.patch(`${API}/api/admin/sources/hanseniase_sinan`, { data: { published: true } }).catch(() => undefined);
+      await visitor.context.close();
       await admin.context.close();
     }
   });

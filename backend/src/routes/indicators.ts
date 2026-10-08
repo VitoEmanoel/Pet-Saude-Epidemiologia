@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ALLOWED_CITY } from "../config/city";
 import { getPublicSourceBySlug } from "../config/sources";
+import { isSourceHidden } from "../modules/sources/source-publication";
 import { prisma } from "../database/prisma";
 import { getSourceIndicators } from "../modules/public/indicators.service";
 import { sendError } from "../utils/api-response";
@@ -23,7 +24,7 @@ indicatorsRouter.get("/", async (request, response) => {
 
   const source = getPublicSourceBySlug(sourceSlug);
 
-  if (!source) {
+  if (!source || isSourceHidden(source.slug)) {
     return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
   }
 

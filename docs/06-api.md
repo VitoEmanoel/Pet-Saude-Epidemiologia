@@ -89,6 +89,8 @@ Todas respondem com cabeçalhos anti-cache e de segurança. Requisições que **
 | `POST /api/admin/sync-all` | sessão | Sincroniza todas as fontes em sequência (~45 s) |
 | `GET /api/admin/sync-history` | sessão | Últimos 50 jobs |
 | `GET /api/admin/indicators/export.csv?source=<slug>` | sessão | Indicadores da fonte em CSV (`;`, vírgula decimal, BOM para o Excel): indicador, unidade, ano, valor, numerador, denominador, situação, provisório; auditado |
+| `GET /api/admin/sources` | sessão | Todas as fontes, com `published` (no site público ou não, 7.5) e o resumo de cada uma |
+| `PATCH /api/admin/sources/:slug` | administrador | Corpo `{published: boolean}`: tira a fonte do site ou devolve; auditado (`admin_source_publish`). Fonte fora do site: as rotas públicas dela respondem 404 e ela some de `/api/sources` e da visão geral |
 | `GET /api/admin/population` | sessão | População cadastrada por ano |
 | `GET /api/admin/population/template.csv` | sessão | Planilha atual (ou só o cabeçalho) no formato aceito |
 | `POST /api/admin/population/preview` | sessão | Corpo `{csv}`: devolve `rows`, `errors` e `diff` (`added`, `changed`, `removed`, `unchanged`) sem gravar |

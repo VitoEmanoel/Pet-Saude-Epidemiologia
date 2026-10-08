@@ -282,8 +282,8 @@ async function upsertDataSource(
       municipalityFilterAvailable:
         configuredSource.municipalityFilterStatus === "unknown"
           ? null
-          : configuredSource.municipalityFilterStatus === "available",
-      active: configuredSource.active
+          : configuredSource.municipalityFilterStatus === "available"
+      // "active" fica como o administrador deixou (7.5).
     },
     create: {
       name: configuredSource.name,

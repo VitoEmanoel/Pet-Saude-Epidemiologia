@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ALLOWED_CITY } from "../config/city";
-import { activeSources, getSourceBySlug, syncableSources } from "../config/sources";
+import { activeSources, getSourceBySlug, publicSources, syncableSources } from "../config/sources";
+import { getHiddenSourceSlugs, refreshHiddenSources } from "../modules/sources/source-publication";
 import {
   UNIDENTIFIED_ACTOR,
   getAdminActor,
@@ -168,6 +169,43 @@ adminRouter.get("/auth/me", (_request, response) => {
     permissions: user?.permissions ?? [],
     mustChangePassword: user?.mustChangePassword ?? false
   });
+});
+
+// Fontes no site (7.5): o administrador tira uma fonte do site público ou a devolve. Os dados
+// ficam no banco; fora do site ela também sai da sincronização automática e do "Sincronizar todas".
+adminRouter.get("/sources", async (_request, response) => {
+  const hidden = await getHiddenSourceSlugs();
+  const sources = await Promise.all(
+    publicSources.map(async (source) => ({
+      source,
+      published: !hidden.has(source.slug),
+      summary: (await getSourceSummary(source.slug))?.summary ?? null
+    }))
+  );
+  return response.json({ city: ALLOWED_CITY, sources });
+});
+
+adminRouter.patch("/sources/:slug", requireAdminRole, async (request, response) => {
+  const source = getPublicSourceBySlug(request.params.slug);
+  const published = request.body?.published;
+
+  if (!source) {
+    return sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
+  }
+
+  if (typeof published !== "boolean") {
+    return sendError(response, 400, "invalid_body", "Informe published: true (no site) ou false (fora do site).");
+  }
+
+  await prisma.dataSource.update({ where: { slug: source.slug }, data: { active: published } });
+  await refreshHiddenSources();
+  await recordAdminAudit({
+    request,
+    action: "admin_source_publish",
+    status: "SUCCESS",
+    metadata: { source: source.slug, name: source.name, published }
+  });
+  return response.json({ source: source.slug, published });
 });
 
 // Contas individuais (7.4): cada pessoa troca a própria senha; administradores gerenciam as contas.
@@ -456,8 +494,10 @@ adminRouter.post("/sync/:sourceSlug", requirePermission("sincronizar"), async (r
 
 adminRouter.post("/sync-all", requirePermission("sincronizar"), async (request, response) => {
   const results = [];
+  // Fontes tiradas do site (7.5) ficam de fora do "Sincronizar todas".
+  const hidden = await getHiddenSourceSlugs();
 
-  for (const source of syncableSources) {
+  for (const source of syncableSources.filter((item) => !hidden.has(item.slug))) {
     try {
       results.push(await syncSource(source.slug, "admin_api_sync_all"));
     } catch (error) {

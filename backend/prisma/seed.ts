@@ -37,8 +37,8 @@ async function main() {
         municipalityFilterAvailable:
           source.municipalityFilterStatus === "unknown"
             ? null
-            : source.municipalityFilterStatus === "available",
-        active: source.active
+            : source.municipalityFilterStatus === "available"
+        // "active" não é regravado: quem tira ou devolve uma fonte ao site é o administrador (7.5).
       },
       create: {
         name: source.name,

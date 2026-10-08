@@ -1,7 +1,8 @@
 "use client";
 
 import { Activity, BarChart3, Database } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getSources } from "@/lib/api";
 import { PetLogoMark } from "../ui/PetLogo";
 import { MenuButton, SideDrawer } from "./SideDrawer";
 
@@ -18,20 +19,35 @@ type AppShellProps = {
   children: React.ReactNode;
 };
 
+// slug: a fonte da página; some do menu se o administrador a tirar do site (7.5).
 const navItems = [
-  { href: "/", label: "Visão geral", active: "overview", icon: BarChart3 },
-  { href: "/tuberculose", label: "Tuberculose", active: "tuberculose", icon: Activity },
-  { href: "/hanseniase", label: "Hanseníase", active: "hanseniase", icon: Activity },
-  { href: "/sifilis", label: "Sífilis congênita", active: "sifilis", icon: Activity },
-  { href: "/dengue", label: "Dengue", active: "dengue", icon: Activity },
-  { href: "/zika", label: "Zika", active: "zika", icon: Activity },
-  { href: "/chikungunya", label: "Chikungunya", active: "chikungunya", icon: Activity },
-  { href: "/sifilis-gestacional", label: "Sífilis gestacional", active: "sifilis-gestacional", icon: Activity }
+  { href: "/", label: "Visão geral", active: "overview", icon: BarChart3, slug: null },
+  { href: "/tuberculose", label: "Tuberculose", active: "tuberculose", icon: Activity, slug: "tuberculose_sinan" },
+  { href: "/hanseniase", label: "Hanseníase", active: "hanseniase", icon: Activity, slug: "hanseniase_sinan" },
+  { href: "/sifilis", label: "Sífilis congênita", active: "sifilis", icon: Activity, slug: "sifilis_congenita_sinan" },
+  { href: "/dengue", label: "Dengue", active: "dengue", icon: Activity, slug: "dengue_sinan" },
+  { href: "/zika", label: "Zika", active: "zika", icon: Activity, slug: "zika_sinan" },
+  { href: "/chikungunya", label: "Chikungunya", active: "chikungunya", icon: Activity, slug: "chikungunya_sinan" },
+  { href: "/sifilis-gestacional", label: "Sífilis gestacional", active: "sifilis-gestacional", icon: Activity, slug: "sifilis_gestacional_sinan" }
 ] as const;
 
 export function AppShell({ active, children }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const [publishedSlugs, setPublishedSlugs] = useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getSources()
+      .then((response) => active && setPublishedSlugs(new Set(response.sources.map((source) => source.slug))))
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Enquanto a lista não chega (ou se a API falhar), o menu mostra todas as páginas.
+  const visibleItems = navItems.filter((item) => !item.slug || !publishedSlugs || publishedSlugs.has(item.slug));
   // Cada página tem o próprio <h1> (U4); o nome do painel fica na linha de cima, como no admin.
   const currentPage = navItems.find((item) => item.active === active) ?? navItems[0];
 
@@ -49,7 +65,7 @@ export function AppShell({ active, children }: AppShellProps) {
             </div>
           </div>
         }
-        items={navItems.map((item) => ({ ...item, selected: item.active === active }))}
+        items={visibleItems.map(({ slug: _slug, ...item }) => ({ ...item, selected: item.active === active }))}
         footer={
           <div className="flex items-center gap-2 text-xs text-white/70">
             <Database size={14} aria-hidden="true" />

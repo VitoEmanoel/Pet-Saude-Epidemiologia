@@ -1,6 +1,7 @@
 import type { EpidemiologicalRecord, Prisma } from "@prisma/client";
 import { ALLOWED_CITY } from "../../config/city";
 import { allowedSources, getPublicSourceBySlug, getSourceBySlug, publicSources } from "../../config/sources";
+import { isSourceHidden } from "../sources/source-publication";
 import { prisma } from "../../database/prisma";
 
 // Cada caso é gravado em 4 visões (agregações) diferentes: total do ano, por sexo,
@@ -73,15 +74,18 @@ const AGE_GROUP_ORDER = [
 ];
 const baseSourceSlugs = allowedSources.map((source) => source.slug);
 // A visão geral soma só as fontes primárias públicas (fontes internas ficam de fora).
-const overviewSourceSlugs = publicSources
+const primarySourceSlugs = publicSources
   .filter((source) => source.kind === "primary")
   .map((source) => source.slug);
+// Fontes tiradas do site pelo administrador (7.5) saem da soma na hora.
+const visibleOverviewSlugs = () => primarySourceSlugs.filter((slug) => !isSourceHidden(slug));
+const visiblePublicSources = () => publicSources.filter((source) => !isSourceHidden(source.slug));
 
 export async function getDashboardOverview() {
-  const sourcesWithoutMunicipalData = publicSources.filter(
+  const sourcesWithoutMunicipalData = visiblePublicSources().filter(
     (source) => source.municipalityFilterStatus === "unavailable"
   ).length;
-  const sourcesPendingValidation = publicSources.filter(
+  const sourcesPendingValidation = visiblePublicSources().filter(
     (source) => source.municipalityFilterStatus === "unknown"
   ).length;
 
@@ -89,7 +93,7 @@ export async function getDashboardOverview() {
     ...cityWhere(),
     source: {
       slug: {
-        in: overviewSourceSlugs
+        in: visibleOverviewSlugs()
       }
     }
   };
@@ -144,12 +148,12 @@ export async function getDashboardOverview() {
       totalRecords: totalNormalizedRecords,
       totalCases,
       lastUpdate: lastImportedRecord?.importedAt ?? null,
-      totalSources: publicSources.length,
+      totalSources: visiblePublicSources().length,
       sourcesWithMunicipalData: sourcesWithData,
       sourcesWithoutMunicipalData,
       sourcesPendingValidation,
       dataStatus: totalNormalizedRecords > 0 ? "synced" : "not_synced",
-      casesSourceCount: overviewSourceSlugs.length
+      casesSourceCount: visibleOverviewSlugs().length
     },
     casesBySource,
     charts: {
@@ -196,7 +200,7 @@ async function getCasesBySource() {
     rows.map((row) => [dataSources.find((source) => source.id === row.sourceId)?.slug, row])
   );
 
-  return publicSources.map((source) => {
+  return visiblePublicSources().map((source) => {
     const sourceRows = getResolvedSourceSlugs(source.slug)
       .map((slug) => rowsBySlug.get(slug))
       .filter((row): row is (typeof rows)[number] => Boolean(row));
@@ -701,7 +705,7 @@ async function buildRecordWhere(filters: PublicFilters): Promise<Prisma.Epidemio
     where.sourceId = sourceIds.length > 0 ? { in: sourceIds } : -1;
   } else {
     // Sem fonte: só as primárias públicas (como a visão geral); a zika é interna (S12).
-    where.source = { slug: { in: overviewSourceSlugs } };
+    where.source = { slug: { in: visibleOverviewSlugs() } };
   }
 
   if (filters.year !== undefined) {

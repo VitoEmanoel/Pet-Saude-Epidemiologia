@@ -1,5 +1,6 @@
 import { BLOCKED_MUNICIPALITY_QUERY_PARAMS } from "../config/city";
 import { getPublicSourceBySlug } from "../config/sources";
+import { isSourceHidden } from "../modules/sources/source-publication";
 import {
   RECORD_AGGREGATIONS,
   getAggregationConflict,
@@ -92,7 +93,7 @@ export function validateRecordsQuery(
   const sourceSlug = String(query.source ?? "");
 
   // Só fontes públicas: fontes internas (kind "internal") não podem ser consultadas diretamente (S12).
-  if (sourceSlug && !getPublicSourceBySlug(sourceSlug)) {
+  if (sourceSlug && (!getPublicSourceBySlug(sourceSlug) || isSourceHidden(sourceSlug))) {
     return (response) =>
       sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
   }

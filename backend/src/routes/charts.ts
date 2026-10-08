@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { ALLOWED_CITY } from "../config/city";
 import { getPublicSourceBySlug } from "../config/sources";
+import { isSourceHidden } from "../modules/sources/source-publication";
 import {
   getChartByAgeGroup,
   getChartByRaceColor,
@@ -26,7 +27,7 @@ function resolveSource(response: Response, sourceSlug: unknown) {
 
   const source = getPublicSourceBySlug(sourceSlug);
 
-  if (!source) {
+  if (!source || isSourceHidden(source.slug)) {
     sendError(response, 404, "not_found", "Fonte não permitida ou inexistente.");
     return null;
   }

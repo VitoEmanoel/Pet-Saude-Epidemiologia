@@ -19,7 +19,8 @@ import {
   getRecords,
   getSourceFilters,
   getSourceSummary,
-  getYearlyEvolution
+  getYearlyEvolution,
+  ApiRequestError
 } from "@/lib/api";
 import {
   AGGREGATION_LABELS,
@@ -39,6 +40,7 @@ import type {
 } from "@/types/api";
 import { ignoredFiltersNote, withSingleDemographic } from "@/lib/demographics";
 import { ChartPanel } from "./ChartPanel";
+import { SourceTransparency } from "./SourceTransparency";
 import { IndicatorPanel } from "./IndicatorPanel";
 import { MetricCard } from "../ui/MetricCard";
 
@@ -106,6 +108,8 @@ type DiseaseDashboardProps = {
 
 export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
   const [state, setState] = useState<PageState>({ status: "loading" });
+  // Fonte tirada do site pelo administrador (7.5): a API responde 404.
+  const [unavailable, setUnavailable] = useState(false);
   const [chartsState, setChartsState] = useState<ChartsState>({ status: "loading" });
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     year: "",
@@ -139,6 +143,7 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
       })
       .catch((error: unknown) => {
         if (active) {
+          setUnavailable(error instanceof ApiRequestError && error.status === 404);
           setState({
             status: "error",
             message: error instanceof Error ? error.message : "Falha ao carregar dados."
@@ -262,6 +267,14 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
     return <LoadingBlocks />;
   }
 
+  if (state.status === "error" && unavailable) {
+    return (
+      <div className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
+        Esta página não está disponível no painel no momento. Veja as outras doenças no menu ou na visão geral.
+      </div>
+    );
+  }
+
   if (state.status === "error") {
     return (
       <div className="rounded border border-pet-red-text bg-white p-4 text-sm text-pet-red-text">
@@ -319,6 +332,8 @@ export function DiseaseDashboard({ source, title }: DiseaseDashboardProps) {
           tone="amber"
         />
       </section>
+
+      <SourceTransparency source={state.summary.source} summary={state.summary.summary} />
 
       {!sourceIsActive ? (
         <div className="rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">

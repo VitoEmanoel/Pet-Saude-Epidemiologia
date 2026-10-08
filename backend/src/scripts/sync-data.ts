@@ -1,13 +1,16 @@
 import "../config/env";
 import { allowedSources, syncableSources } from "../config/sources";
 import { prisma } from "../database/prisma";
+import { getHiddenSourceSlugs } from "../modules/sources/source-publication";
 import { SyncAlreadyRunningError, syncSource } from "../modules/sync/sync.service";
 
 async function main() {
   const requestedSource = process.argv[2] ?? "all";
+  // "all" pula as fontes tiradas do site (7.5); pedindo a fonte pelo nome, ela sincroniza mesmo assim.
+  const hidden = requestedSource === "all" ? await getHiddenSourceSlugs() : new Set<string>();
   const sources =
     requestedSource === "all"
-      ? syncableSources
+      ? syncableSources.filter((source) => !hidden.has(source.slug))
       : allowedSources.filter((source) => source.slug === requestedSource && source.syncEnabled);
 
   if (sources.length === 0) {

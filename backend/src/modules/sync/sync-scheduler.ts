@@ -1,3 +1,4 @@
+import { getHiddenSourceSlugs } from "../sources/source-publication";
 import { SyncJobStatus } from "@prisma/client";
 import { syncableSources } from "../../config/sources";
 import { prisma } from "../../database/prisma";
@@ -66,7 +67,10 @@ async function runScheduledSync(intervalDays: number) {
   schedulerRunning = true;
 
   try {
-    for (const source of syncableSources) {
+    // Fontes tiradas do site pelo administrador (7.5) não são sincronizadas automaticamente.
+    const hidden = await getHiddenSourceSlugs();
+
+    for (const source of syncableSources.filter((item) => !hidden.has(item.slug))) {
       const shouldSync = await shouldSyncSource(source.slug, intervalDays);
 
       if (!shouldSync) {
