@@ -57,7 +57,8 @@ type DownloadKind = "csv" | "html";
 
 /** Dashboard de uma fonte com filtros; os botões de download baixam exatamente o que está filtrado. */
 export function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
-  const { handleAuthError } = useAdminSession();
+  const { handleAuthError, can } = useAdminSession();
+  const canExport = can("exportar");
   const [sourceSlug, setSourceSlug] = useState(sources[0]?.slug ?? "");
   const [filters, setFilters] = useState<FilterValues>(EMPTY_FILTERS);
   const [sourceState, setSourceState] = useState<SourceState>({ status: "loading" });
@@ -178,24 +179,28 @@ export function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
             <ActionButton icon={X} onClick={() => setFilters(EMPTY_FILTERS)} disabled={!hasFilters}>
               Limpar
             </ActionButton>
-            <ActionButton
-              variant="blue"
-              icon={Download}
-              onClick={() => void download("csv")}
-              disabled={busy || sourceState.status !== "loaded"}
-              title="Baixa os registros da fonte com os filtros escolhidos"
-            >
-              Baixar CSV
-            </ActionButton>
-            <ActionButton
-              variant="blue"
-              icon={FileText}
-              onClick={() => void download("html")}
-              disabled={busy || sourceState.status !== "loaded"}
-              title="Baixa este dashboard (indicadores e gráficos) em um arquivo HTML"
-            >
-              Baixar dashboard
-            </ActionButton>
+            {canExport ? (
+              <>
+                <ActionButton
+                  variant="blue"
+                  icon={Download}
+                  onClick={() => void download("csv")}
+                  disabled={busy || sourceState.status !== "loaded"}
+                  title="Baixa os registros da fonte com os filtros escolhidos"
+                >
+                  Baixar CSV
+                </ActionButton>
+                <ActionButton
+                  variant="blue"
+                  icon={FileText}
+                  onClick={() => void download("html")}
+                  disabled={busy || sourceState.status !== "loaded"}
+                  title="Baixa este dashboard (indicadores e gráficos) em um arquivo HTML"
+                >
+                  Baixar dashboard
+                </ActionButton>
+              </>
+            ) : null}
           </>
         }
       >
@@ -249,7 +254,7 @@ export function AdminSourceDashboard({ sources }: { sources: DataSource[] }) {
         source={sourceSlug}
         selectedYear={activeFilters.year}
         hasDemographicFilter={Boolean(filters.sex || filters.ageGroup || filters.raceColor)}
-        onDownload={async () => {
+        onDownload={!canExport ? undefined : async () => {
           try {
             const { blob, filename } = await downloadAdminIndicatorsCsv(sourceSlug);
             downloadBlob(blob, filename);

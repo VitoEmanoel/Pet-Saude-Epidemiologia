@@ -10,6 +10,8 @@ export type ApiErrorCode =
   | "rate_limited"
   | "admin_not_configured"
   | "sync_already_running"
+  | "password_change_required"
+  | "conflict"
   | "not_implemented"
   | "internal_error";
 

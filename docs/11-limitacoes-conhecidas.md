@@ -55,7 +55,7 @@ Os achados S11–S18 da campanha de testes de segurança de 02/10/2026 ([14](14-
 - `npm run test:backend` inseria logins falsos em `admin_audit_logs` do banco configurado.
 - **Correção:** banco de teste separado (`pet_saude_test`), criado sozinho e com trava (só local, nome terminado em `_test`). Conferido: a auditoria do sistema não muda ao rodar os testes.
 
-**Limitação (não é defeito):** um único usuário administrador, sem cadastro; não há como saber qual pessoa fez cada ação.
+**Resolvido (08/10/2026, item 7.4):** contas individuais com permissões; a auditoria registra quem fez cada ação.
 
 ---
 

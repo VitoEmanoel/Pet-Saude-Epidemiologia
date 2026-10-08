@@ -17,8 +17,17 @@ export type ActionState = {
 
 export const IDLE_ACTION: ActionState = { busyAction: null, message: null, error: null };
 
+/**
+ * Erro de sessão: 401 (sessão expirada, derrubada ou conta desativada) volta ao login; 403 de
+ * senha temporária leva à troca de senha. Os outros 403 (ex.: equipe abrindo "Usuários") não
+ * derrubam a sessão: viram mensagem na tela.
+ */
 export function isAdminAuthError(error: unknown) {
-  return error instanceof ApiRequestError && (error.status === 401 || error.status === 403);
+  return error instanceof ApiRequestError && (error.status === 401 || isPasswordChangeRequired(error));
+}
+
+export function isPasswordChangeRequired(error: unknown) {
+  return error instanceof ApiRequestError && error.status === 403 && error.code === "password_change_required";
 }
 
 export function isAdminRateLimitError(error: unknown) {

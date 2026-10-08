@@ -54,6 +54,8 @@ Crie a partir do modelo e preencha os segredos (nunca versione o arquivo preench
 ```bash
 cp deploy/.env.producao.example deploy/.env.producao
 openssl rand -base64 24   # ADMIN_PASSWORD e POSTGRES_PASSWORD (um para cada)
+# ADMIN_PASSWORD é só a senha da PRIMEIRA conta de administrador (criada no 1º login, item 7.4);
+# depois as senhas ficam no banco e as contas são gerenciadas na tela Usuários.
 openssl rand -base64 48   # ADMIN_SESSION_SECRET
 ```
 

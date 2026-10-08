@@ -1,6 +1,10 @@
 import type {
   AdminAuditLogsResponse,
   AdminAuthResponse,
+  AdminPermission,
+  AdminRole,
+  AdminUser,
+  AdminUserWithTemporaryPassword,
   AdminLoginPayload,
   AdminSyncAllResponse,
   AdminSyncHistoryResponse,
@@ -128,6 +132,37 @@ export function loginAdmin(payload: AdminLoginPayload) {
 
 export function getAdminSession() {
   return fetchAdminJson<AdminAuthResponse>("/api/admin/auth/me");
+}
+
+const jsonRequest = (method: string, body?: unknown): RequestInit => ({
+  method,
+  headers: body === undefined ? {} : { "content-type": "application/json" },
+  body: body === undefined ? undefined : JSON.stringify(body)
+});
+
+/** Troca da própria senha (7.4). */
+export function changeOwnAdminPassword(currentPassword: string, newPassword: string) {
+  return fetchAdminJson<{ changed: boolean }>("/api/admin/account/password", jsonRequest("POST", { currentPassword, newPassword }));
+}
+
+export function getAdminUsers() {
+  return fetchAdminJson<{ users: AdminUser[] }>("/api/admin/users");
+}
+
+export function createAdminUser(payload: { username: string; name: string; role: AdminRole; permissions: AdminPermission[] }) {
+  return fetchAdminJson<AdminUserWithTemporaryPassword>("/api/admin/users", jsonRequest("POST", payload));
+}
+
+export function updateAdminUser(id: number, payload: Partial<Pick<AdminUser, "name" | "role" | "permissions" | "active">>) {
+  return fetchAdminJson<{ user: AdminUser }>(`/api/admin/users/${id}`, jsonRequest("PATCH", payload));
+}
+
+export function resetAdminUserPassword(id: number) {
+  return fetchAdminJson<AdminUserWithTemporaryPassword>(`/api/admin/users/${id}/reset-password`, jsonRequest("POST"));
+}
+
+export function deleteAdminUser(id: number) {
+  return fetchAdminJson<{ deleted: boolean }>(`/api/admin/users/${id}`, jsonRequest("DELETE"));
 }
 
 export function logoutAdmin() {

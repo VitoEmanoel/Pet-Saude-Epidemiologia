@@ -48,7 +48,8 @@ function syncLabel(source: DataSource) {
 
 /** Tela de fontes: situação de cada uma e sincronização manual. */
 export function AdminSources() {
-  const { handleAuthError } = useAdminSession();
+  const { handleAuthError, can } = useAdminSession();
+  const canSync = can("sincronizar");
   const { state, reload } = useAdminLoader(loadSources);
   const [actionState, setActionState] = useState<ActionState>(IDLE_ACTION);
 
@@ -99,9 +100,11 @@ export function AdminSources() {
           <ActionButton icon={RefreshCw} onClick={() => void reload()} disabled={busy}>
             Atualizar
           </ActionButton>
-          <ActionButton variant="primary" icon={Play} onClick={() => void sync("all")} disabled={busy}>
-            {actionState.busyAction === "all" ? "Sincronizando..." : "Sincronizar todas"}
-          </ActionButton>
+          {canSync ? (
+            <ActionButton variant="primary" icon={Play} onClick={() => void sync("all")} disabled={busy}>
+              {actionState.busyAction === "all" ? "Sincronizando..." : "Sincronizar todas"}
+            </ActionButton>
+          ) : null}
         </>
       }
     >
@@ -137,6 +140,7 @@ export function AdminSources() {
                 <dd className="mt-1 text-slate-700">{formatDateTime(summary.lastUpdate)}</dd>
               </div>
             </dl>
+            {canSync ? (
             <button
               type="button"
               onClick={() => void sync(source)}
@@ -146,6 +150,9 @@ export function AdminSources() {
               <Play size={16} aria-hidden="true" />
               {actionState.busyAction === source.slug ? "Sincronizando..." : syncLabel(source)}
             </button>
+            ) : (
+              <span className="text-xs text-slate-500">Sem permissão para sincronizar</span>
+            )}
           </article>
         ))}
       </div>
@@ -185,6 +192,7 @@ export function AdminSources() {
                   <OfficialLink source={source} />
                 </td>
                 <td className="px-4 py-3">
+                  {canSync ? (
                   <button
                     type="button"
                     onClick={() => void sync(source)}
@@ -194,6 +202,9 @@ export function AdminSources() {
                     <Play size={16} aria-hidden="true" />
                     {actionState.busyAction === source.slug ? "Sincronizando..." : syncLabel(source)}
                   </button>
+                  ) : (
+                    <span className="text-xs text-slate-500">Sem permissão para sincronizar</span>
+                  )}
                 </td>
               </tr>
             ))}

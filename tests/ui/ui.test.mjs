@@ -641,6 +641,64 @@ describe(`Área administrativa (${BROWSER})`, () => {
     }
   });
 
+  test("7.4: administrador cria conta com permissões; a pessoa troca a senha temporária e só vê o que pode", async () => {
+    const admin = await openPage("desktop", "/admin/usuarios");
+    const username = `teste.ui.${Date.now().toString(36)}`;
+    let person;
+    try {
+      const page = admin.page;
+      await page.locator('input[name="username"]').fill(ADMIN_USERNAME);
+      await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
+      await page.getByRole("button", { name: /entrar/i }).click();
+      await page.getByRole("heading", { name: "Nova conta" }).waitFor({ timeout: 10_000 });
+
+      await page.locator('input[name="name"]').fill("Pessoa de Teste");
+      await page.locator('input[name="new-username"]').fill(username);
+      await page.getByLabel(/Baixar dados/).check();
+      await page.getByRole("button", { name: "Criar conta" }).click();
+      const temporary = (await page.getByTestId("senha-temporaria").innerText()).trim();
+      assert.equal(temporary.length, 18, "senha temporária na tela");
+      assert.match(await page.locator("main").innerText(), /Só ver o painel|Baixar dados/);
+
+      // A pessoa entra com a senha temporária e é obrigada a criar a dela.
+      person = await openPage("desktop", "/admin");
+      const p = person.page;
+      await p.locator('input[name="username"]').fill(username);
+      await p.locator('input[type="password"]').fill(temporary);
+      await p.getByRole("button", { name: /entrar/i }).click();
+      await p.getByRole("heading", { name: "Crie a sua senha" }).waitFor({ timeout: 10_000 });
+      await p.locator('input[name="current-password"]').fill(temporary);
+      await p.locator('input[name="new-password"]').fill("nova senha da pessoa de teste");
+      await p.locator('input[name="confirm-password"]').fill("nova senha da pessoa de teste");
+      await p.getByRole("button", { name: "Salvar e entrar" }).click();
+      await p.getByText("Dashboard da fonte").waitFor({ timeout: 10_000 });
+
+      // Com "Baixar dados": vê os botões de download; sem as outras permissões: menu e botões escondidos.
+      assert.ok(await p.getByRole("button", { name: /baixar csv/i }).count() > 0, "download liberado");
+      await p.locator('button[aria-label="Abrir menu"]').click();
+      const menu = await p.locator("#menu-lateral").innerText();
+      assert.match(menu, /Pessoa de Teste/);
+      for (const hidden of ["População", "Auditoria", "Usuários"]) {
+        assert.doesNotMatch(menu, new RegExp(`\\b${hidden}\\b`), `${hidden} não deveria aparecer`);
+      }
+      await p.keyboard.press("Escape");
+      await p.goto(WEB + "/admin/fontes", { waitUntil: "domcontentloaded" });
+      await p.getByText("Fontes de dados").waitFor({ timeout: 10_000 });
+      assert.equal(await p.getByRole("button", { name: /sincronizar/i }).count(), 0, "sem botões de sincronizar");
+      await p.goto(WEB + "/admin/auditoria", { waitUntil: "domcontentloaded" });
+      await p.getByText("Sem permissão").first().waitFor({ timeout: 10_000 });
+    } finally {
+      // Limpeza: o administrador exclui a conta de teste.
+      const users = await admin.page.request.get(`${API}/api/admin/users`).then((r) => r.json()).catch(() => ({ users: [] }));
+      const created = users.users?.find((user) => user.username === username);
+      if (created) {
+        await admin.page.request.delete(`${API}/api/admin/users/${created.id}`);
+      }
+      await person?.context.close();
+      await admin.context.close();
+    }
+  });
+
   test("U1: Enter no campo de senha envia o login", async () => {
     const { context, page } = await openPage("desktop", "/admin");
     try {

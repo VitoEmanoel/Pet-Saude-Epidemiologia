@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { prisma } from "../database/prisma";
+import { ADMIN_PERMISSIONS, effectivePermissions, type AdminPermission, type AdminRole } from "../modules/admin/admin-users.service";
 import { sendError } from "../utils/api-response";
 
 const ADMIN_SESSION_COOKIE = "painel_admin_session";
@@ -21,20 +22,40 @@ type LoginAttemptState = {
 
 const failedLoginAttempts = new Map<string, LoginAttemptState>();
 
+/** Quem está usando o admin nesta requisição (7.4), em response.locals.adminUser. */
+export type AdminRequestUser = {
+  id: number;
+  username: string;
+  name: string;
+  role: AdminRole;
+  /** Permissões que valem (administrador: todas). */
+  permissions: AdminPermission[];
+  mustChangePassword: boolean;
+};
+
+// Token de API (ADMIN_ALLOW_BEARER_TOKEN, desligado por padrão): age como administrador.
+const BEARER_TOKEN_USER: AdminRequestUser = { id: 0, username: "token_api", name: "Token da API", role: "admin", permissions: [...ADMIN_PERMISSIONS], mustChangePassword: false };
+
+export function getRequestAdminUser(response: Response): AdminRequestUser | null {
+  return (response.locals.adminUser as AdminRequestUser | undefined) ?? null;
+}
+
 export async function requireAdminAuth(request: Request, response: Response, next: NextFunction) {
   if (!isAdminSecurityConfigured()) {
     return sendAdminNotConfigured(response);
   }
 
   if (hasValidBearerToken(request)) {
+    response.locals.adminUser = BEARER_TOKEN_USER;
     return next();
   }
 
   try {
-    const sessionId = await findActiveSessionId(request);
+    const session = await findActiveSession(request);
 
-    if (sessionId) {
-      response.locals.adminSessionId = sessionId;
+    if (session) {
+      response.locals.adminSessionId = session.id;
+      response.locals.adminUser = session.user;
       return next();
     }
   } catch (error) {
@@ -53,17 +74,46 @@ export function assertAdminSecurityConfigured(response: Response) {
   return false;
 }
 
-export function isValidAdminCredentials(username: unknown, password: unknown) {
-  const credentials = getAdminCredentials();
+/**
+ * Com senha temporária (conta nova ou senha redefinida), a pessoa só consegue trocar a senha,
+ * ver quem é e sair: todo o resto responde 403 até a troca.
+ */
+export function requirePasswordChanged(request: Request, response: Response, next: NextFunction) {
+  const user = getRequestAdminUser(response);
+  const allowed = ["/auth/me", "/auth/logout", "/account/password"];
 
-  return (
-    typeof username === "string" &&
-    typeof password === "string" &&
-    typeof credentials?.username === "string" &&
-    typeof credentials?.password === "string" &&
-    safeEqual(username, credentials.username) &&
-    safeEqual(password, credentials.password)
-  );
+  if (user?.mustChangePassword && !allowed.includes(request.path)) {
+    return sendError(response, 403, "password_change_required", "Troque a senha temporária antes de continuar.");
+  }
+
+  return next();
+}
+
+const PERMISSION_LABELS: Record<AdminPermission, string> = {
+  exportar: "baixar dados",
+  sincronizar: "sincronizar fontes",
+  populacao: "enviar a população",
+  auditoria: "ver a auditoria"
+};
+
+/** Só quem tem a permissão (o administrador escolhe ao criar a conta; administrador tem todas). */
+export function requirePermission(permission: AdminPermission) {
+  return (_request: Request, response: Response, next: NextFunction) => {
+    if (!getRequestAdminUser(response)?.permissions.includes(permission)) {
+      return sendError(response, 403, "forbidden", `Sua conta não tem permissão para ${PERMISSION_LABELS[permission]}.`);
+    }
+
+    return next();
+  };
+}
+
+/** Só administradores (gerência de usuários). */
+export function requireAdminRole(_request: Request, response: Response, next: NextFunction) {
+  if (getRequestAdminUser(response)?.role !== "admin") {
+    return sendError(response, 403, "forbidden", "Só administradores podem gerenciar usuários.");
+  }
+
+  return next();
 }
 
 export function isAllowedAdminOrigin(request: Request) {
@@ -132,12 +182,13 @@ export function setAdminSecurityHeaders(response: Response) {
  * Cria a sessão no banco e envia o cookie assinado com o id dela. Guardar a sessão no servidor
  * permite que o logout a invalide de verdade, mesmo que alguém tenha copiado o cookie (S11).
  */
-export async function startAdminSession(response: Response) {
+export async function startAdminSession(response: Response, userId: number) {
   const expiresAt = Date.now() + SESSION_MAX_AGE_MS;
   const sessionId = randomBytes(32).toString("base64url");
 
   await prisma.adminSession.deleteMany({ where: { expiresAt: { lt: new Date() } } });
-  await prisma.adminSession.create({ data: { id: sessionId, expiresAt: new Date(expiresAt) } });
+  await prisma.adminSession.create({ data: { id: sessionId, userId, expiresAt: new Date(expiresAt) } });
+  response.locals.adminSessionId = sessionId;
 
   const payload = Buffer.from(
     JSON.stringify({ sub: "admin", exp: expiresAt, sid: sessionId })
@@ -192,7 +243,7 @@ function hasValidBearerToken(request: Request) {
   return safeEqual(authorization ?? "", expectedAuthorization);
 }
 
-async function findActiveSessionId(request: Request) {
+async function findActiveSession(request: Request): Promise<{ id: string; user: AdminRequestUser } | null> {
   const rawCookie = request.header("cookie") ?? "";
   const sessionIds = parseCookieValues(rawCookie, ADMIN_SESSION_COOKIE)
     .map(getSignedSessionId)
@@ -202,12 +253,15 @@ async function findActiveSessionId(request: Request) {
     return null;
   }
 
+  // Sessão válida de uma conta ativa (sessões de antes do 7.4, sem conta, não valem mais).
   const session = await prisma.adminSession.findFirst({
-    where: { id: { in: sessionIds }, revokedAt: null, expiresAt: { gt: new Date() } },
-    select: { id: true }
+    where: { id: { in: sessionIds }, revokedAt: null, expiresAt: { gt: new Date() }, user: { active: true } },
+    select: { id: true, user: { select: { id: true, username: true, name: true, role: true, permissions: true, mustChangePassword: true } } }
   });
 
-  return session?.id ?? null;
+  return session?.user
+    ? { id: session.id, user: { ...session.user, role: session.user.role as AdminRole, permissions: effectivePermissions(session.user) } }
+    : null;
 }
 
 /** Id da sessão de um cookie com assinatura válida e não expirado; null se não for. */

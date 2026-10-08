@@ -14,11 +14,31 @@ As telas ficam no **menu lateral**, que abre pelo botão ☰ no canto superior e
 | Fontes | `/admin/fontes` | Coluna **Situação** (Em dia / Atenção / Problema, com o motivo), filtro municipal, link para a página no TABNET, **Sincronizar** cada uma ou **Sincronizar todas** (~1 minuto) |
 | População | `/admin/populacao` | **População residente por ano** (base dos indicadores por 100 mil habitantes). A tela mostra o **modelo da planilha** (formato e exemplo) e **Baixar modelo** traz o arquivo com os anos já preenchidos (de 2007 até o ano atual), faltando só os números. Colunas `ano;populacao;populacao_60_mais` (a última é opcional, para a incidência em idosos); nomes parecidos também são aceitos ("População", "População 60+", "Idosos", com ou sem acento). A pré-visualização mostra as **colunas reconhecidas**, os **erros**, os **avisos** (coluna ignorada, falta da coluna de 60+) e o que muda (novos, alterados, apagados) antes de gravar. **A planilha substitui a tabela inteira.** "Baixar planilha atual" traz o que está gravado. Cada envio fica na auditoria |
 | Sincronizações | `/admin/sincronizacoes` | As 50 sincronizações mais recentes: início, fonte, status, registros, duração, origem (agendador, admin, linha de comando) e erro. Filtros por fonte e status |
+| Usuários | `/admin/usuarios` | **Só administradores.** Criar conta (nome, usuário e acesso), escolher as **permissões** de cada pessoa da equipe, gerar nova senha temporária, desativar/reativar e excluir. A senha temporária aparece **uma única vez**, com botão de copiar |
+| Minha conta | `/admin/conta` | Nome, usuário, o que a pessoa pode fazer e **troca da própria senha** |
 | Auditoria | `/admin/auditoria` | Os 500 eventos mais recentes, com **data e hora (com segundos), usuário, IP, ação, status, detalhes** em frase ("Baixou CSV de Casos de Dengue, ano 2024 (25 registros)") e **navegador** ("Firefox 155 · Linux"; passe o mouse para ver o texto completo). Filtros por ação e status e busca por texto |
 
 **Alerta de fontes (O5):** quando alguma fonte falha 3 vezes seguidas, nunca sincronizou, está há mais de *intervalo do agendador + 7 dias* sem atualizar ou teve aviso na descoberta de anos novos, aparece um **alerta no topo do Painel** com o motivo e o link para Fontes. Antes de falhar, o sistema tenta de novo sozinho (até 3 tentativas) quando o TABNET oscila. E-mail de alerta fica para a implantação (item 6.6 do plano).
 
-**Usuário na auditoria:** é o `ADMIN_USERNAME`. Tentativas de login com senha errada e pedidos bloqueados aparecem como **"Não identificado"** (ainda não há sessão), e o usuário digitado aparece nos detalhes. Como há uma única conta de administrador, para saber **qual pessoa** usou a conta é preciso cruzar horário, IP e navegador; contas individuais são o item 7.4 do plano.
+**Usuário na auditoria:** cada pessoa tem a sua conta (item 7.4, 08/10/2026), e a auditoria registra **quem** fez cada ação. Tentativas de login com senha errada e pedidos bloqueados aparecem como **"Não identificado"** (ainda não há sessão), e o usuário digitado aparece nos detalhes.
+
+### 8.1b Contas e permissões (7.4)
+
+| Acesso | O que pode |
+|---|---|
+| Todos | Ver o Painel, as Fontes, o histórico de Sincronizações e a própria conta |
+| Permissão **Baixar dados** | CSV dos registros, dashboard em HTML e CSV dos indicadores |
+| Permissão **Sincronizar fontes** | Botões "Sincronizar" e "Sincronizar todas" |
+| Permissão **Enviar população** | Tela População (enviar e baixar a planilha) |
+| Permissão **Ver auditoria** | Tela Auditoria |
+| **Administrador** | Tudo acima e a tela Usuários |
+
+- O administrador escolhe as permissões ao criar a conta e pode mudar depois (botão **Editar** na lista). A mudança vale na próxima ação da pessoa, sem precisar sair e entrar.
+- As permissões são conferidas **no servidor**: a tela só esconde o que a pessoa não pode usar, e a API responde 403 ("Sua conta não tem permissão para…") mesmo se alguém tentar direto.
+- **Senha temporária:** conta nova ou "Nova senha" gera uma senha de 18 caracteres, mostrada uma vez. No primeiro acesso a pessoa é obrigada a criar a própria (12+ caracteres) antes de usar o painel.
+- **Desativar** derruba as sessões abertas da pessoa na hora. **Excluir** apaga a conta, mas as linhas da auditoria continuam. Ninguém consegue se desativar, se excluir ou tirar o próprio papel de administrador, e o sistema nunca fica sem um administrador ativo.
+- **Primeira conta:** depois da atualização, o primeiro login com o `ADMIN_USERNAME`/`ADMIN_PASSWORD` do `.env` cria o primeiro administrador, com essa mesma senha. A partir daí as senhas ficam só no banco (hash scrypt) e trocar o `ADMIN_PASSWORD` do `.env` não muda mais nada.
+- **Ninguém consegue entrar?** No servidor: `docker compose -f docker-compose.prod.yml --env-file .env exec -T backend node backend/dist/scripts/admin-user.js listar` e `... admin-user.js nova-senha <usuario>` (gera uma senha temporária e reativa a conta).
 
 ## 8.2 Como a segurança funciona
 

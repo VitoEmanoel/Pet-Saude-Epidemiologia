@@ -12,14 +12,27 @@ import {
   clearAdminLoginAttempts,
   clearAdminSessionCookie,
   getAdminLoginRateLimit,
+  getRequestAdminUser,
   isAllowedAdminOrigin,
-  isValidAdminCredentials,
   requireAdminAuth,
+  requireAdminRole,
+  requirePasswordChanged,
+  requirePermission,
   revokeAdminSession,
   registerFailedAdminLogin,
   setAdminSecurityHeaders,
   startAdminSession
 } from "../middleware/admin-auth";
+import {
+  AdminUserError,
+  authenticateAdminUser,
+  changeOwnPassword,
+  createAdminUser,
+  deleteAdminUser,
+  listAdminUsers,
+  resetAdminUserPassword,
+  updateAdminUser
+} from "../modules/admin/admin-users.service";
 import { prisma } from "../database/prisma";
 import { getSourcesHealth } from "../modules/admin/source-health.service";
 import { getSourceIndicators } from "../modules/public/indicators.service";
@@ -108,7 +121,9 @@ adminRouter.post("/auth/login", async (request, response) => {
     );
   }
 
-  if (!isValidAdminCredentials(request.body?.username, request.body?.password)) {
+  const user = await authenticateAdminUser(request.body?.username, request.body?.password);
+
+  if (!user) {
     registerFailedAdminLogin(request);
     await recordAdminAudit({
       request,
@@ -124,7 +139,7 @@ adminRouter.post("/auth/login", async (request, response) => {
   }
 
   try {
-    await startAdminSession(response);
+    await startAdminSession(response, user.id);
   } catch (error) {
     console.error(error);
     return sendError(response, 500, "internal_error", "Erro ao iniciar a sessão administrativa.");
@@ -133,16 +148,106 @@ adminRouter.post("/auth/login", async (request, response) => {
   clearAdminLoginAttempts(request);
   await recordAdminAudit({
     request,
+    actor: user.username,
     action: "admin_login",
     status: "SUCCESS"
   });
-  return response.json({ authenticated: true });
+  return response.json({ authenticated: true, mustChangePassword: user.mustChangePassword });
 });
 
 adminRouter.use(requireAdminAuth);
+adminRouter.use(requirePasswordChanged);
 
 adminRouter.get("/auth/me", (_request, response) => {
-  return response.json({ authenticated: true, username: getAdminActor() });
+  const user = getRequestAdminUser(response);
+  return response.json({
+    authenticated: true,
+    username: user?.username ?? null,
+    name: user?.name ?? null,
+    role: user?.role ?? null,
+    permissions: user?.permissions ?? [],
+    mustChangePassword: user?.mustChangePassword ?? false
+  });
+});
+
+// Contas individuais (7.4): cada pessoa troca a própria senha; administradores gerenciam as contas.
+function sendUserError(response: Parameters<typeof sendError>[0], error: unknown) {
+  if (error instanceof AdminUserError) {
+    const code = error.status === 404 ? "not_found" : error.status === 403 ? "forbidden" : error.status === 409 ? "conflict" : "invalid_body";
+    return sendError(response, error.status, code, error.message, { reason: error.code });
+  }
+  console.error(error);
+  return sendError(response, 500, "internal_error", "Erro ao atualizar a conta.");
+}
+
+adminRouter.post("/account/password", async (request, response) => {
+  const user = getRequestAdminUser(response);
+
+  if (!user || user.id === 0) {
+    return sendError(response, 403, "forbidden", "Esta sessão não tem uma conta para trocar a senha.");
+  }
+
+  try {
+    await changeOwnPassword(user.id, request.body?.currentPassword, request.body?.newPassword, response.locals.adminSessionId);
+    await recordAdminAudit({ request, action: "admin_password_change", status: "SUCCESS" });
+    return response.json({ changed: true });
+  } catch (error) {
+    if (error instanceof AdminUserError) {
+      await recordAdminAudit({ request, action: "admin_password_change", status: "FAILED", metadata: { reason: error.code } });
+    }
+    return sendUserError(response, error);
+  }
+});
+
+adminRouter.get("/users", requireAdminRole, async (_request, response) => {
+  return response.json({ users: await listAdminUsers() });
+});
+
+adminRouter.post("/users", requireAdminRole, async (request, response) => {
+  try {
+    const { user, temporaryPassword } = await createAdminUser(request.body ?? {});
+    await recordAdminAudit({ request, action: "admin_user_create", status: "SUCCESS", metadata: { username: user.username, name: user.name, role: user.role, permissions: user.permissions } });
+    return response.status(201).json({ user, temporaryPassword });
+  } catch (error) {
+    return sendUserError(response, error);
+  }
+});
+
+adminRouter.patch("/users/:id", requireAdminRole, async (request, response) => {
+  try {
+    const actor = getRequestAdminUser(response);
+    const { before, user } = await updateAdminUser(Number(request.params.id), actor?.id ?? 0, request.body ?? {});
+    const changes = Object.fromEntries(
+      (["name", "role", "permissions", "active"] as const)
+        .filter((key) => JSON.stringify(before[key]) !== JSON.stringify(user[key]))
+        .map((key) => [key, { de: before[key], para: user[key] }])
+    );
+    await recordAdminAudit({ request, action: "admin_user_update", status: "SUCCESS", metadata: { username: user.username, changes } });
+    return response.json({ user });
+  } catch (error) {
+    return sendUserError(response, error);
+  }
+});
+
+adminRouter.post("/users/:id/reset-password", requireAdminRole, async (request, response) => {
+  try {
+    const { user, temporaryPassword } = await resetAdminUserPassword(Number(request.params.id));
+    await recordAdminAudit({ request, action: "admin_user_password_reset", status: "SUCCESS", metadata: { username: user.username } });
+    return response.json({ user, temporaryPassword });
+  } catch (error) {
+    return sendUserError(response, error);
+  }
+});
+
+adminRouter.delete("/users/:id", requireAdminRole, async (request, response) => {
+  try {
+    const actor = getRequestAdminUser(response);
+    const user = await deleteAdminUser(Number(request.params.id), actor?.id ?? 0);
+    await recordAdminAudit({ request, action: "admin_user_delete", status: "SUCCESS", metadata: { username: user.username, name: user.name } });
+    return response.json({ deleted: true });
+  } catch (error) {
+    return sendUserError(response, error);
+  }
 });
 
 adminRouter.post("/auth/logout", async (request, response) => {
@@ -162,7 +267,7 @@ adminRouter.post("/auth/logout", async (request, response) => {
   return response.json({ authenticated: false });
 });
 
-adminRouter.get("/records/export.csv", async (request, response) => {
+adminRouter.get("/records/export.csv", requirePermission("exportar"), async (request, response) => {
   const validationError =
     validateRecordsQuery(request.query, false) ?? validateRecordsAggregation(request.query);
 
@@ -207,7 +312,7 @@ adminRouter.get("/records/export.csv", async (request, response) => {
   }
 });
 
-adminRouter.get("/dashboard/export.html", async (request, response) => {
+adminRouter.get("/dashboard/export.html", requirePermission("exportar"), async (request, response) => {
   const validationError =
     validateRecordsQuery(request.query, false) ?? validateRecordsAggregation(request.query);
 
@@ -283,7 +388,7 @@ adminRouter.get("/dashboard/export.html", async (request, response) => {
   }
 });
 
-adminRouter.post("/sync/:sourceSlug", async (request, response) => {
+adminRouter.post("/sync/:sourceSlug", requirePermission("sincronizar"), async (request, response) => {
   const source = getSourceBySlug(request.params.sourceSlug);
 
   if (!source) {
@@ -349,7 +454,7 @@ adminRouter.post("/sync/:sourceSlug", async (request, response) => {
   }
 });
 
-adminRouter.post("/sync-all", async (request, response) => {
+adminRouter.post("/sync-all", requirePermission("sincronizar"), async (request, response) => {
   const results = [];
 
   for (const source of syncableSources) {
@@ -423,7 +528,7 @@ adminRouter.post("/sync-all", async (request, response) => {
   });
 });
 
-adminRouter.get("/audit-logs", async (_request, response) => {
+adminRouter.get("/audit-logs", requirePermission("auditoria"), async (_request, response) => {
   const auditLogs = await getAdminAuditLogs();
 
   return response.json({
@@ -439,7 +544,7 @@ const INDICATOR_STATUS_LABELS: Record<string, string> = {
   sem_dados: "sem dados"
 };
 
-adminRouter.get("/indicators/export.csv", async (request, response) => {
+adminRouter.get("/indicators/export.csv", requirePermission("exportar"), async (request, response) => {
   const source = typeof request.query.source === "string" ? getPublicSourceBySlug(request.query.source) : undefined;
 
   if (!source) {
@@ -480,18 +585,18 @@ adminRouter.get("/indicators/export.csv", async (request, response) => {
 });
 
 // População por ano (A4): consulta, pré-visualização da planilha e substituição da tabela.
-adminRouter.get("/population", async (_request, response) => {
+adminRouter.get("/population", requirePermission("populacao"), async (_request, response) => {
   return response.json({ city: ALLOWED_CITY, population: await getPopulation() });
 });
 
-adminRouter.get("/population/template.csv", async (_request, response) => {
+adminRouter.get("/population/template.csv", requirePermission("populacao"), async (_request, response) => {
   response.setHeader("content-type", "text/csv; charset=utf-8");
   response.setHeader("content-disposition", 'attachment; filename="populacao-parnaiba.csv"');
   return response.send(toPopulationCsv(toPopulationRows(await getPopulation())));
 });
 
 // Modelo em branco: um ano por linha, do primeiro ano com casos de arboviroses até o ano atual.
-adminRouter.get("/population/model.csv", async (_request, response) => {
+adminRouter.get("/population/model.csv", requirePermission("populacao"), async (_request, response) => {
   const first = await prisma.epidemiologicalRecord.aggregate({
     where: { source: { slug: { in: ["dengue_sinan", "zika_sinan", "chikungunya_sinan"] } }, year: { not: null } },
     _min: { year: true }
@@ -508,14 +613,14 @@ function readPopulationBody(body: unknown) {
   return { csv, sourceNote };
 }
 
-adminRouter.post("/population/preview", async (request, response) => {
+adminRouter.post("/population/preview", requirePermission("populacao"), async (request, response) => {
   const { csv } = readPopulationBody(request.body);
   const parsed = parsePopulationCsv(csv);
   const current = toPopulationRows(await getPopulation());
   return response.json({ ...parsed, diff: diffPopulation(current, parsed.rows) });
 });
 
-adminRouter.put("/population", async (request, response) => {
+adminRouter.put("/population", requirePermission("populacao"), async (request, response) => {
   const { csv, sourceNote } = readPopulationBody(request.body);
   const parsed = parsePopulationCsv(csv);
 
@@ -525,7 +630,7 @@ adminRouter.put("/population", async (request, response) => {
 
   try {
     const diff = diffPopulation(toPopulationRows(await getPopulation()), parsed.rows);
-    await replacePopulation(parsed.rows, sourceNote, getAdminActor());
+    await replacePopulation(parsed.rows, sourceNote, getAdminActor(request));
     await recordAdminAudit({
       request,
       action: "admin_population_upload",
@@ -547,7 +652,7 @@ adminRouter.put("/population", async (request, response) => {
   }
 });
 
-adminRouter.delete("/population", async (request, response) => {
+adminRouter.delete("/population", requirePermission("populacao"), async (request, response) => {
   const removed = await clearPopulation();
   await recordAdminAudit({ request, action: "admin_population_clear", status: "SUCCESS", metadata: { removed } });
   return response.json({ removed });

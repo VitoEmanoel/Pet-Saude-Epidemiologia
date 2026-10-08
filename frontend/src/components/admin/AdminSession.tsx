@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { getAdminSession, loginAdmin, logoutAdmin } from "@/lib/api";
+import type { AdminAuthResponse, AdminPermission } from "@/types/api";
+import { PasswordChangeForm } from "./PasswordChangeForm";
 import { PetLogoHorizontal, PetLogoMark } from "../ui/PetLogo";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import {
@@ -26,6 +28,7 @@ import {
   errorMessage,
   isAdminAuthError,
   isAdminRateLimitError,
+  isPasswordChangeRequired,
   type ActionState
 } from "./admin-ui";
 
@@ -34,8 +37,16 @@ type SessionStatus = "checking" | "authenticated" | "unauthenticated";
 type AdminSessionValue = {
   status: SessionStatus;
   username: string | null;
+  /** Conta logada (7.4): nome, usuário e papel. */
+  user: AdminAuthResponse | null;
+  isAdmin: boolean;
+  /** Se a conta tem a permissão (administrador tem todas). */
+  can: (permission: AdminPermission) => boolean;
   logout: () => Promise<void>;
-  /** Se o erro for de sessão (401/403), volta para o login e devolve true. */
+  /**
+   * Erro de sessão: 401 volta para o login; 403 de senha temporária abre a troca de senha.
+   * Devolve true quando tratou o erro.
+   */
   handleAuthError: (error: unknown) => boolean;
 };
 
@@ -54,7 +65,7 @@ export function useAdminSession() {
 /** Guarda a sessão do admin para todas as telas; sem sessão, mostra o login no lugar delas. */
 export function AdminSessionProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<SessionStatus>("checking");
-  const [username, setUsername] = useState<string | null>(null);
+  const [user, setUser] = useState<AdminAuthResponse | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,7 +74,7 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
     getAdminSession()
       .then((session) => {
         if (active) {
-          setUsername(session.username ?? null);
+          setUser(session);
           setStatus("authenticated");
         }
       })
@@ -79,6 +90,11 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const handleAuthError = useCallback((error: unknown) => {
+    if (isPasswordChangeRequired(error)) {
+      setUser((current) => (current ? { ...current, mustChangePassword: true } : current));
+      return true;
+    }
+
     if (!isAdminAuthError(error)) {
       return false;
     }
@@ -97,19 +113,35 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
       }
     }
 
-    setUsername(null);
+    setUser(null);
     setNotice("Sessão encerrada.");
     setStatus("unauthenticated");
   }, []);
 
   const value = useMemo(
-    () => ({ status, username, logout, handleAuthError }),
-    [status, username, logout, handleAuthError]
+    () => ({
+      status,
+      username: user?.username ?? null,
+      user,
+      isAdmin: user?.role === "admin",
+      can: (permission: AdminPermission) => user?.role === "admin" || Boolean(user?.permissions?.includes(permission)),
+      logout,
+      handleAuthError
+    }),
+    [status, user, logout, handleAuthError]
   );
 
   return (
     <AdminSessionContext.Provider value={value}>
-      {status === "authenticated" ? (
+      {status === "authenticated" && user?.mustChangePassword ? (
+        <PublicAdminFrame>
+          <ForcedPasswordChange
+            name={user.name ?? user.username ?? ""}
+            onChanged={async () => setUser(await getAdminSession())}
+            onLogout={() => void logout()}
+          />
+        </PublicAdminFrame>
+      ) : status === "authenticated" ? (
         children
       ) : (
         <PublicAdminFrame>
@@ -118,8 +150,8 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
           ) : (
             <AdminLoginForm
               notice={notice}
-              onLogin={(name) => {
-                setUsername(name);
+              onLogin={(session) => {
+                setUser(session);
                 setNotice(null);
                 setStatus("authenticated");
               }}
@@ -192,7 +224,28 @@ function PublicAdminFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AdminLoginForm({ notice, onLogin }: { notice: string | null; onLogin: (username: string) => void }) {
+/** Primeiro acesso com senha temporária (conta nova ou senha redefinida): troca obrigatória. */
+function ForcedPasswordChange({ name, onChanged, onLogout }: { name: string; onChanged: () => Promise<void>; onLogout: () => void }) {
+  return (
+    <section aria-labelledby="troca-titulo">
+      <h1 id="troca-titulo" className="text-2xl font-semibold tracking-tight text-slate-950">
+        Crie a sua senha
+      </h1>
+      <p className="mt-2 text-sm text-slate-600">
+        Olá, {name}. Você entrou com uma senha temporária. Para continuar, crie uma senha só sua: digite a temporária
+        em “Senha atual” e escolha a nova.
+      </p>
+      <div className="mt-8">
+        <PasswordChangeForm onChanged={onChanged} submitLabel="Salvar e entrar" />
+      </div>
+      <button type="button" onClick={onLogout} className="mt-6 inline-flex h-10 items-center text-sm font-medium text-slate-600 underline-offset-2 hover:underline">
+        Sair sem trocar
+      </button>
+    </section>
+  );
+}
+
+function AdminLoginForm({ notice, onLogin }: { notice: string | null; onLogin: (session: AdminAuthResponse) => void }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -212,8 +265,7 @@ function AdminLoginForm({ notice, onLogin }: { notice: string | null; onLogin: (
 
     try {
       await loginAdmin({ username: trimmedUsername, password });
-      const session = await getAdminSession();
-      onLogin(session.username ?? trimmedUsername);
+      onLogin(await getAdminSession());
     } catch (error) {
       setPassword("");
       setActionState({

@@ -102,12 +102,38 @@ model AdminAuditLog {
 // Sessões do admin: o cookie assinado guarda o id; o logout preenche revokedAt (S11).
 model AdminSession {
   id        String    @id @db.VarChar(64)
+  userId    Int?      @map("user_id")
   createdAt DateTime  @default(now()) @map("created_at")
   expiresAt DateTime  @map("expires_at")
   revokedAt DateTime? @map("revoked_at")
 
+  user      AdminUser? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([expiresAt])
+  @@index([userId])
   @@map("admin_sessions")
+}
+
+/// Contas da área administrativa (7.4). Papel "admin" faz tudo e gerencia usuários; "member" faz
+/// o que estiver em permissions (o administrador escolhe ao criar a conta).
+/// A senha é guardada só como hash scrypt. mustChangePassword: senha temporária a trocar no 1º acesso.
+model AdminUser {
+  id                 Int            @id @default(autoincrement())
+  username           String         @unique @db.VarChar(50)
+  name               String         @db.VarChar(100)
+  role               String         @default("member") @db.VarChar(20)
+  /// Permissões de quem é "member" (exportar, sincronizar, populacao, auditoria); "admin" tem todas.
+  permissions        String[]       @default([])
+  passwordHash       String         @map("password_hash")
+  mustChangePassword Boolean        @default(false) @map("must_change_password")
+  active             Boolean        @default(true)
+  lastLoginAt        DateTime?      @map("last_login_at")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  sessions           AdminSession[]
+
+  @@map("admin_users")
 }
 
 model RawImport {

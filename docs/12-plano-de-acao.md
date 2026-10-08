@@ -23,11 +23,10 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | Ordem | Itens | Prioridade | Por quê |
 |---|---|---|---|
 | ✅ | Fases 0, 1, 2, 2B, 2C (exceto A7), 3, 4; implantação (6.1–6.4, 6.7, 6.8) | Concluídas | Sistema publicado em `victorsilva0001.cloud.deploy.uespi.br/painel` |
-| **1º** | **7.4** Contas individuais no admin | **Alta (próxima)** | Cada pessoa do GT1 com login próprio; a auditoria passa a dizer quem fez o quê |
-| 2º | **7.3** Transparência e **7.5** ativar/desativar fontes | Média-alta | Telas novas da Fase 4B |
-| 3º | **6.5** Monitoramento e **6.6** alerta de falha | Média | O sistema está no ar sozinho; falha precisa ser percebida |
-| 4º | Fase 5 (**Q2**, Q3, O6, Q4, S7) | Baixa | Lint, CI, limpeza, cache, proteção extra |
-| 5º | **A7**, **7.1**, **7.6** | Baixa | Série mensal, teste com usuários, fontes novas |
+| **1º** | **7.3** Transparência e **7.5** ativar/desativar fontes | **Alta (próxima)** | Resto da Fase 4B |
+| 2º | **6.5** Monitoramento e **6.6** alerta de falha | Média | O sistema está no ar sozinho; falha precisa ser percebida |
+| 3º | Fase 5 (**Q2**, Q3, O6, Q4, S7) | Baixa | Lint, CI, limpeza, cache, proteção extra |
+| 4º | **A7**, **7.1**, **7.6** | Baixa | Série mensal, teste com usuários, fontes novas |
 
 ## Painel de progresso
 
@@ -40,11 +39,11 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 2C | Arboviroses e indicadores de saúde | 10 | 9 |
 | 3 | Operação confiável | 4 | 4 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 9 |
-| 4B | Telas novas | 3 | 0 |
+| 4B | Telas novas | 3 | 1 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 6 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **51** |
+| | **Total** | **64** | **52** |
 
 ---
 
@@ -265,7 +264,7 @@ Ordem sugerida: U8, U3, U2, U4, U5, D6 (rápidos, deixam o site público no nív
 
 ## Fase 4B: Telas novas (média)
 
-- [ ] **7.4** Mais de um administrador: contas individuais, tela de usuários no admin e **auditoria por pessoa** (completa o pedido de "saber quem fez o quê")
+- [x] **7.4** Contas individuais (08/10/2026, branch `feat/7.4-contas-individuais`): tabela `admin_users` (senha só como hash scrypt), tela **Usuários** (só administradores) e **Minha conta**; **permissões escolhidas pelo administrador** (baixar dados, sincronizar, enviar população, ver auditoria; administrador tem todas e gerencia usuários), conferidas no servidor; senha temporária com troca obrigatória no 1º acesso; desativar derruba as sessões; nunca sem administrador; **auditoria por pessoa**. A conta do `.env` vira o primeiro administrador no primeiro login. Recuperação: `admin-user.js nova-senha <usuario>`. Testes: 9 de backend (incluindo permissões no servidor) e 1 de navegador com o fluxo completo
 - [ ] **7.5** Ativar/desativar fontes pela área administrativa
 - [ ] **7.3** Transparência no site: última atualização em destaque, período disponível, link da fonte oficial, aviso de dados desatualizados
 

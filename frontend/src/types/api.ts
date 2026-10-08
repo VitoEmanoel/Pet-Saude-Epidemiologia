@@ -177,9 +177,36 @@ export type AdminSyncHistoryResponse = {
   syncJobs: AdminSyncJob[];
 };
 
+export type AdminRole = "admin" | "member";
+
+/** O que o administrador libera para cada pessoa da equipe (7.4). */
+export type AdminPermission = "exportar" | "sincronizar" | "populacao" | "auditoria";
+
 export type AdminAuthResponse = {
   authenticated: boolean;
-  username?: string;
+  username?: string | null;
+  name?: string | null;
+  role?: AdminRole | null;
+  permissions?: AdminPermission[];
+  mustChangePassword?: boolean;
+};
+
+/** Conta da área administrativa (7.4). */
+export type AdminUser = {
+  id: number;
+  username: string;
+  name: string;
+  role: AdminRole;
+  permissions: AdminPermission[];
+  active: boolean;
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+};
+
+export type AdminUserWithTemporaryPassword = {
+  user: AdminUser;
+  temporaryPassword: string;
 };
 
 export type AdminLoginPayload = {

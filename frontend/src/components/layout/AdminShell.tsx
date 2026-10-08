@@ -1,18 +1,21 @@
 "use client";
 
-import { Database, History, Home, LayoutDashboard, LogOut, ScrollText, UserRound, Users } from "lucide-react";
+import { Database, History, Home, KeyRound, LayoutDashboard, LogOut, ScrollText, UserCog, UserRound, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 import { AdminSessionProvider, useAdminSession } from "../admin/AdminSession";
 import { PetLogoMark } from "../ui/PetLogo";
 import { MenuButton, SideDrawer } from "./SideDrawer";
 
+// access: quem vê o item (7.4): todos, quem tem a permissão ou só administradores.
 export const ADMIN_PAGES = [
-  { href: "/admin", label: "Painel", icon: LayoutDashboard },
-  { href: "/admin/fontes", label: "Fontes", icon: Database },
-  { href: "/admin/populacao", label: "População", icon: Users },
-  { href: "/admin/sincronizacoes", label: "Sincronizações", icon: History },
-  { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText }
+  { href: "/admin", label: "Painel", icon: LayoutDashboard, access: "all" },
+  { href: "/admin/fontes", label: "Fontes", icon: Database, access: "all" },
+  { href: "/admin/populacao", label: "População", icon: Users, access: "populacao" },
+  { href: "/admin/sincronizacoes", label: "Sincronizações", icon: History, access: "all" },
+  { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText, access: "auditoria" },
+  { href: "/admin/usuarios", label: "Usuários", icon: UserCog, access: "admin" },
+  { href: "/admin/conta", label: "Minha conta", icon: KeyRound, access: "all" }
 ] as const;
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -26,7 +29,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 /** Cabeçalho e menu do admin; só aparece com sessão (sem sessão o provider mostra o login). */
 function AdminFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { username, logout } = useAdminSession();
+  const { user, isAdmin, can, logout } = useAdminSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
@@ -58,14 +61,22 @@ function AdminFrame({ children }: { children: React.ReactNode }) {
           </div>
         }
         items={[
-          ...ADMIN_PAGES.map((page) => ({ ...page, selected: page.href === currentPage.href })),
+          ...ADMIN_PAGES.filter((page) => page.access === "all" || (page.access === "admin" ? isAdmin : can(page.access))).map(({ access: _access, ...page }) => ({
+            ...page,
+            selected: page.href === currentPage.href
+          })),
           { href: "/", label: "Site público", icon: Home }
         ]}
         footer={
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs text-white/70">
-              <UserRound size={14} aria-hidden="true" />
-              Conectado como <span className="font-semibold text-white">{username ?? "admin"}</span>
+            <div className="flex items-start gap-2 text-xs text-white/70">
+              <UserRound size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <span>
+                Conectado como <span className="font-semibold text-white">{user?.name ?? user?.username ?? "admin"}</span>
+                <span className="block">
+                  {user?.username} · {isAdmin ? "administrador" : "equipe"}
+                </span>
+              </span>
             </div>
             <button
               type="button"
