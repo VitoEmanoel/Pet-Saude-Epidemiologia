@@ -51,9 +51,9 @@ Os achados S11–S18 da campanha de testes de segurança de 02/10/2026 ([14](14-
 ### S7. POST no admin sem `Origin` passa pela checagem de origem. **Baixa**
 - Mitigado pelo cookie `SameSite=Strict`. **Correção:** exigir `Origin`/`Referer` em métodos que alteram estado.
 
-### S10. Testes gravam na auditoria do banco real. **Baixa**
-- `npm run test:backend` insere logins falsos em `admin_audit_logs` do banco configurado.
-- **Correção:** banco de teste separado ou auditoria desligada nos testes.
+### S10. Testes gravam na auditoria do banco real. **Resolvido (08/10/2026)**
+- `npm run test:backend` inseria logins falsos em `admin_audit_logs` do banco configurado.
+- **Correção:** banco de teste separado (`pet_saude_test`), criado sozinho e com trava (só local, nome terminado em `_test`). Conferido: a auditoria do sistema não muda ao rodar os testes.
 
 **Limitação (não é defeito):** um único usuário administrador, sem cadastro; não há como saber qual pessoa fez cada ação.
 
@@ -74,8 +74,8 @@ Os achados S11–S18 da campanha de testes de segurança de 02/10/2026 ([14](14-
 
 ## Q. Qualidade de código e desempenho
 
-### Q1. Testes cobrem pouco. **Média**
-- Só 13 testes de rota/login. Sem testes do parser PRN, coletor e agregações (a parte mais crítica). Os HTMLs em `docs/evidencias/` servem de base.
+### Q1. Testes cobrem pouco. **Resolvido (08/10/2026)**
+- Faltavam testes do parser PRN, da normalização e das agregações. Agora: `tabnet-parsing.test.ts` (11) e `public-data.test.ts` (9). Conferidos quebrando o código de propósito (somar todas as visões; não reconhecer "80 e +"): os testes certos falham. Acharam e corrigiram um defeito: acentos em hexadecimal maiúsculo (`&#xE7;`) não eram decodificados.
 
 ### Q2. Sem lint, formatação padrão e CI. **Baixa**
 

@@ -22,13 +22,12 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 
 | Ordem | Itens | Prioridade | Por quê |
 |---|---|---|---|
-| ✅ | Fases 0, 1, 2, 2B, 2C (exceto A7), 4; implantação (6.1–6.4, 6.7, 6.8); O2; O3 + O4 | Concluídas | Sistema publicado em `victorsilva0001.cloud.deploy.uespi.br/painel` |
+| ✅ | Fases 0, 1, 2, 2B, 2C (exceto A7), 3, 4; implantação (6.1–6.4, 6.7, 6.8) | Concluídas | Sistema publicado em `victorsilva0001.cloud.deploy.uespi.br/painel` |
 | **1º** | **7.4** Contas individuais no admin | **Alta (próxima)** | Cada pessoa do GT1 com login próprio; a auditoria passa a dizer quem fez o quê |
 | 2º | **7.3** Transparência e **7.5** ativar/desativar fontes | Média-alta | Telas novas da Fase 4B |
 | 3º | **6.5** Monitoramento e **6.6** alerta de falha | Média | O sistema está no ar sozinho; falha precisa ser percebida |
-| 4º | **Q1**, **S10** Testes do núcleo e isolados do banco real | Média | Resto da Fase 3 |
-| 5º | Fase 5 (**Q2**, Q3, O6, Q4, S7) | Baixa | Lint, CI, limpeza, cache, proteção extra |
-| 6º | **A7**, **7.1**, **7.6** | Baixa | Série mensal, teste com usuários, fontes novas |
+| 4º | Fase 5 (**Q2**, Q3, O6, Q4, S7) | Baixa | Lint, CI, limpeza, cache, proteção extra |
+| 5º | **A7**, **7.1**, **7.6** | Baixa | Série mensal, teste com usuários, fontes novas |
 
 ## Painel de progresso
 
@@ -39,13 +38,13 @@ Lista de tudo que precisa ser feito, **do mais urgente para o menos urgente**. O
 | 2 | Segurança mínima para publicar | 7 | 7 |
 | 2B | Achados dos testes de segurança | 8 | 8 |
 | 2C | Arboviroses e indicadores de saúde | 10 | 9 |
-| 3 | Operação confiável | 4 | 2 |
+| 3 | Operação confiável | 4 | 4 |
 | 4 | Ajustes visuais e acessibilidade | 9 | 9 |
 | 4B | Telas novas | 3 | 0 |
 | 5 | Qualidade de código | 5 | 0 |
 | 6 | Implantação em produção | 8 | 6 |
 | 7 | Evolução do produto | 2 | 0 |
-| | **Total** | **64** | **49** |
+| | **Total** | **64** | **51** |
 
 ---
 
@@ -234,11 +233,12 @@ Pedido do GT1 - Vigilância Epidemiológica, a partir de [INDICADORES DE SAÚDE 
   - [x] Coleta em duas fases: baixa tudo do TABNET e só então troca os dados da fonte numa única transação (registros, contagens por classificação e rastro das consultas)
   - [x] Testes de resiliência (9/9): falha no meio mantém os dados **intactos** (conferido pelo conteúdo, não só pela quantidade); duas sincronizações em processos diferentes (API + linha de comando): uma roda, a outra é recusada; trava de processo morto vence. Com o código antigo, os mesmos testes reproduzem os dois defeitos (dados alterados; 12 de 135 registros)
 - O5 e D5 subiram para a Fase 2C.
-- [ ] **Q1** Testes do núcleo do sistema
-  - [ ] Testes do parser PRN com os HTMLs de `docs/evidencias/`
-  - [ ] Testes de normalização (sexo, faixa etária, raça/cor, números)
-  - [ ] Testes das agregações (`public-data.service.ts`)
-- [ ] **S10** Testes isolados do banco real (banco de teste ou auditoria desligada em teste)
+- [x] **Q1** Testes do núcleo do sistema (08/10/2026, branch `test/s10-q1-testes-do-nucleo`)
+  - [x] Parser PRN com as respostas reais de `docs/evidencias/` (dengue 2014–2026 = 5.328; tuberculose 2024 = 86) e casos sintéticos (acentos do HTML, aspas, linhas `&`, sem `<PRE>`)
+  - [x] Normalização (sexo, faixa etária, raça/cor, números com ponto de milhar e vírgula, "-" = 0, linha e coluna Total fora, chaves estáveis) e classificação final
+  - [x] Agregações (`public-data.test.ts`, banco de teste): evolução anual sem misturar visões, filtros, gráficos que somam o mesmo total, ordem das faixas, resumo, paginação, visão geral
+  - [x] Conferidos quebrando o código de propósito: os testes certos falham. Defeito achado e corrigido: `&#xE7;` (hexadecimal maiúsculo) não era decodificado
+- [x] **S10** Testes isolados do banco real (08/10/2026): banco `pet_saude_test` criado sozinho por `backend/scripts/run-tests.mjs`, que recusa banco que não seja local ou não termine em `_test`. Conferido: a auditoria do sistema (3.577 linhas) não mudou ao rodar os testes
 
 ---
 

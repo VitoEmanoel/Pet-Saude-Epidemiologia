@@ -511,6 +511,25 @@ function buildRequestParams(
   };
 }
 
+/**
+ * Lê a resposta de uma consulta (ano; ano × sexo; ano × faixa etária; ano × raça/cor) do jeito
+ * que o coletor grava. Usado pelos testes do núcleo (Q1) com respostas reais do TABNET.
+ */
+export function parseSinanQuery(
+  sourceSlug: string,
+  aggregationType: QueryDefinition["aggregationType"],
+  html: string
+): NormalizedRecord[] {
+  const config = collectorConfigs[sourceSlug];
+  const queryDefinition = config && buildQueryDefinitions(config).find((query) => query.aggregationType === aggregationType);
+
+  if (!config || !queryDefinition) {
+    throw new Error(`Consulta inexistente: ${sourceSlug} / ${aggregationType}.`);
+  }
+
+  return parseSinanRecords(config, queryDefinition, html);
+}
+
 function parseSinanRecords(
   config: SinanTabnetCollectorConfig,
   queryDefinition: QueryDefinition,

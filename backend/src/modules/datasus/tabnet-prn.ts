@@ -32,8 +32,9 @@ const HTML_ENTITIES: Record<string, string> = {
 };
 
 export function decodeHtmlEntities(value: string): string {
-  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-zA-Z]+);/g, (match, entity: string) => {
-    if (entity.startsWith("#x")) {
+  // Hexadecimal com letra maiúscula ou minúscula (&#xE7; e &#xe7; são "ç").
+  return value.replace(/&(#[xX][0-9a-fA-F]+|#\d+|[a-zA-Z]+);/g, (match, entity: string) => {
+    if (entity.startsWith("#x") || entity.startsWith("#X")) {
       return String.fromCodePoint(Number.parseInt(entity.slice(2), 16));
     }
 

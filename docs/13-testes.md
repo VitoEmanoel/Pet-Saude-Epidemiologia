@@ -4,7 +4,7 @@ O projeto tem dois conjuntos de testes:
 
 | Conjunto | Onde | Precisa do sistema no ar? | Para quê |
 |---|---|---|---|
-| Testes do backend | `backend/src/routes/public-api.test.ts` | Não (sobe a API em memória, mas usa o banco do `DATABASE_URL`) | Rotas, validação, login |
+| Testes do backend | `backend/src/**/*.test.ts` | Não (sobe a API em memória; usa o **banco de teste** `pet_saude_test`, criado sozinho) | Rotas, validação, login, leitura do TABNET, normalização, somas do site, planilha de população, indicadores |
 | Suíte de QA | `tests/` | **Sim** (`npm run start` + dados sincronizados) | Funcional, integração, regressão, segurança, interface, acessibilidade, carga, resiliência |
 
 A suíte de QA fica **fora dos workspaces** do npm (tem o próprio `tests/package.json`) e fora das imagens Docker (`.dockerignore`), para não pesar no build.
@@ -21,7 +21,7 @@ Credenciais e URLs são lidas do `.env` da raiz. Para apontar para outro ambient
 
 | Comando | O que testa | Duração |
 |---|---|---|
-| `npm run test:backend` | Testes do backend (34, incluindo `period-files`, `population` e `indicators`) | segundos |
+| `npm run test:backend` | Testes do backend (58). Rodam no banco **`pet_saude_test`** (S10): o `backend/scripts/run-tests.mjs` cria/atualiza esse banco (migrations + fontes) e se recusa a rodar se ele não for local ou não terminar em `_test`. Incluem o núcleo (Q1): `tabnet-parsing` (respostas reais de `docs/evidencias/` e casos difíceis de rótulos e números) e `public-data` (somas do site com dados controlados) | ~15 s |
 | `npm run test:e2e` | API: funcional, integração, regressão, validação, admin; segurança: sessão, login, CSRF/CORS, injeção, XSS, exposição, cabeçalhos | ~2 s |
 | `npm run test:ui` | Interface no Chromium: 8 páginas × desktop/celular, gráficos, mapa, bloqueios da CSP, acessibilidade (axe), filtros, paginação, menu, tema, fluxo do admin, API fora do ar | ~1 min |
 | `QA_BROWSER=firefox npm run test:ui` | O mesmo no Firefox | ~1 min |
@@ -69,7 +69,7 @@ cd tests && node --test --test-concurrency=1 --test-reporter=tap e2e/*.test.mjs 
 
 | Suíte | Passam | Falham | Pulados | `todo` |
 |---|---|---|---|---|
-| `test:backend` | 34 | 0 | 0 | 0 |
+| `test:backend` | 58 | 0 | 0 | 0 |
 | `test:e2e` | 102 | 0 | 3 (TABNET ×2, bloqueio) | 1 |
 | `test:e2e` com `QA_TABNET=1` | +2 | 0 | | |
 | `test:ui` (Chromium, Firefox, WebKit) | 68 | 0 | 0 | 0 |
@@ -83,6 +83,6 @@ Carga (16 núcleos, fim da Fase 2B, Node 24): `/health` ~12.800 req/s; resumo de
 - Os testes `S3` (containers sem root) usam `docker compose exec` na pasta do projeto; se o Docker não estiver acessível (ex.: testando um servidor remoto), eles são pulados.
 - **Esperas nos testes de interface:** as páginas abrem com `domcontentloaded` e a função `settle` espera a rede no máximo 10 s; a navegação do menu espera só a troca de endereço (`commit`). Esperar o evento "load" ou "rede ociosa" sem limite fazia testes aleatórios estourarem 30 s no Firefox, porque o mapa depende do OpenStreetMap (externo). Mesmo assim, o Firefox automatizado às vezes trava a abertura de uma página em rodadas longas (o servidor responde em ~2 ms e o teste isolado passa): `openPage` tenta abrir de novo, uma vez, numa sessão nova se a página não abrir em 15 s, e o Firefox dos testes usa só IPv4 (`localhost` resolve primeiro para `::1`, e o Docker publica só em IPv4). Resultado: Firefox 68/0 em 3 rodadas seguidas.
 - A suíte e2e faz **no máximo 4 logins errados** e termina com um login correto (5 errados trancariam o admin). Mantenha essa regra ao criar testes.
-- `npm run test:backend` grava logins de teste na auditoria do banco configurado (item S10). Nunca rode contra produção.
+- `npm run test:backend` usa só o banco de teste `pet_saude_test` (S10, 08/10/2026): a auditoria e os dados do sistema não são tocados. Os testes de agregação apagam e recriam registros **apenas** nesse banco (conferem o nome antes).
 - Nenhum teste de interface clica em "Sincronizar"; só a suíte e2e com `QA_TABNET=1` dispara coleta.
 - Ao criar um teste novo de defeito, use `todo` com o código do item do plano.
